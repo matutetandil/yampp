@@ -1,0 +1,320 @@
+/*
+ * File Watching Example for Yam++ Task Runner
+ * 
+ * This example demonstrates the new `watches` keyword that allows tasks
+ * to depend on file modification times, similar to make.
+ * 
+ * Features demonstrated:
+ * - Single file watching
+ * - Multiple file watching
+ * - Glob pattern watching
+ * - Mixed dependencies and file watching
+ * - Real-world build scenarios
+ */
+
+// Global configuration
+const PROJECT_NAME = "file-watch-demo"
+const SRC_DIR = "src"
+const BUILD_DIR = "dist"
+
+/*
+ * TypeScript compilation - watches source files
+ * Only rebuilds if .ts files are newer than the cache
+ */
+compile_ts watches "src/**/*.ts" "tsconfig.json" {
+    echo "Compiling TypeScript files..."
+    echo "Watching: src/**/*.ts and tsconfig.json"
+    tsc --project tsconfig.json
+    echo "TypeScript compilation complete"
+}
+
+/*
+ * CSS bundling - watches stylesheets and config
+ */
+bundle_css watches "src/**/*.css" "src/**/*.scss" "postcss.config.js" {
+    echo "Bundling CSS files..."
+    echo "Input files newer than cache, rebuilding..."
+    postcss src/styles/main.css -o dist/main.css
+    echo "CSS bundling complete"
+}
+
+/*
+ * JavaScript bundling - depends on TypeScript compilation
+ * and watches additional config files
+ */
+bundle_js needs compile_ts watches "webpack.config.js" "package.json" {
+    echo "Bundling JavaScript..."
+    echo "Checking webpack config and package.json..."
+    webpack --mode production
+    echo "JavaScript bundling complete"
+}
+
+/*
+ * Build task - combines all compilation steps
+ * Watches package.json for dependency changes
+ */
+build watches "package.json" {
+    echo "=== Starting Build Process ==="
+    echo "Project: $PROJECT_NAME"
+    
+    _call compile_ts
+    _call bundle_css
+    _call bundle_js
+    
+    echo "=== Build Complete ==="
+}
+
+/*
+ * Docker image build - watches Dockerfile and source
+ * Only rebuilds image if files changed
+ */
+docker_build needs build watches "Dockerfile" "docker-compose.yml" ".dockerignore" {
+    var image_tag = "$PROJECT_NAME:latest"
+    
+    echo "Building Docker image: $image_tag"
+    echo "Dockerfile or config changed, rebuilding..."
+    
+    docker build -t $image_tag .
+    echo "Docker image built successfully"
+}
+
+/*
+ * Configuration validation - watches config files
+ */
+validate_config watches "*.json" "*.yaml" "*.yml" ".env*" {
+    echo "Validating configuration files..."
+    
+    // Check JSON files
+    for file in *.json; do
+        if [ -f "$file" ]; then
+            echo "Validating JSON: $file"
+            json_pp < "$file" > /dev/null || echo "Invalid JSON: $file"
+        fi
+    done
+    
+    // Check YAML files  
+    for file in *.yaml *.yml; do
+        if [ -f "$file" ]; then
+            echo "Validating YAML: $file"
+            # yamllint "$file" 2>/dev/null || echo "YAML validation available with yamllint"
+        fi
+    done
+    
+    echo "Configuration validation complete"
+}
+
+/*
+ * Tests - watch source and test files
+ * Runs tests only if source or test files changed
+ */
+test watches "src/**/*.ts" "test/**/*.ts" "jest.config.js" {
+    echo "Running tests..."
+    echo "Source or test files changed since last run"
+    
+    jest --coverage --passWithNoTests
+    echo "Tests completed"
+}
+
+/*
+ * Integration tests - depends on build and watches specific files
+ */
+integration_test needs build watches "test/integration/**/*" "test/fixtures/**/*" {
+    echo "Running integration tests..."
+    echo "Integration test files or fixtures changed"
+    
+    // Run integration test suite
+    npm run test:integration
+    echo "Integration tests completed"
+}
+
+/*
+ * Documentation generation - watches source files and docs
+ */
+generate_docs watches "src/**/*.ts" "docs/**/*.md" "typedoc.json" {
+    echo "Generating documentation..."
+    echo "Source files or doc config changed"
+    
+    // Generate TypeScript documentation
+    typedoc src/index.ts --out docs/api
+    
+    // Generate README if needed
+    if [ ! -f "README.md" ]; then
+        echo "# $PROJECT_NAME" > README.md
+        echo "Generated documentation available in docs/" >> README.md
+    fi
+    
+    echo "Documentation generation complete"
+}
+
+/*
+ * Deployment preparation - comprehensive file watching
+ */
+prepare_deploy needs build test watches "k8s/**/*.yaml" "deploy/**/*" "Dockerfile" {
+    const DEPLOY_TIMESTAMP = "$(date +%Y%m%d_%H%M%S)"
+    
+    echo "Preparing deployment $DEPLOY_TIMESTAMP..."
+    echo "Build, tests, or deployment configs changed"
+    
+    // Validate Kubernetes configs
+    for file in k8s/*.yaml; do
+        if [ -f "$file" ]; then
+            echo "Validating K8s config: $file"
+            kubectl apply --dry-run=client -f "$file" || echo "Invalid K8s config: $file"
+        fi
+    done
+    
+    echo "Deployment preparation complete"
+}
+
+/*
+ * Development server - watches source files for hot reload
+ * Always runs (no cache) but checks files for restart decision
+ */
+always: dev_server watches "src/**/*" "*.config.js" {
+    echo "Starting development server..."
+    echo "Watching for file changes..."
+    
+    // This would typically start a dev server with hot reload
+    echo "Dev server would start here with file watching"
+    echo "Files being watched:"
+    echo "  - src/**/*"
+    echo "  - *.config.js"
+    
+    // Simulate dev server
+    echo "Development server ready at http://localhost:3000"
+}
+
+/*
+ * Linting - watches source files and lint config
+ */
+lint watches "src/**/*.ts" "src/**/*.js" ".eslintrc.json" ".eslintignore" {
+    echo "Running linter..."
+    echo "Source files or lint config changed"
+    
+    eslint src/ --ext .ts,.js --fix
+    prettier --write "src/**/*.{ts,js,json}"
+    
+    echo "Linting complete"
+}
+
+/*
+ * Security audit - watches package files
+ * Important to re-run when dependencies change
+ */
+security_audit watches "package.json" "package-lock.json" "yarn.lock" {
+    echo "Running security audit..."
+    echo "Package files changed, checking for vulnerabilities..."
+    
+    npm audit --audit-level moderate
+    
+    // Additional security checks
+    echo "Checking for known vulnerability patterns..."
+    echo "Security audit complete"
+}
+
+/*
+ * Asset optimization - watches images and assets
+ */
+optimize_assets watches "assets/**/*.png" "assets/**/*.jpg" "assets/**/*.svg" {
+    echo "Optimizing assets..."
+    echo "Image files changed, re-optimizing..."
+    
+    // Optimize images
+    for file in assets/**/*.{png,jpg}; do
+        if [ -f "$file" ]; then
+            echo "Optimizing: $file"
+            # imagemin "$file" --out-dir="$BUILD_DIR/assets/"
+        fi
+    done
+    
+    // Optimize SVGs
+    for file in assets/**/*.svg; do
+        if [ -f "$file" ]; then
+            echo "Optimizing SVG: $file"
+            # svgo "$file" --output="$BUILD_DIR/assets/"
+        fi
+    done
+    
+    echo "Asset optimization complete"
+}
+
+/*
+ * Database migrations - watches migration files
+ * Critical to run when new migrations are added
+ */
+run_migrations watches "migrations/*.sql" "db/schema.sql" {
+    echo "Checking for new database migrations..."
+    echo "Migration files changed, applying updates..."
+    
+    // Apply pending migrations
+    for migration in migrations/*.sql; do
+        if [ -f "$migration" ]; then
+            echo "Applying migration: $migration"
+            # psql -d mydb -f "$migration"
+        fi
+    done
+    
+    echo "Database migrations complete"
+}
+
+/*
+ * Complete CI pipeline - orchestrates all checks
+ * Watches key files that should trigger full rebuild
+ */
+serial: ci watches "package.json" ".github/workflows/*.yml" {
+    echo "=== Continuous Integration Pipeline ==="
+    echo "Key configuration files changed, running full CI..."
+    
+    _call validate_config
+    _call lint  
+    _call compile_ts
+    _call test
+    _call security_audit
+    _call build
+    _call integration_test
+    
+    echo "=== CI Pipeline Complete ==="
+}
+
+/*
+ * Production deployment - depends on CI and watches deployment configs
+ */
+critical: deploy_prod needs ci watches "k8s/prod/*.yaml" "deploy/prod/*" {
+    const DEPLOY_ID = "prod-$(date +%Y%m%d_%H%M%S)"
+    
+    echo "=== Production Deployment $DEPLOY_ID ==="
+    echo "CI passed and deployment configs are current"
+    
+    _call docker_build
+    _call prepare_deploy
+    
+    echo "Deploying to production..."
+    kubectl apply -f k8s/prod/
+    
+    echo "=== Production Deployment $DEPLOY_ID Complete ==="
+}
+
+/*
+ * Cleanup task - removes build artifacts
+ * Doesn't watch files (always runs when called)
+ */
+always: clean {
+    echo "Cleaning build artifacts..."
+    
+    rm -rf $BUILD_DIR/
+    rm -rf node_modules/.cache/
+    rm -rf .taskrunner/
+    
+    echo "Cleanup complete"
+}
+
+/*
+ * Example showing environment-specific watching
+ */
+deploy_staging(config_env) watches "k8s/$config_env/*.yaml" "deploy/$config_env/*" {
+    echo "Deploying to staging environment: $config_env"
+    echo "Environment-specific configs changed"
+    
+    kubectl apply -f k8s/$config_env/ --namespace=staging
+    echo "Staging deployment complete"
+}

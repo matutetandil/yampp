@@ -1,0 +1,277 @@
+/*
+ * Yam++ Variables and Constants Example
+ * 
+ * This example demonstrates:
+ * - Global constants and variables
+ * - Local variables and constants within tasks
+ * - Variable scoping rules
+ * - Internal task calls using _call
+ * - Variable assignments and substitution
+ */
+
+// Global constants (immutable)
+const PROJECT_NAME = "awesome-app"
+const VERSION = "1.2.0"
+const DOCKER_REGISTRY = "registry.example.com"
+
+// Global variables (mutable)
+var BUILD_ENV = "development"
+var LOG_LEVEL = "info"
+var TEMP_DIR = "/tmp/build"
+
+/*
+ * Basic build task that uses global constants
+ */
+build {
+    echo "Building $PROJECT_NAME version $VERSION"
+    echo "Environment: $BUILD_ENV"
+    mkdir -p $TEMP_DIR
+    echo "Build artifacts stored in $TEMP_DIR"
+}
+
+/*
+ * Docker task with local variables and constants
+ */
+docker_build(tag) {
+    const DOCKERFILE_PATH = "docker/Dockerfile"
+    var image_name = "$PROJECT_NAME:$tag"
+    
+    echo "Building Docker image: $image_name"
+    echo "Using Dockerfile: $DOCKERFILE_PATH"
+    
+    // Simulate conditional logic with variable assignment
+    if [ "$BUILD_ENV" = "production" ]; then
+        image_name = "$DOCKER_REGISTRY/$PROJECT_NAME:$tag"
+    fi
+    
+    echo "Final image name: $image_name"
+    docker build -f $DOCKERFILE_PATH -t $image_name .
+}
+
+/*
+ * Complex deployment task showing variable scoping
+ */
+deploy(environment) {
+    const DEPLOY_TIMESTAMP = "$(date +%Y%m%d_%H%M%S)"
+    var config_file = "config/dev.json"
+    var replicas = "1"
+    
+    echo "Deploying to environment: $environment"
+    echo "Deployment timestamp: $DEPLOY_TIMESTAMP"
+    
+    // Override variables based on environment
+    if [ "$environment" = "production" ]; then
+        config_file = "config/prod.json"
+        replicas = "3"
+    elif [ "$environment" = "staging" ]; then
+        config_file = "config/staging.json" 
+        replicas = "2"
+    fi
+    
+    echo "Using config: $config_file"
+    echo "Replicas: $replicas"
+    
+    // Call other tasks internally
+    _call docker_build($VERSION)
+    _call apply_config($config_file, $replicas)
+    _call health_check($environment)
+}
+
+/*
+ * Configuration application task
+ */
+apply_config(config_path, replica_count) {
+    const KUBECTL_TIMEOUT = "300s"
+    
+    echo "Applying configuration from: $config_path"
+    echo "Setting replicas to: $replica_count"
+    echo "Kubectl timeout: $KUBECTL_TIMEOUT"
+    
+    // Simulate kubectl operations
+    echo "kubectl apply -f $config_path --timeout=$KUBECTL_TIMEOUT"
+    echo "kubectl scale deployment $PROJECT_NAME --replicas=$replica_count"
+}
+
+/*
+ * Health check task with retry logic
+ */
+health_check(env) {
+    const MAX_RETRIES = "5"
+    const HEALTH_ENDPOINT = "https://$PROJECT_NAME-$env.example.com/health"
+    var retry_count = "0"
+    
+    echo "Performing health check on: $HEALTH_ENDPOINT"
+    echo "Maximum retries: $MAX_RETRIES"
+    
+    // Simulate health check with retries
+    while [ "$retry_count" -lt "$MAX_RETRIES" ]; do
+        echo "Health check attempt $retry_count..."
+        // curl -f $HEALTH_ENDPOINT && break
+        echo "Health check succeeded!"
+        break
+        // retry_count = $((retry_count + 1))
+    done
+}
+
+/*
+ * Database backup task with variable parameters
+ */
+db_backup(database_name) {
+    const BACKUP_DIR = "/backups"
+    const TIMESTAMP = "$(date +%Y%m%d_%H%M%S)"
+    var backup_file = "$BACKUP_DIR/$database_name-$TIMESTAMP.sql"
+    
+    echo "Backing up database: $database_name"
+    echo "Backup file: $backup_file"
+    
+    mkdir -p $BACKUP_DIR
+    pg_dump $database_name > $backup_file
+    
+    // Compress backup
+    gzip $backup_file
+    backup_file = "$backup_file.gz"
+    
+    echo "Compressed backup created: $backup_file"
+}
+
+/*
+ * Full CI/CD pipeline demonstrating complex variable usage
+ */
+always serial: full_pipeline(target_env) needs build {
+    const PIPELINE_ID = "$(uuidgen)"
+    var notification_channel = "general"
+    var deploy_strategy = "rolling"
+    
+    echo "=== Starting Full Pipeline ==="
+    echo "Pipeline ID: $PIPELINE_ID"
+    echo "Target Environment: $target_env"
+    echo "Project: $PROJECT_NAME v$VERSION"
+    
+    // Set environment-specific variables
+    if [ "$target_env" = "production" ]; then
+        notification_channel = "production-alerts"
+        deploy_strategy = "blue-green"
+    fi
+    
+    echo "Notification channel: $notification_channel"
+    echo "Deploy strategy: $deploy_strategy"
+    
+    // Execute pipeline steps
+    _call run_tests($target_env)
+    _call security_scan($PROJECT_NAME)
+    _call deploy($target_env)
+    _call db_backup("$PROJECT_NAME-$target_env")
+    _call notify($notification_channel, $PIPELINE_ID)
+    
+    echo "=== Pipeline Complete ==="
+    echo "Pipeline ID $PIPELINE_ID finished successfully"
+}
+
+/*
+ * Test runner with environment-specific configurations
+ */
+run_tests(test_env) {
+    const TEST_TIMEOUT = "600s"
+    var test_config = "test/config/default.json"
+    var parallel_jobs = "4"
+    
+    // Environment-specific test configuration
+    if [ "$test_env" = "production" ]; then
+        test_config = "test/config/e2e.json"
+        parallel_jobs = "2"
+    fi
+    
+    echo "Running tests for environment: $test_env"
+    echo "Test configuration: $test_config"
+    echo "Parallel jobs: $parallel_jobs"
+    echo "Timeout: $TEST_TIMEOUT"
+    
+    npm test -- --config=$test_config --jobs=$parallel_jobs --timeout=$TEST_TIMEOUT
+}
+
+/*
+ * Security scanning task
+ */
+security_scan(project) {
+    const SCAN_TIMEOUT = "900s"
+    const REPORT_DIR = "security-reports"
+    var report_file = "$REPORT_DIR/$project-security-$(date +%Y%m%d).json"
+    
+    echo "Performing security scan for: $project"
+    mkdir -p $REPORT_DIR
+    
+    // Simulate security scanning
+    echo "Running vulnerability scan..."
+    echo "Generating report: $report_file"
+    echo '{"status": "passed", "vulnerabilities": 0}' > $report_file
+    
+    echo "Security scan completed successfully"
+}
+
+/*
+ * Notification task
+ */
+notify(channel, message_id) {
+    const WEBHOOK_URL = "https://hooks.slack.com/webhook"
+    var message = "Deployment completed successfully"
+    
+    if [ ! -z "$message_id" ]; then
+        message = "Pipeline $message_id completed successfully"
+    fi
+    
+    echo "Sending notification to channel: $channel"
+    echo "Message: $message"
+    
+    // Simulate webhook call
+    # curl -X POST "$WEBHOOK_URL" -d "{\"channel\": \"$channel\", \"text\": \"$message\"}"
+    echo "Notification sent successfully"
+}
+
+/*
+ * Cleanup task demonstrating global variable usage
+ */
+always: cleanup {
+    echo "Cleaning up temporary files..."
+    echo "Temp directory: $TEMP_DIR"
+    
+    rm -rf $TEMP_DIR/*
+    docker system prune -f
+    
+    echo "Cleanup completed"
+}
+
+/*
+ * Environment setup task
+ */
+setup_env(env_name) {
+    var env_file = ".env.$env_name"
+    const DEFAULT_ENV = ".env.example"
+    
+    echo "Setting up environment: $env_name"
+    
+    if [ ! -f "$env_file" ]; then
+        echo "Environment file not found, copying from default"
+        cp $DEFAULT_ENV $env_file
+    fi
+    
+    echo "Environment file ready: $env_file"
+    
+    // Call configuration validation
+    _call validate_config($env_file)
+}
+
+/*
+ * Configuration validation task
+ */
+validate_config(config_file) {
+    const REQUIRED_VARS = "DATABASE_URL API_KEY SECRET_KEY"
+    
+    echo "Validating configuration file: $config_file"
+    
+    for var in $REQUIRED_VARS; do
+        echo "Checking for required variable: $var"
+        # grep -q "^$var=" "$config_file" || echo "WARNING: $var not found"
+    done
+    
+    echo "Configuration validation completed"
+}

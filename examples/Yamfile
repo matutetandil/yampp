@@ -1,0 +1,235 @@
+/*
+ * Example Yamfile for Yam++ Task Runner
+ * 
+ * This file demonstrates the DSL syntax and various task configurations 
+ * including parameterized tasks, dependency management, different
+ * comment styles, variables, constants, and internal task calls.
+ * 
+ * Author: Matias Denda <matutetandil@gmail.com>
+ * Version: 0.4.0
+ */
+
+// Global constants and variables
+const PROJECT = "example-project"
+const VERSION = "1.0.0"
+var BUILD_MODE = "release"
+var TARGET_ARCH = "x86_64"
+
+// Build task that watches source files
+build watches "src/**/*.rs" "Cargo.toml" "Cargo.lock" {
+    echo "Building $PROJECT version $VERSION..."
+    echo "Build mode: $BUILD_MODE"
+    echo "Target architecture: $TARGET_ARCH"
+    echo "Source files or dependencies changed, rebuilding..."
+    cargo build --release --target=$TARGET_ARCH
+    echo "Build complete!"
+}
+
+// Parameterized deploy task that accepts environment
+deploy(env) {
+    echo "Deploying to environment: $env"
+    kubectl config use-context $env
+    kubectl apply -f k8s/deployment-$env.yaml
+    echo "Deployed to $env successfully!"
+}
+
+// Docker build task with tag parameter
+docker_build(tag) {
+    echo "Building Docker image with tag: $tag"
+    docker build -t myapp:$tag .
+    docker push myapp:$tag
+}
+
+// Test runner with test type parameter
+run_tests(test_type) {
+    echo "Running $test_type tests..."
+    cargo test --test $test_type
+}
+
+// Notification task
+notify(channel) {
+    echo "Sending notification to $channel"
+    curl -X POST "https://hooks.slack.com/webhook" -d "Deployment completed"
+}
+
+/* 
+ * Lint task that depends on build
+ * Runs cargo clippy with strict warnings
+ */
+lint needs build {
+    echo "Running linter..."
+    cargo clippy -- -D warnings
+}
+
+// Test task that watches test files and source
+test needs build watches "tests/**/*.rs" "src/**/*.rs" {
+    echo "Running tests..."
+    echo "Test files or source code changed since last run"
+    cargo test --all
+}
+
+// Format task - always runs regardless of .done state
+always: format {
+    echo "Formatting code..."
+    cargo fmt --all
+}
+
+// Clean task - always runs and removes build artifacts
+always: clean {
+    echo "Cleaning build artifacts..."
+    rm -rf target/
+    rm -rf .taskrunner/
+}
+
+// Deploy task - runs serially and depends on build and test
+serial: deploy needs build test {
+    echo "Deploying application..."
+    // Simulate deployment steps
+    echo "Step 1: Building Docker image..."
+    sleep 1
+    echo "Step 2: Pushing to registry..."
+    sleep 1
+    echo "Step 3: Updating Kubernetes deployment..."
+    kubectl apply -f k8s/deployment.yaml || echo "kubectl not installed - skipping"
+    echo "Deployment complete!"
+}
+
+/*
+ * Critical database migration task
+ * 
+ * This task is marked as critical, which means if it fails,
+ * the entire execution will be aborted immediately.
+ */
+critical: migrate {
+    echo "Running database migrations..."
+    // Critical tasks will abort execution if they fail
+    echo "Applying migration 001..."
+    echo "Applying migration 002..."
+    echo "Migrations complete!"
+}
+
+// Documentation generation
+docs needs build {
+    echo "Generating documentation..."
+    cargo doc --no-deps
+    echo "Documentation generated in target/doc/"
+}
+
+// Benchmark task with multiple dependencies
+benchmark needs build test {
+    echo "Running benchmarks..."
+    cargo bench || echo "No benchmarks configured"
+}
+
+// Integration test suite - runs serially to avoid conflicts
+serial: integration_test needs build {
+    echo "Running integration tests..."
+    echo "Test 1: API endpoints..." && sleep 0.5
+    echo "Test 2: Database connections..." && sleep 0.5
+    echo "Test 3: External services..." && sleep 0.5
+    echo "Integration tests passed!"
+}
+
+// Combined CI pipeline task
+always serial: ci needs format lint test integration_test {
+    echo "==================================="
+    echo "    CI Pipeline Complete!          "
+    echo "==================================="
+    echo "All checks passed successfully!"
+}
+
+// Full deployment pipeline with environment parameter and internal calls
+serial critical: full_deploy(env) needs build run_tests(unit) {
+    const DEPLOY_TIMESTAMP = "$(date +%Y%m%d_%H%M%S)"
+    var image_tag = "$VERSION-$DEPLOY_TIMESTAMP"
+    
+    echo "Starting full deployment to $env"
+    echo "Using image tag: $image_tag"
+    
+    // Call tasks internally instead of using dependencies  
+    _call docker_build($image_tag)
+    _call deploy($env)
+    _call notify(deployment-complete)
+    
+    echo "Full deployment to $env completed!"
+    echo "Image: $PROJECT:$image_tag deployed to $env"
+}
+
+/*
+ * Database operation with multiple parameters
+ * 
+ * Supports different operations:
+ * - backup: Creates a timestamped SQL dump
+ * - restore: Restores from the latest backup
+ * 
+ * Usage examples:
+ *   yampp db_operation:backup:mydb
+ *   yampp db_operation:restore:mydb
+ */
+db_operation(operation, database) {
+    echo "Performing $operation on database: $database"
+    case $operation in
+        "backup")
+            pg_dump $database > backup-$database-$(date +%Y%m%d).sql
+            ;;
+        "restore")
+            psql $database < backup-$database-latest.sql
+            ;;
+        *)
+            echo "Unknown operation: $operation"
+            exit 1
+            ;;
+    esac
+}
+
+// Task that passes parameters to dependencies (mixed literal + variable)
+prepare_and_deploy(target_env, image_tag) needs docker_build($image_tag) deploy($target_env) {
+    echo "Preparation complete for $target_env with image $image_tag"
+}
+
+/*
+ * Example showing literal vs variable parameters clearly
+ * 
+ * This task demonstrates the difference between:
+ * - Literal parameters: run_tests(integration), notify(slack)
+ * - Variable parameters: docker_build($environment), deploy($environment)
+ * 
+ * This makes the syntax unambiguous and easy to understand.
+ */
+complex_deploy(environment) needs run_tests(integration) docker_build($environment) deploy($environment) notify(slack) {
+    echo "Complex deployment to $environment:"
+    echo "- Tests: literal 'integration'"
+    echo "- Docker tag: variable $environment"
+    echo "- Deploy target: variable $environment"  
+    echo "- Notification: literal 'slack'"
+}
+
+// Example of a task with multiple commands
+setup {
+    echo "Setting up development environment..."
+    // Install dependencies
+    cargo fetch
+    // Create necessary directories
+    mkdir -p logs
+    mkdir -p data
+    // Initialize configuration
+    echo "Config initialized" > config.toml
+    echo "Setup complete!"
+}
+
+// Watch task for development
+always: watch {
+    echo "Starting file watcher..."
+    cargo watch -x run || echo "cargo-watch not installed - install with: cargo install cargo-watch"
+}
+
+// Release task with version bumping
+serial critical: release needs ci {
+    echo "Creating release..."
+    cargo build --release
+    echo "Release build created successfully!"
+    echo "Don't forget to:"
+    echo "  1. Update version in Cargo.toml"
+    echo "  2. Tag the release in git"
+    echo "  3. Push to repository"
+}

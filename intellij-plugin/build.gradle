@@ -1,0 +1,40 @@
+plugins {
+    id 'java'
+    id 'org.jetbrains.intellij' version '1.16.0'
+}
+
+group 'com.yampp'
+version '0.1.0'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.2'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.2'
+}
+
+intellij {
+    version = '2023.3'
+    type = 'IC'
+    plugins = []
+}
+
+patchPluginXml {
+    sinceBuild = '223.0'
+    untilBuild = '233.*'
+    
+    changeNotes = """
+      <ul>
+        <li>Initial release of Yam++ plugin</li>
+        <li>Syntax highlighting for Yamfile</li>
+        <li>Task execution from IDE</li>
+        <li>Code completion and validation</li>
+      </ul>
+    """
+}
+
+test {
+    useJUnitPlatform()
+}

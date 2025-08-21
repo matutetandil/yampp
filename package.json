@@ -1,0 +1,49 @@
+{
+  "name": "yampp",
+  "version": "0.4.2",
+  "description": "Yet Another Modern Task Runner - A concurrent, declarative task runner with its own DSL",
+  "type": "module",
+  "main": "lib/index.js",
+  "bin": {
+    "yampp": "./bin/yampp.js"
+  },
+  "scripts": {
+    "test": "node --test",
+    "lint": "eslint .",
+    "format": "prettier --write ."
+  },
+  "keywords": [
+    "task-runner",
+    "build-tool",
+    "concurrent",
+    "dsl",
+    "make",
+    "just",
+    "parallel"
+  ],
+  "author": "Matias Denda <matutetandil@gmail.com>",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "commander": "^12.0.0",
+    "glob": "^10.3.10",
+    "js-yaml": "^4.1.0",
+    "p-limit": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "eslint": "^8.56.0",
+    "prettier": "^3.2.4"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/matiasdenda/yampp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/matiasdenda/yampp/issues"
+  },
+  "homepage": "https://github.com/matiasdenda/yampp#readme"
+}

@@ -1,0 +1,210 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Yamfile",
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#variable-declaration" },
+    { "include": "#task-definition" },
+    { "include": "#commands" }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.double-slash.yamfile",
+          "match": "//.*$"
+        },
+        {
+          "name": "comment.block.yamfile",
+          "begin": "/\\*",
+          "end": "\\*/",
+          "beginCaptures": {
+            "0": { "name": "punctuation.definition.comment.begin.yamfile" }
+          },
+          "endCaptures": {
+            "0": { "name": "punctuation.definition.comment.end.yamfile" }
+          }
+        }
+      ]
+    },
+    "variable-declaration": {
+      "patterns": [
+        {
+          "name": "meta.variable.declaration.yamfile",
+          "match": "^\\s*(const|var)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*(.+)$",
+          "captures": {
+            "1": { "name": "storage.type.yamfile" },
+            "2": { "name": "variable.other.declaration.yamfile" },
+            "3": { 
+              "patterns": [
+                {
+                  "match": "\\$[a-zA-Z_][a-zA-Z0-9_]*",
+                  "name": "variable.parameter.yamfile"
+                },
+                {
+                  "match": "\"[^\"]*\"",
+                  "name": "string.quoted.double.yamfile"
+                },
+                {
+                  "match": "'[^']*'",
+                  "name": "string.quoted.single.yamfile"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "task-definition": {
+      "patterns": [
+        {
+          "name": "meta.task.yamfile",
+          "begin": "(?:((?:(?:always|serial|critical)\\s+)*)\\s*)?([a-zA-Z_][a-zA-Z0-9_]*)(?:\\s*\\(([^)]*)\\))?(?:\\s+(needs)\\s+([^{]+))?(?:\\s+(watches)\\s+([^{]+))?\\s*(\\{)",
+          "beginCaptures": {
+            "1": { 
+              "patterns": [
+                {
+                  "match": "\\b(always|serial|critical)\\b",
+                  "name": "keyword.control.modifier.yamfile"
+                },
+                {
+                  "match": "\\b(const|var)\\b",
+                  "name": "storage.type.yamfile"
+                }
+              ]
+            },
+            "2": { "name": "entity.name.function.yamfile" },
+            "3": { 
+              "patterns": [
+                {
+                  "match": "[a-zA-Z_][a-zA-Z0-9_]*",
+                  "name": "variable.parameter.definition.yamfile"
+                },
+                {
+                  "match": ",",
+                  "name": "punctuation.separator.yamfile"
+                }
+              ]
+            },
+            "4": { "name": "keyword.control.needs.yamfile" },
+            "5": { 
+              "patterns": [
+                {
+                  "match": "([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(([^)]*)\\)",
+                  "captures": {
+                    "1": { "name": "variable.other.dependency.yamfile" },
+                    "2": {
+                      "patterns": [
+                        {
+                          "match": "\\$[a-zA-Z_][a-zA-Z0-9_]*",
+                          "name": "variable.parameter.reference.yamfile"
+                        },
+                        {
+                          "match": "[^,\\s$]+",
+                          "name": "string.unquoted.literal.yamfile"
+                        },
+                        {
+                          "match": ",",
+                          "name": "punctuation.separator.yamfile"
+                        }
+                      ]
+                    }
+                  }
+                },
+                {
+                  "match": "[a-zA-Z_][a-zA-Z0-9_]*",
+                  "name": "variable.other.dependency.yamfile"
+                }
+              ]
+            },
+            "6": { "name": "keyword.control.watches.yamfile" },
+            "7": {
+              "patterns": [
+                {
+                  "match": "\"[^\"]*\"",
+                  "name": "string.quoted.double.yamfile"
+                },
+                {
+                  "match": "'[^']*'",
+                  "name": "string.quoted.single.yamfile"
+                },
+                {
+                  "match": "[^\\s\"']+",
+                  "name": "string.unquoted.file-pattern.yamfile"
+                }
+              ]
+            },
+            "8": { "name": "punctuation.definition.block.begin.yamfile" }
+          },
+          "end": "\\}",
+          "endCaptures": {
+            "0": { "name": "punctuation.definition.block.end.yamfile" }
+          },
+          "patterns": [
+            { "include": "#comments" },
+            { "include": "#commands" }
+          ]
+        }
+      ]
+    },
+    "commands": {
+      "patterns": [
+        {
+          "name": "meta.command.yamfile",
+          "match": "^\\s*([^\\n//]+)",
+          "captures": {
+            "1": {
+              "patterns": [
+                {
+                  "match": "&&",
+                  "name": "keyword.operator.logical.yamfile"
+                },
+                {
+                  "match": "\\$[a-zA-Z_][a-zA-Z0-9_]*",
+                  "name": "variable.parameter.yamfile"
+                },
+                {
+                  "match": "\\b_call\\b",
+                  "name": "keyword.control.call.yamfile"
+                },
+                {
+                  "match": "\\b(const|var)\\b",
+                  "name": "storage.type.yamfile"
+                },
+                {
+                  "match": "\\b(echo|cd|rm|mkdir|cp|mv|cat|grep|sed|awk|npm|yarn|cargo|make|docker|kubectl|git)\\b",
+                  "name": "support.function.builtin.yamfile"
+                },
+                {
+                  "match": "\\|",
+                  "name": "keyword.operator.pipe.yamfile"
+                },
+                {
+                  "match": "[><]",
+                  "name": "keyword.operator.redirect.yamfile"
+                },
+                {
+                  "match": "\"[^\"]*\"",
+                  "name": "string.quoted.double.yamfile"
+                },
+                {
+                  "match": "'[^']*'",
+                  "name": "string.quoted.single.yamfile"
+                },
+                {
+                  "match": "-[a-zA-Z]+",
+                  "name": "constant.other.option.yamfile"
+                },
+                {
+                  "match": "--[a-zA-Z][a-zA-Z0-9-]*",
+                  "name": "constant.other.option.yamfile"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "scopeName": "source.yamfile"
+}
