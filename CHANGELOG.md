@@ -235,7 +235,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Concurrent task execution with configurable parallelism (`-j` flag)
 - Task dependency management with DAG validation
 - Circular dependency detection
-- Task state caching with `.done` files in `.taskrunner/` directory
+- Task state caching with `.done` files in `.yampp/` directory
 - Task modifiers support:
   - `always`: Execute regardless of cache state
   - `serial`: Execute serially (not in parallel)

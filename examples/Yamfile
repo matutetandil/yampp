@@ -78,7 +78,7 @@ always: format {
 always: clean {
     echo "Cleaning build artifacts..."
     rm -rf target/
-    rm -rf .taskrunner/
+    rm -rf .yampp/
 }
 
 // Deploy task - runs serially and depends on build and test

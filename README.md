@@ -307,7 +307,7 @@ serial critical: deploy(target_env) {
 always: clean {
     echo "Cleaning $PROJECT_NAME build artifacts..."
     rm -rf dist/ node_modules/.cache/
-    rm -rf .taskrunner/
+    rm -rf .yampp/
     docker system prune -f
 }
 ```
@@ -699,7 +699,7 @@ parallel_task2 {
 
 ## Caching
 
-Tasks are cached in `.taskrunner/` directory. Each successful task creates a `.done` file.
+Tasks are cached in `.yampp/` directory. Each successful task creates a `.done` file.
 
 ### Cache Behavior
 - Cached tasks are skipped on subsequent runs

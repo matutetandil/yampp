@@ -303,7 +303,7 @@ always: clean {
     
     rm -rf $BUILD_DIR/
     rm -rf node_modules/.cache/
-    rm -rf .taskrunner/
+    rm -rf .yampp/
     
     echo "Cleanup complete"
 }
