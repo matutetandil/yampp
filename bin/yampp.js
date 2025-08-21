@@ -9,10 +9,13 @@ import { parseArgs } from 'util';
 import { Runner } from '../lib/runner.js';
 import { Parser } from '../lib/parser.js';
 import { Validator } from '../lib/validator.js';
-import { version } from '../package.json' assert { type: 'json' };
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+
+// Read version from package.json
+const packageJson = JSON.parse(readFileSync(resolve(__dirname, '../package.json'), 'utf-8'));
+const version = packageJson.version;
 
 // Parse command line arguments
 const options = {
