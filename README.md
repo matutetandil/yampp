@@ -24,6 +24,7 @@ A modern, concurrent, declarative task runner with its own DSL, written in Node.
 - 📦 **Variables & Constants** - Global and local variable declarations with proper scoping
 - 🔧 **Internal Task Calls** - Call tasks internally using `_call` syntax for better control flow
 - 📁 **File Watching** - Make-style file dependency checking with `watches` keyword
+- 🔍 **Professional Parser** - Powered by Peggy parser generator for robust syntax parsing with precise error messages
 
 ## Installation
 
@@ -759,10 +760,12 @@ yampp/
 ├── bin/
 │   └── yampp.js        # CLI entry point
 ├── lib/
-│   ├── parser.js       # DSL parser
+│   ├── parser.js       # Peggy-based DSL parser
+│   ├── yamfile.pegjs   # Peggy grammar definition
 │   ├── task.js         # Task and DAG management
 │   ├── validator.js    # Syntax/semantic validation
 │   ├── runner.js       # Task executor
+│   ├── file-watcher.js # File watching implementation
 │   └── state.js        # Cache management
 ├── vscode-extension/   # VS Code extension
 ├── intellij-plugin/    # IntelliJ plugin

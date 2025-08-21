@@ -5,6 +5,29 @@ All notable changes to Yam++ (Yet Another Modern Task Runner) will be documented
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2025-08-21
+
+### Major Changes
+- **🎯 Parser Migration to Peggy**: Complete rewrite of parser using Peggy parser generator
+  - Replaced fragile regex-based parser with robust BNF-style grammar
+  - Professional-grade parsing with precise error messages (line and column)
+  - Automatic AST generation with proper node types
+  - Easier to extend and maintain grammar rules
+  - Better debugging capabilities with visual grammar inspection
+
+### Technical Improvements
+- **Grammar Definition**: Created comprehensive `yamfile.pegjs` with full DSL specification
+- **Error Handling**: Significantly improved error messages with exact location information
+- **Maintainability**: Grammar is now readable and self-documenting
+- **Performance**: Deterministic parsing without regex backtracking issues
+- **Extensibility**: Adding new language features is now straightforward
+
+### Fixed
+- Parser no longer incorrectly captures variable declarations as tasks
+- Resolved issues with multi-line content being greedily matched
+- Fixed modifier parsing for colon syntax (e.g., `always:`)
+- Improved handling of complex dependency chains with file watching
+
 ## [0.4.2] - 2025-08-21
 
 ### Changed
