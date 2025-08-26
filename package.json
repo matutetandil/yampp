@@ -1,6 +1,6 @@
 {
   "name": "yampp",
-  "version": "0.5.0",
+  "version": "0.6.2",
   "description": "Yet Another Modern Task Runner - A concurrent, declarative task runner with its own DSL",
   "type": "module",
   "main": "lib/index.js",

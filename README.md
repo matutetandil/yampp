@@ -519,6 +519,70 @@ Variables follow C/Java-like scoping rules:
 3. **Parameter Scope**: Task parameters have highest precedence
 4. **Constants**: Once declared, constants cannot be reassigned
 
+### Environment Variables
+
+Access system environment variables at runtime using the `env` keyword. Environment variables are evaluated when the task executes, making them perfect for CI/CD pipelines and deployment scripts.
+
+#### Global Environment Variables
+
+Declare environment variables globally for project-wide access:
+
+```yamfile
+// Global environment variables
+env HOME
+env USER
+env PATH
+env NODE_ENV
+
+const PROJECT = "yam-plus-plus"
+
+deploy(target) {
+    echo "Deploying $PROJECT to $target"
+    echo "Running as user: $USER"
+    echo "Environment: $NODE_ENV"
+}
+```
+
+#### Local Environment Variables
+
+Declare environment variables within tasks for local access:
+
+```yamfile
+deploy(environment) {
+    // Local environment variables
+    env DATABASE_URL
+    env API_SECRET_KEY
+    env REDIS_URL
+    
+    echo "Deploying to: $environment"
+    echo "Database: $DATABASE_URL"
+    echo "Redis: $REDIS_URL"
+    // API_SECRET_KEY available but not echoed for security
+}
+```
+
+#### Runtime Evaluation
+
+Environment variables are evaluated at execution time, not parse time:
+
+```bash
+# Set environment variables and run
+NODE_ENV=production DATABASE_URL=postgres://prod yampp deploy:prod
+
+# Different environment, different values
+NODE_ENV=development DATABASE_URL=sqlite://dev.db yampp deploy:dev
+```
+
+#### Precedence Order
+
+Variable resolution follows this precedence (highest to lowest):
+
+1. **Task Parameters**: `yampp task:value`
+2. **Local Environment Variables**: `env VAR` inside task
+3. **Local Variables/Constants**: `var`/`const` inside task
+4. **Global Environment Variables**: `env VAR` outside task
+5. **Global Variables/Constants**: `var`/`const` outside task
+
 ### Internal Task Calls
 
 Use `__call` to invoke tasks internally instead of external dependencies:

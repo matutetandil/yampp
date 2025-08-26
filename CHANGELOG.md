@@ -5,6 +5,63 @@ All notable changes to Yam++ (Yet Another Modern Task Runner) will be documented
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.2] - 2025-08-26
+
+### 🌱 New Feature: Environment Variables Support
+
+This release adds native support for environment variables using the `env` keyword, providing seamless integration with system environment and CI/CD pipelines.
+
+### New Features
+
+#### Environment Variable Declarations
+- **Global Environment Variables**: `env VARIABLE_NAME` at file level for project-wide access
+- **Local Environment Variables**: `env VARIABLE_NAME` within tasks for scoped access
+- **Runtime Evaluation**: Variables are resolved at execution time using `process.env`
+- **CI/CD Integration**: Perfect for deployment scripts and environment-specific configuration
+
+#### Syntax Examples
+```yamfile
+// Global environment variables
+env NODE_ENV
+env DATABASE_URL
+env API_KEY
+
+deploy(target) {
+    // Local environment variables  
+    env DEPLOY_TOKEN
+    env CLUSTER_ENDPOINT
+    
+    echo "Deploying to $target environment: $NODE_ENV"
+    echo "Database: $DATABASE_URL"
+    echo "Cluster: $CLUSTER_ENDPOINT"
+}
+```
+
+#### Variable Precedence System
+Enhanced variable resolution with clear precedence order:
+1. Task Parameters (`yampp task:value`)
+2. Local Environment Variables (`env VAR` inside task)
+3. Local Variables/Constants (`var`/`const` inside task)  
+4. Global Environment Variables (`env VAR` outside task)
+5. Global Variables/Constants (`var`/`const` outside task)
+
+### Technical Implementation
+- **Parser Enhancement**: Updated Peggy grammar with `GlobalEnvironmentVariable` and `LocalEnvironmentVariable` rules
+- **Runtime Integration**: Environment variables evaluated using `process.env` during task execution
+- **Task System**: Full integration with existing variable substitution system
+- **Backward Compatibility**: Zero impact on existing Yamfiles
+
+### Examples
+```bash
+# Set environment variables and execute
+NODE_ENV=production API_URL=https://api.prod.com yampp deploy:production
+
+# Different environment, different values
+NODE_ENV=development API_URL=http://localhost:3000 yampp deploy:development
+```
+
+---
+
 ## [0.6.1] - 2025-08-26
 
 ### 🚀 Major Parser Enhancement: Universal Internal Function System

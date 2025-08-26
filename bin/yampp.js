@@ -49,6 +49,31 @@ const options = {
     short: 'v',
     default: false
   },
+  quiet: {
+    type: 'boolean',
+    short: 'q',
+    default: false
+  },
+  ugly: {
+    type: 'boolean',
+    short: 'u',
+    default: false
+  },
+  'dry-run': {
+    type: 'boolean',
+    short: 'n',
+    default: false
+  },
+  plan: {
+    type: 'boolean',
+    short: 'p',
+    default: false
+  },
+  input: {
+    type: 'string',
+    multiple: true,
+    default: []
+  },
   help: {
     type: 'boolean',
     short: 'h',
@@ -88,6 +113,11 @@ ${chalk.yellow('Options:')}
   -g, --graph          Show task dependency graph
   -c, --clean          Clean all .done cache files
   -v, --verbose        Enable verbose output
+  -q, --quiet          Suppress all output
+  -u, --ugly           Enable ugly mixed output (everything together)
+  -n, --dry-run        Show what would be executed without running
+  -p, --plan           Show execution plan (similar to Terraform)
+  --input key=value    Override input prompts (can be used multiple times)
   -h, --help           Show this help message
   --version            Show version number
 
@@ -98,6 +128,9 @@ ${chalk.yellow('Examples:')}
   yampp -l             List all tasks
   yampp -g             Show dependency graph
   yampp -c             Clean cache
+  yampp -u build       Run with ugly mixed output
+  yampp -n test        Dry run - show what would be executed
+  yampp -p build       Show execution plan
 
 ${chalk.gray('For more information, visit: https://github.com/yourusername/yampp')}
 `);
@@ -125,7 +158,7 @@ async function main() {
     // Read and parse Yamfile
     const content = readFileSync(yamfile, 'utf-8');
     const parser = new Parser();
-    const { tasks, globalVariables, globalConstants } = parser.parse(content);
+    const { tasks, globalVariables, globalConstants, globalEnvironmentVariables } = parser.parse(content);
     
     // Validate syntax and semantics
     const validator = new Validator();
@@ -142,10 +175,29 @@ async function main() {
       process.exit(1);
     }
     
+    // Parse input overrides
+    const inputOverrides = new Map();
+    if (args.values.input && args.values.input.length > 0) {
+      for (const override of args.values.input) {
+        const [key, ...valueParts] = override.split('=');
+        const value = valueParts.join('=');
+        if (key && value) {
+          inputOverrides.set(key, value);
+        } else {
+          console.warn(chalk.yellow(`Invalid input override format: ${override}. Use key=value`));
+        }
+      }
+    }
+    
     // Create runner
-    const runner = new Runner(tasks, globalVariables, globalConstants, {
+    const runner = new Runner(tasks, globalVariables, globalConstants, globalEnvironmentVariables, {
       maxJobs: parseInt(args.values.jobs) || undefined,
-      verbose: args.values.verbose
+      verbose: args.values.verbose,
+      quiet: args.values.quiet,
+      ugly: args.values.ugly,
+      dryRun: args.values['dry-run'],
+      plan: args.values.plan,
+      inputOverrides: inputOverrides
     });
     
     // Handle different commands
@@ -186,8 +238,19 @@ async function main() {
     // Parse task calls (task or task:param1:param2:param3)
     const taskCalls = parseTaskCalls(tasksToRun, tasks);
     
+    // Handle plan mode
+    if (args.values.plan) {
+      await runner.showPlan(taskCalls);
+      process.exit(0);
+    }
+    
+    // Handle dry-run mode
+    if (args.values['dry-run']) {
+      await runner.dryRun(taskCalls);
+      process.exit(0);
+    }
+    
     // Execute tasks
-    console.log(chalk.green('→'), `Executing tasks: ${taskCalls.map(tc => tc.signature).join(', ')}`);
     const result = await runner.execute(taskCalls);
     
     if (!result.success) {
@@ -195,9 +258,11 @@ async function main() {
     }
     
   } catch (error) {
-    console.error(chalk.red.bold('Fatal error:'), error.message);
-    if (args.values.verbose) {
-      console.error(error.stack);
+    if (!args.values.quiet) {
+      console.error(chalk.red.bold('Fatal error:'), error.message);
+      if (args.values.verbose) {
+        console.error(error.stack);
+      }
     }
     process.exit(1);
   }
