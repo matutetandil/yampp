@@ -5,6 +5,177 @@ All notable changes to Yam++ (Yet Another Modern Task Runner) will be documented
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.1] - 2025-08-26
+
+### 🚀 Major Parser Enhancement: Universal Internal Function System
+
+This release completes the internal function system with a revolutionary generic parser that enables unlimited extensibility while maintaining clean syntax.
+
+### Enhanced Features
+
+#### Universal Internal Function Parser
+- **Generic Function Recognition**: Any function starting with `__` followed by a valid identifier is automatically recognized
+- **Intelligent Parameter Parsing**: Functions accept mixed parameter types (strings, variables, identifiers, parameter groups)  
+- **Line-Based Termination**: Functions automatically terminate at line end, just like bash commands
+- **Zero Configuration**: No need to pre-define function signatures in the grammar
+
+#### Parser Architecture Improvements  
+- **Peggy Grammar Enhancement**: Simplified and robust grammar using `InlineSpace` for precise token parsing
+- **Token-Based Parameters**: All parameters parsed as structured tokens for flexible interpreter handling
+- **Backward Compatibility**: All existing DSL syntax continues to work unchanged
+- **Performance Optimized**: Clean parsing without complex lookaheads or backtracking
+
+#### Examples of New Flexibility
+```yamfile
+serial: deployment {
+    __input "Enter username:" user
+    __input_password "Enter password:" pwd  
+    __input_select "Choose env:" env "dev" "staging" "prod"
+    __call deploy_app($user, $env)
+    __custom_log "Deployment" $user $env "success"
+    __notify_slack "Deploy completed" "#deployments"
+    echo "All done!"
+}
+```
+
+### Technical Improvements
+- **Grammar Simplification**: Reduced parser complexity while increasing capability
+- **Extensibility**: New internal functions can be added without grammar changes
+- **Error Handling**: Better error messages for malformed function calls
+- **AST Consistency**: Clean, predictable Abstract Syntax Tree structure
+
+### Fixed
+- Fixed `__call` parsing with parenthesized parameters  
+- Resolved multi-line function parameter consumption bug
+- Corrected whitespace handling in function parameter parsing
+
+### Migration Notes
+- All existing `_call` references updated to `__call` (breaking change handled automatically)
+- No syntax changes required for existing Yamfiles
+- New internal functions can be implemented in the runner without parser modifications
+
+---
+
+## [0.6.0] - 2025-08-26
+
+### 🎯 Revolutionary Feature: Interactive Input System
+
+This release introduces a game-changing feature that sets Yam++ apart from all other task runners - a complete interactive input system with multiple input types, CI/CD compatibility, and secure password handling.
+
+### New Features
+
+#### Interactive Input Functions
+- **`__input`**: Basic text input with optional defaults
+  - Syntax: `__input "prompt" variable_name "default_value"`
+  - Stores user input in task variables for immediate use
+  
+- **`__input_password`**: Secure password input with hidden characters
+  - Input is masked with asterisks during typing
+  - Perfect for database passwords, API keys, and sensitive data
+  
+- **`__input_confirm`**: Yes/no confirmation prompts
+  - Smart validation ensures only yes/no answers
+  - Configurable defaults (yes/no)
+  - Returns "yes" or "no" string values
+  
+- **`__input_select`**: Multiple choice selection
+  - Present options as a numbered list
+  - Arrow indicator for default selection
+  - Accept both number and text input
+
+#### CI/CD Integration
+- **Automatic CI Detection**: Detects common CI environments (Jenkins, GitHub Actions, GitLab CI, etc.)
+- **Non-Interactive Mode**: Automatically uses defaults in CI environments
+- **CLI Overrides**: New `--input key=value` option for non-interactive overrides
+- **Safe Failures**: Clear error messages when required inputs lack defaults in CI
+
+#### Implementation Details
+- **Serial Task Requirement**: Input prompts require `serial` modifier to prevent concurrent prompts
+- **Validation**: Compile-time validation ensures inputs only appear in serial tasks
+- **Variable Scoping**: Input variables integrate seamlessly with existing variable system
+- **Dry Run Support**: `--dry-run` shows what would be prompted without executing
+- **Plan Support**: `--plan` indicates tasks with interactive inputs
+
+### Technical Improvements
+- **InputManager Class**: Centralized input handling with override support
+- **Enhanced Parser**: Peggy grammar extended with input command support
+- **Task Validation**: New validation rules for input usage
+- **Runner Integration**: Seamless input processing during task execution
+
+### Examples
+
+```yamfile
+serial: deploy {
+    __input_select "Environment:" env ["dev", "staging", "prod"] "staging"
+    __input "Version tag:" tag "latest"
+    __input_password "Deploy key:" key
+    __input_confirm "Proceed with deployment?" confirm "no"
+    
+    if [ "$confirm" = "yes" ]; then
+        echo "Deploying $tag to $env..."
+        // Use $key for authentication
+    fi
+}
+```
+
+### Usage
+```bash
+# Interactive mode
+yampp deploy
+
+# With CLI overrides
+yampp deploy --input env=prod --input confirm=yes
+
+# CI/CD mode (automatic defaults)
+CI=true yampp deploy
+
+# Dry run to preview
+yampp --dry-run deploy
+```
+
+## [0.5.1] - 2025-08-25
+
+### New Features: Multiple Execution Modes 🎭
+
+- **🔍 Dry Run Mode (`--dry-run`, `-n`)**: Preview commands without execution
+  - Shows exactly what commands would be executed
+  - Respects cache state and displays "Skipped (cached)" for completed tasks
+  - Perfect for validating execution plans and debugging
+  - Integrates with file watching and all existing features
+
+- **📋 Execution Plan Mode (`--plan`, `-p`)**: Terraform-style execution planning
+  - Displays comprehensive execution plan with task dependencies
+  - Shows task modifiers with visual indicators:
+    - ⚡ Run / ⏭ Skip (cached) status
+    - 🔄 Always run (ignores cache)
+    - ⚠ Serial execution (no parallelism)
+    - 🚨 Critical (failure stops all)
+    - 🔗 File watching dependencies
+  - Provides execution summary and statistics
+
+- **🎭 Ugly Mode (`--ugly`, `-u`)**: Simple mixed output
+  - Make-style mixed output with task prefixes
+  - Immediate command output without fancy formatting
+  - Perfect for debugging parallel execution and CI/CD environments
+  - All task output appears in real-time with `[taskname]` prefixes
+
+### Enhanced Output System
+- **Multiple Output Modes**: Choose between organized (default), verbose, quiet, or ugly output
+- **Improved CLI Options**: Consistent short flags for all modes (`-n`, `-p`, `-u`)
+- **Better User Experience**: Clear help text with examples for all new modes
+- **Defensive Code**: Robust handling of different task data structures and edge cases
+
+### Technical Improvements
+- **OutputManager Enhancement**: Added support for ugly mode with immediate output
+- **CLI Integration**: Seamless integration of new modes with existing workflow
+- **Error Handling**: Improved error handling in plan and dry-run modes
+- **Performance**: Minimal overhead for execution planning and simulation
+
+### Documentation
+- **Updated README**: Comprehensive documentation for all execution modes
+- **CLI Help**: Enhanced help text with practical examples
+- **Usage Examples**: Clear examples showing when to use each mode
+
 ## [0.5.0] - 2025-08-21
 
 ### Major Changes
@@ -102,7 +273,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Global scope: declared outside tasks, available everywhere
   - Local scope: declared inside tasks, override global variables
   - Proper scoping rules similar to C/Java languages
-- **🔧 Internal Task Calls**: New `_call` syntax for invoking tasks internally
+- **🔧 Internal Task Calls**: New `__call` syntax for invoking tasks internally
   - Better control flow compared to dependency declarations
   - Pass computed variables and parameters to called tasks
   - Execute tasks conditionally within task logic
@@ -115,11 +286,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Syntax Enhancements
 - **Global Declarations**: `const PROJECT = "name"` and `var ENV = "dev"`
 - **Local Declarations**: Variables/constants within task blocks
-- **Internal Calls**: `_call task_name($var1, literal_value, $var2)`
+- **Internal Calls**: `__call task_name($var1, literal_value, $var2)`
 - **Assignment**: `var_name = "new_value"` or `var_name = $other_var`
 
 ### Enhanced IDE Support
-- **VS Code**: Updated TextMate grammar with new keywords (`const`, `var`, `_call`)
+- **VS Code**: Updated TextMate grammar with new keywords (`const`, `var`, `__call`)
 - **IntelliJ**: Enhanced lexer and syntax highlighter for all new language features
 - **Syntax Highlighting**: Proper highlighting for variable declarations and internal calls
 
@@ -139,7 +310,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Technical Details
 - **Variable Storage**: Maps for global/local variables and constants
 - **Scoping Engine**: Hierarchical variable resolution (parameters > local > global)
-- **Call Execution**: Recursive task execution for `_call` statements
+- **Call Execution**: Recursive task execution for `__call` statements
 - **Assignment Handling**: Runtime variable updates with validation
 - **Substitution Engine**: Enhanced `$variable` substitution in commands and calls
 

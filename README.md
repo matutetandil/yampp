@@ -1,6 +1,6 @@
 # Yam++ (Yet Another Modern Task Runner)
 
-![Version](https://img.shields.io/badge/version-0.4.1-blue)
+![Version](https://img.shields.io/badge/version-0.6.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)
 ![npm](https://img.shields.io/badge/npm-package-red)
@@ -22,9 +22,15 @@ A modern, concurrent, declarative task runner with its own DSL, written in Node.
 - 🔄 **Parameter Passing** - Dependencies can receive parameters from parent tasks
 - 💬 **Rich Comments** - Support for both single-line (`//`) and multi-line (`/* */`) comments
 - 📦 **Variables & Constants** - Global and local variable declarations with proper scoping
-- 🔧 **Internal Task Calls** - Call tasks internally using `_call` syntax for better control flow
+- 🔧 **Internal Task Calls** - Call tasks internally using `__call` syntax for better control flow
 - 📁 **File Watching** - Make-style file dependency checking with `watches` keyword
 - 🔍 **Professional Parser** - Powered by Peggy parser generator for robust syntax parsing with precise error messages
+- 🔎 **Dry Run Mode** - Preview commands without execution using `--dry-run`
+- 📋 **Execution Planning** - Terraform-style execution plans with `--plan`
+- 🎭 **Multiple Output Modes** - Choose between organized, verbose, quiet, or ugly output formats
+- 🎯 **Interactive Input Prompts** - Revolutionary user input system with text, password, confirm, and select types
+- 🤖 **CI/CD Compatible** - Automatic default handling in non-interactive environments
+- 🔐 **Secure Password Input** - Hidden input for sensitive data
 
 ## Installation
 
@@ -96,6 +102,10 @@ yampp -l                # List all tasks
 yampp -g                # Show dependency graph
 yampp -c                # Clean cache
 yampp -v build:release  # Verbose output
+yampp -q build          # Quiet mode (suppress all output)
+yampp -u build          # Ugly mode (mixed output, simple prefixes)
+yampp -n test           # Dry run (show what would be executed)
+yampp -p deploy         # Show execution plan (Terraform-style)
 ```
 
 ## DSL Syntax
@@ -199,9 +209,9 @@ all {
     echo "Building $PROJECT_NAME v$VERSION"
     echo "Environment: $NODE_ENV"
     
-    _call install
-    _call build
-    _call test
+    __call install
+    __call build
+    __call test
     
     echo "Build complete for $PROJECT_NAME!"
 }
@@ -290,10 +300,10 @@ serial critical: deploy(target_env) {
     echo "Namespace: $k8s_namespace"
     
     // Execute pipeline steps with internal calls
-    _call lint
-    _call test
-    _call build
-    _call docker_ops($target_env)
+    __call lint
+    __call test
+    __call build
+    __call docker_ops($target_env)
     
     // Deploy to Kubernetes
     kubectl apply -f k8s/ --namespace=$k8s_namespace
@@ -511,7 +521,7 @@ Variables follow C/Java-like scoping rules:
 
 ### Internal Task Calls
 
-Use `_call` to invoke tasks internally instead of external dependencies:
+Use `__call` to invoke tasks internally instead of external dependencies:
 
 ```yamfile
 full_deploy(env) {
@@ -521,21 +531,182 @@ full_deploy(env) {
     echo "Starting deployment pipeline: $PIPELINE_ID"
     
     // Call tasks internally with full control
-    _call docker_build($image_tag)
-    _call deploy_to($env)
-    _call run_health_checks($env)
-    _call send_notification("deployment-complete", $PIPELINE_ID)
+    __call docker_build($image_tag)
+    __call deploy_to($env)
+    __call run_health_checks($env)
+    __call send_notification("deployment-complete", $PIPELINE_ID)
     
     echo "Pipeline $PIPELINE_ID completed successfully"
 }
 ```
 
-### Benefits of `_call` vs Dependencies
+### Benefits of `__call` vs Dependencies
 
 - **Better Control Flow**: Execute tasks conditionally within logic
 - **Variable Passing**: Pass computed variables to called tasks
 - **Error Handling**: Handle task failures within the calling context
 - **Cleaner Syntax**: No need to pre-declare all dependencies
+
+### Internal Function System
+
+Yam++ features a powerful and extensible internal function system. Any function starting with `__` followed by a valid identifier is recognized as an internal function, with parameters parsed as tokens for maximum flexibility.
+
+#### Generic Function Syntax
+
+```yamfile
+// Generic pattern: __function_name param1 param2 param3...
+// Functions terminate automatically at line end (like bash)
+
+serial: example {
+    __input "Enter your name:" username
+    __input_password "Enter password:" pwd  
+    __input_select "Choose environment:" env "dev" "staging" "prod"
+    __call deploy($username, $env)
+    __custom_function "param1" $variable (param, list)
+    echo "Deployment completed by $username"
+}
+```
+
+#### Supported Parameter Types
+
+Internal functions accept various parameter token types:
+
+- **String literals**: `"Hello World"` → `{ type: 'string', value: 'Hello World' }`
+- **Variables**: `$name` → `{ type: 'variable', name: 'name' }`
+- **Identifiers**: `build` → `{ type: 'identifier', value: 'build' }`
+- **Parameter groups**: `($var1, $var2)` → `{ type: 'params', value: [...] }`
+
+#### Built-in Internal Functions
+
+- `__call taskname($params)` - Call tasks internally with parameters
+- `__input "prompt" variable` - Interactive text input (future feature)
+- `__input_password "prompt" variable` - Hidden password input (future feature)  
+- `__input_select "prompt" variable "opt1" "opt2"` - Multiple choice (future feature)
+
+#### Extensibility
+
+The parser uses a generic approach - any `__function` is captured with its parameter tokens, allowing the runner/interpreter to:
+
+1. **Validate** if the function exists
+2. **Process** parameters according to function requirements  
+3. **Execute** the function or provide helpful error messages
+4. **Extend** functionality by adding new internal functions
+
+This design makes Yam++ highly extensible while maintaining clean, readable syntax.
+
+## Interactive Input System 🎯
+
+**Revolutionary Feature**: Yam++ is the first task runner with built-in interactive prompts!
+
+### Input Functions
+
+Yam++ provides four input functions that **must be used in `serial` tasks** to prevent concurrent prompts:
+
+#### Basic Text Input
+```yamfile
+serial: setup {
+    __input "Project name:" project_name "my-app"
+    echo "Creating project: $project_name"
+}
+```
+
+#### Password Input (Hidden)
+```yamfile
+serial: secure_deploy {
+    __input_password "Database password:" db_pass
+    // Password is hidden during input
+    PGPASSWORD=$db_pass pg_dump mydb > backup.sql
+}
+```
+
+#### Yes/No Confirmation
+```yamfile
+serial: deploy {
+    __input_confirm "Deploy to production?" confirm "no"
+    if [ "$confirm" != "yes" ]; then
+        echo "Deployment cancelled"
+        exit 0
+    fi
+}
+```
+
+#### Multiple Choice Selection
+```yamfile
+serial: configure {
+    __input_select "Environment:" env ["dev", "staging", "prod"] "dev"
+    echo "Configuring for $env environment"
+}
+```
+
+### CI/CD Integration
+
+The input system is fully CI/CD compatible:
+
+1. **Automatic Default Usage**: In CI environments (detected automatically), defaults are used
+2. **CLI Overrides**: Override any input from command line:
+   ```bash
+   yampp deploy --input confirm=yes --input env=production
+   ```
+3. **Non-Interactive Mode**: Fails safely if no default provided in CI
+
+### Example: Complete Deployment Workflow
+
+```yamfile
+serial: interactive_deploy {
+    // Get deployment details
+    __input_select "Target environment:" env ["dev", "staging", "prod"] "staging"
+    __input "Docker tag:" tag "latest"
+    __input_confirm "Enable maintenance mode?" maintenance "yes"
+    
+    // Get credentials securely
+    __input_password "Admin password:" admin_pass
+    
+    // Final confirmation
+    __input_confirm "Deploy $tag to $env?" proceed "no"
+    
+    if [ "$proceed" != "yes" ]; then
+        echo "Deployment cancelled by user"
+        exit 0
+    fi
+    
+    // Execute deployment
+    if [ "$maintenance" = "yes" ]; then
+        echo "Enabling maintenance mode..."
+        ./scripts/maintenance.sh on
+    fi
+    
+    echo "Deploying $tag to $env..."
+    docker pull myapp:$tag
+    kubectl set image deployment/myapp app=myapp:$tag
+    
+    echo "Deployment complete!"
+}
+```
+
+### Usage Modes
+
+**Interactive Mode** (default):
+```bash
+yampp interactive_deploy
+# You'll be prompted for each input
+```
+
+**With CLI Overrides**:
+```bash
+yampp interactive_deploy --input env=prod --input tag=v1.2.3 --input proceed=yes
+```
+
+**Dry Run** (see what would be prompted):
+```bash
+yampp --dry-run interactive_deploy
+# Shows: → Prompt [select]: "Target environment:" → env (default: staging)
+```
+
+**CI/CD Mode** (automatic):
+```bash
+CI=true yampp interactive_deploy
+# Uses all defaults, fails if required input has no default
+```
 
 ## File Watching
 
@@ -790,6 +961,108 @@ npm test
 **Matias Denda**
 - Email: matutetandil@gmail.com
 - GitHub: [@matiasdenda](https://github.com/matiasdenda)
+
+## Execution Modes
+
+Yam++ offers multiple execution modes to suit different workflows and debugging needs:
+
+### 🔍 Dry Run Mode (`--dry-run`, `-n`)
+
+Preview exactly what commands would be executed without making any changes:
+
+```bash
+yampp --dry-run build test
+```
+
+**Output:**
+```
+🔍 Dry Run Mode - No commands will be executed
+
+→ Would execute tasks: build, test
+→ Would execute 3 task instance(s) with max 10 parallel job(s)
+
+[build] Would execute:
+[build] → echo "Building project..."
+[build] → npm run build
+
+[test] Would execute:
+[test] → Skipped (cached)
+```
+
+Perfect for:
+- Validating task execution order
+- Checking cache behavior
+- Debugging complex dependency chains
+- Ensuring commands are correct before execution
+
+### 📋 Execution Plan Mode (`--plan`, `-p`)
+
+View a Terraform-style execution plan showing task dependencies and modifiers:
+
+```bash
+yampp --plan deploy
+```
+
+**Output:**
+```
+📋 Execution Plan
+
+Plan Summary:
+  Tasks to run: deploy
+  Total task instances: 4
+  Max parallel jobs: 10
+
+Execution Plan:
+  1. build ⏭ Skip (cached)
+  2. test ⚡ Run
+     Dependencies: build
+  3. package ⚡ Run
+     Dependencies: build, test
+     ⚠ Serial execution (no parallelism)
+  4. deploy ⚡ Run
+     Dependencies: package
+     🚨 Critical (failure stops all)
+     🔄 Always run (ignores cache)
+
+Use --dry-run to see the actual commands that would be executed
+```
+
+Perfect for:
+- Understanding execution flow before running
+- Analyzing task dependencies
+- Identifying performance bottlenecks
+- Planning complex deployments
+
+### 🎭 Ugly Mode (`--ugly`, `-u`)
+
+Simple mixed output with task prefixes (like `make`):
+
+```bash
+yampp --ugly build test
+```
+
+**Output:**
+```
+[build] Starting...
+[test] Starting...
+[build] Building project...
+[test] Running tests...
+[build] Build complete!
+[build] Completed (1.2s)
+[test] All tests passed!
+[test] Completed (0.8s)
+```
+
+Perfect for:
+- Debugging parallel execution issues
+- Simple CI/CD environments
+- When you want immediate output without formatting
+
+### 📊 Standard Output Modes
+
+**Default Mode**: Organized blocks with clean separation
+**Verbose Mode (`-v`)**: Shows detailed command output within organized blocks
+**Quiet Mode (`-q`)**: Suppresses all output except errors
 
 ## Comparison with Other Tools
 

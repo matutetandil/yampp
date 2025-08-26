@@ -72,9 +72,9 @@ deploy(environment) {
     echo "Replicas: $replicas"
     
     // Call other tasks internally
-    _call docker_build($VERSION)
-    _call apply_config($config_file, $replicas)
-    _call health_check($environment)
+    __call docker_build($VERSION)
+    __call apply_config($config_file, $replicas)
+    __call health_check($environment)
 }
 
 /*
@@ -157,11 +157,11 @@ always serial: full_pipeline(target_env) needs build {
     echo "Deploy strategy: $deploy_strategy"
     
     // Execute pipeline steps
-    _call run_tests($target_env)
-    _call security_scan($PROJECT_NAME)
-    _call deploy($target_env)
-    _call db_backup("$PROJECT_NAME-$target_env")
-    _call notify($notification_channel, $PIPELINE_ID)
+    __call run_tests($target_env)
+    __call security_scan($PROJECT_NAME)
+    __call deploy($target_env)
+    __call db_backup("$PROJECT_NAME-$target_env")
+    __call notify($notification_channel, $PIPELINE_ID)
     
     echo "=== Pipeline Complete ==="
     echo "Pipeline ID $PIPELINE_ID finished successfully"
@@ -257,7 +257,7 @@ setup_env(env_name) {
     echo "Environment file ready: $env_file"
     
     // Call configuration validation
-    _call validate_config($env_file)
+    __call validate_config($env_file)
 }
 
 /*

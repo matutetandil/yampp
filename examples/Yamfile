@@ -147,9 +147,9 @@ serial critical: full_deploy(env) needs build run_tests(unit) {
     echo "Using image tag: $image_tag"
     
     // Call tasks internally instead of using dependencies  
-    _call docker_build($image_tag)
-    _call deploy($env)
-    _call notify(deployment-complete)
+    __call docker_build($image_tag)
+    __call deploy($env)
+    __call notify(deployment-complete)
     
     echo "Full deployment to $env completed!"
     echo "Image: $PROJECT:$image_tag deployed to $env"

@@ -57,9 +57,9 @@ build watches "package.json" {
     echo "=== Starting Build Process ==="
     echo "Project: $PROJECT_NAME"
     
-    _call compile_ts
-    _call bundle_css
-    _call bundle_js
+    __call compile_ts
+    __call bundle_css
+    __call bundle_js
     
     echo "=== Build Complete ==="
 }
@@ -265,13 +265,13 @@ serial: ci watches "package.json" ".github/workflows/*.yml" {
     echo "=== Continuous Integration Pipeline ==="
     echo "Key configuration files changed, running full CI..."
     
-    _call validate_config
-    _call lint  
-    _call compile_ts
-    _call test
-    _call security_audit
-    _call build
-    _call integration_test
+    __call validate_config
+    __call lint  
+    __call compile_ts
+    __call test
+    __call security_audit
+    __call build
+    __call integration_test
     
     echo "=== CI Pipeline Complete ==="
 }
@@ -285,8 +285,8 @@ critical: deploy_prod needs ci watches "k8s/prod/*.yaml" "deploy/prod/*" {
     echo "=== Production Deployment $DEPLOY_ID ==="
     echo "CI passed and deployment configs are current"
     
-    _call docker_build
-    _call prepare_deploy
+    __call docker_build
+    __call prepare_deploy
     
     echo "Deploying to production..."
     kubectl apply -f k8s/prod/
