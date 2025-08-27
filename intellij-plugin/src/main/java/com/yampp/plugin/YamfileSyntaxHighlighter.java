@@ -33,6 +33,9 @@ public class YamfileSyntaxHighlighter extends SyntaxHighlighterBase {
     public static final TextAttributesKey VAR = 
         createTextAttributesKey("YAMFILE_VAR", DefaultLanguageHighlighterColors.KEYWORD);
     
+    public static final TextAttributesKey ENV = 
+        createTextAttributesKey("YAMFILE_ENV", DefaultLanguageHighlighterColors.KEYWORD);
+    
     public static final TextAttributesKey NEEDS = 
         createTextAttributesKey("YAMFILE_NEEDS", DefaultLanguageHighlighterColors.KEYWORD);
     
@@ -41,6 +44,9 @@ public class YamfileSyntaxHighlighter extends SyntaxHighlighterBase {
     
     public static final TextAttributesKey CALL = 
         createTextAttributesKey("YAMFILE_CALL", DefaultLanguageHighlighterColors.KEYWORD);
+    
+    public static final TextAttributesKey ASSIGN = 
+        createTextAttributesKey("YAMFILE_ASSIGN", DefaultLanguageHighlighterColors.KEYWORD);
     
     public static final TextAttributesKey BRACES = 
         createTextAttributesKey("YAMFILE_BRACES", DefaultLanguageHighlighterColors.BRACES);
@@ -58,9 +64,11 @@ public class YamfileSyntaxHighlighter extends SyntaxHighlighterBase {
     private static final TextAttributesKey[] MODIFIER_KEYS = new TextAttributesKey[]{MODIFIER};
     private static final TextAttributesKey[] CONST_KEYS = new TextAttributesKey[]{CONST};
     private static final TextAttributesKey[] VAR_KEYS = new TextAttributesKey[]{VAR};
+    private static final TextAttributesKey[] ENV_KEYS = new TextAttributesKey[]{ENV};
     private static final TextAttributesKey[] NEEDS_KEYS = new TextAttributesKey[]{NEEDS};
     private static final TextAttributesKey[] WATCHES_KEYS = new TextAttributesKey[]{WATCHES};
     private static final TextAttributesKey[] CALL_KEYS = new TextAttributesKey[]{CALL};
+    private static final TextAttributesKey[] ASSIGN_KEYS = new TextAttributesKey[]{ASSIGN};
     private static final TextAttributesKey[] BRACES_KEYS = new TextAttributesKey[]{BRACES};
     private static final TextAttributesKey[] PARENTHESES_KEYS = new TextAttributesKey[]{PARENTHESES};
     private static final TextAttributesKey[] COMMA_KEYS = new TextAttributesKey[]{COMMA};
@@ -89,12 +97,16 @@ public class YamfileSyntaxHighlighter extends SyntaxHighlighterBase {
             return CONST_KEYS;
         } else if (tokenType.equals(YamfileTokenTypes.VAR)) {
             return VAR_KEYS;
+        } else if (tokenType.equals(YamfileTokenTypes.ENV)) {
+            return ENV_KEYS;
         } else if (tokenType.equals(YamfileTokenTypes.NEEDS)) {
             return NEEDS_KEYS;
         } else if (tokenType.equals(YamfileTokenTypes.WATCHES)) {
             return WATCHES_KEYS;
         } else if (tokenType.equals(YamfileTokenTypes.CALL)) {
             return CALL_KEYS;
+        } else if (tokenType.equals(YamfileTokenTypes.ASSIGN)) {
+            return ASSIGN_KEYS;
         } else if (tokenType.equals(LBRACE) || tokenType.equals(RBRACE)) {
             return BRACES_KEYS;
         } else if (tokenType.equals(LPAREN) || tokenType.equals(RPAREN)) {

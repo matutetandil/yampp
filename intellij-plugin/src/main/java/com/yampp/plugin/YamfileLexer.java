@@ -36,11 +36,13 @@ COMMENT_BLOCK=\/\*([^*]|\*[^/])*\*\/
 
 <YYINITIAL> "const"                { return CONST; }
 <YYINITIAL> "var"                  { return VAR; }
+<YYINITIAL> "env"                  { return ENV; }
 
 <YYINITIAL> "needs"                { return NEEDS; }
 <YYINITIAL> "watches"              { return WATCHES; }
 
-<YYINITIAL> "_call"                { return CALL; }
+<YYINITIAL> "__call"               { return CALL; }
+<YYINITIAL> "_assign"              { return ASSIGN; }
 
 <YYINITIAL> "{"                    { return LBRACE; }
 <YYINITIAL> "}"                    { return RBRACE; }

@@ -12,9 +12,11 @@ public interface YamfileTokenTypes {
     IElementType MODIFIER = new YamfileTokenType("MODIFIER");
     IElementType CONST = new YamfileTokenType("CONST");
     IElementType VAR = new YamfileTokenType("VAR");
+    IElementType ENV = new YamfileTokenType("ENV");
     IElementType NEEDS = new YamfileTokenType("NEEDS");
     IElementType WATCHES = new YamfileTokenType("WATCHES");
     IElementType CALL = new YamfileTokenType("CALL");
+    IElementType ASSIGN = new YamfileTokenType("ASSIGN");
     
     IElementType LBRACE = new YamfileTokenType("LBRACE");
     IElementType RBRACE = new YamfileTokenType("RBRACE");

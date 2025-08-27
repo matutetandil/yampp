@@ -4,13 +4,19 @@ IntelliJ IDEA plugin for Yam++ task runner support.
 
 ## Features
 
-- **Syntax Highlighting**: Full syntax highlighting for Yamfile
+- **Syntax Highlighting**: Complete syntax highlighting for Yamfile DSL including:
+  - Task definitions with modifiers (`always`, `serial`, `critical`)
+  - Task parameters and dependencies
+  - Variable declarations (`const`, `var`) and environment variables (`env`)
+  - Internal function calls (`__call`, `_assign`)
+  - File watching patterns (`watches`)
+  - Comments (single-line `//` and multi-line `/* */`)
 - **Code Completion**: Intelligent code completion for tasks, modifiers, and dependencies
-- **Task Execution**: Run tasks directly from the IDE
+- **Task Execution**: Run tasks directly from the IDE with full parameter support
 - **Run Line Markers**: Click to run tasks from the editor gutter
-- **Structure View**: Navigate tasks in the structure view
+- **Structure View**: Navigate tasks and dependencies in the structure view
 - **Validation**: Real-time syntax and semantic validation
-- **Tool Window**: Dedicated tool window for task management
+- **Tool Window**: Dedicated tool window for task management and visualization
 
 ## Installation
 
@@ -60,21 +66,41 @@ IntelliJ IDEA plugin for Yam++ task runner support.
 
 - IntelliJ IDEA 2023.3 or later
 - Java 17 or later
+- [Yam++ Task Runner](https://github.com/matutetandil/yampp) installed globally via npm:
+  ```bash
+  npm install -g yampp
+  ```
 
-## TODO
+## Yamfile Syntax Example
 
-This is a stub implementation. The following features need to be completed:
+```yamfile
+// Environment variable
+env NODE_ENV
 
-- [ ] Proper lexer and parser implementation
-- [ ] Full syntax highlighting rules
-- [ ] Complete code completion provider
-- [ ] Error highlighting and quick fixes
-- [ ] Debugger support
-- [ ] Task dependency visualization
-- [ ] Integration with project tool window
-- [ ] Settings/preferences page
-- [ ] Documentation provider
-- [ ] Refactoring support
+// Constants and variables  
+const VERSION = "1.0.0"
+var BUILD_DIR = "dist"
+
+// Task with modifiers, parameters, and dependencies
+always: build(target) needs compile watches "src/**/*.js" {
+    echo "Building $target version $VERSION"
+    mkdir -p $BUILD_DIR
+    __call webpack --mode=production
+}
+
+serial critical: deploy needs build(prod) {
+    echo "Deploying to production"
+    _assign DEPLOYED_VERSION = $VERSION
+}
+```
+
+## Release Notes
+
+See [CHANGELOG.md](./CHANGELOG.md) for detailed release notes.
+
+## Issues and Feedback
+
+Report issues at: https://github.com/matutetandil/yampp/issues
 
 ## License
 
