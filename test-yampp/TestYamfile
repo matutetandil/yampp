@@ -1,0 +1,108 @@
+// Yamfile de Prueba - Testing funcionalidades básicas
+const PROJECT_NAME = "yampp-test"
+const VERSION = "0.4.2"
+var BUILD_MODE = "development"
+
+// Tarea simple que escribe a consola y archivo
+hello {
+    echo "🚀 Hola desde Yam++ v$VERSION!"
+    echo "Proyecto: $PROJECT_NAME"
+    echo "Modo: $BUILD_MODE"
+    echo "Timestamp: $(date)" | tee output.log
+    echo "Hello task completed at $(date)" >> tasks.log
+}
+
+// Tarea que simula trabajo lento
+slow_task {
+    echo "⏳ Iniciando tarea lenta..."
+    echo "Step 1/3: Preparando..." && sleep 1
+    echo "Step 2/3: Procesando..." && sleep 1  
+    echo "Step 3/3: Finalizando..." && sleep 1
+    echo "✅ Tarea lenta completada!"
+    echo "slow_task completed" >> tasks.log
+}
+
+// Tarea que depende de otra
+// roto {}
+dependent_task needs hello {
+    echo "📦 Ejecutando tarea dependiente"
+    echo "Esta tarea necesita que hello se haya ejecutado primero"
+    cat output.log 2>/dev/null || echo "No output file yet"
+    echo "dependent_task completed" >> tasks.log
+}
+
+// Tarea que siempre se ejecuta
+always: timestamp {
+    echo "🕒 Timestamp actual: $(date)"
+    echo "Esta tarea siempre se ejecuta, ignora el cache"
+    date > current_time.txt
+}
+
+// Tarea que vigila archivos
+file_watcher watches "*.txt" "*.log" {
+    echo "👀 Vigilando archivos .txt y .log"
+    echo "Archivos encontrados:"
+    ls -la *.txt *.log 2>/dev/null || echo "No hay archivos para vigilar aún"
+    echo "file_watcher completed" >> tasks.log
+}
+
+// Tarea con parámetros
+greet(name) {
+    echo "👋 Hola, $name!"
+    echo "Saludo para: $name" >> greetings.log
+}
+
+// Tarea que usa internal calls
+orchestrator {
+    const TIMESTAMP = "$(date +%H%M%S)"
+    
+    echo "🎼 Orquestador iniciado a las $TIMESTAMP"
+    
+    __call hello
+    __call greet(Mundo)
+    __call timestamp
+    
+    echo "🎼 Orquestación completada"
+    echo "orchestrator completed at $TIMESTAMP" >> tasks.log
+}
+
+// Tarea de múltiples dependencias
+complex_task needs hello dependent_task watches "TestYamfile" {
+    echo "🔧 Tarea compleja con dependencias y file watching"
+    echo "Depende de: hello, dependent_task"
+    echo "Vigila: TestYamfile"
+    echo "Creando reporte..."
+    
+    echo "=== REPORTE DE EJECUCIÓN ===" > report.txt
+    echo "Proyecto: $PROJECT_NAME v$VERSION" >> report.txt
+    echo "Fecha: $(date)" >> report.txt
+    echo "Logs de tareas:" >> report.txt
+    cat tasks.log >> report.txt 2>/dev/null || echo "No hay logs aún" >> report.txt
+    
+    echo "✅ Reporte creado en report.txt"
+}
+
+// Tarea de cleanup
+always: clean {
+    echo "🧹 Limpiando archivos temporales..."
+    rm -f *.log *.txt
+    rm -rf .yampp/
+    echo "Archivos temporales eliminados"
+}
+
+// Tarea por defecto
+all {
+    echo "🎯 Yam++ Test Suite v$VERSION"
+    echo "=============================="
+    echo "Proyecto: $PROJECT_NAME"
+    echo "Modo: $BUILD_MODE"
+    echo ""
+    echo "Ejecutando tarea principal..."
+    
+    __call hello
+    __call dependent_task
+    __call file_watcher
+    
+    echo ""
+    echo "✅ Test suite completado!"
+}

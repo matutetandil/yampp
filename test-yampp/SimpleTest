@@ -1,0 +1,25 @@
+test_output {
+    echo "Line 1"
+    echo "Line 2"
+    echo "Line 3"
+}
+
+parallel1 {
+    echo "Task 1 starting"
+    sleep 1
+    echo "Task 1 middle"
+    sleep 1
+    echo "Task 1 done"
+}
+
+parallel2 {
+    echo "Task 2 starting"
+    sleep 1
+    echo "Task 2 middle"
+    sleep 1
+    echo "Task 2 done"
+}
+
+both needs parallel1 parallel2 {
+    echo "Both tasks completed"
+}

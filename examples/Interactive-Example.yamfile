@@ -1,0 +1,243 @@
+/*
+ * Yam++ Interactive Input Example
+ * 
+ * This example demonstrates the revolutionary input functionality:
+ * - Text input with defaults
+ * - Password input (hidden)
+ * - Yes/no confirmation
+ * - Multiple choice selection
+ * - CI/CD compatibility with automatic defaults
+ * 
+ * IMPORTANT: Input prompts require 'serial' modifier to prevent concurrent prompts
+ */
+
+// Setup wizard - Interactive project initialization
+serial: setup {
+    __input "Project name:" project_name "my-awesome-app"
+    __input "Author name:" author_name
+    __input_confirm "Initialize git repository?" init_git "yes"
+    __input_select "License type:" license ["MIT", "Apache-2.0", "GPL-3.0", "BSD-3-Clause", "Proprietary"] "MIT"
+    
+    echo "Creating project: $project_name"
+    echo "Author: $author_name"
+    echo "License: $license"
+    
+    mkdir -p $project_name
+    cd $project_name
+    
+    if [ "$init_git" = "yes" ]; then
+        git init
+        echo "Git repository initialized"
+    fi
+    
+    echo "# $project_name" > README.md
+    echo "Author: $author_name" >> README.md
+    echo "License: $license" >> README.md
+    
+    echo "Project setup complete!"
+}
+
+// Deployment with confirmation
+serial: deploy {
+    __input_select "Target environment:" environment ["development", "staging", "production"] "development"
+    __input_confirm "Are you sure you want to deploy to $environment?" confirm "no"
+    
+    if [ "$confirm" != "yes" ]; then
+        echo "Deployment cancelled by user"
+        exit 0
+    fi
+    
+    echo "Starting deployment to $environment..."
+    
+    // Simulate deployment steps
+    echo "Building application..."
+    sleep 1
+    echo "Running tests..."
+    sleep 1
+    echo "Deploying to $environment..."
+    sleep 1
+    
+    echo "Deployment to $environment completed successfully!"
+}
+
+// Database operations with secure password input
+serial: db_backup {
+    __input "Database name:" db_name "myapp_db"
+    __input "Backup location:" backup_path "/tmp/backups"
+    __input_password "Database password:" db_password
+    __input_confirm "Start backup?" proceed "yes"
+    
+    if [ "$proceed" = "yes" ]; then
+        echo "Creating backup directory..."
+        mkdir -p $backup_path
+        
+        echo "Backing up database $db_name..."
+        // In real scenario, use $db_password for authentication
+        // PGPASSWORD=$db_password pg_dump $db_name > $backup_path/backup-$(date +%Y%m%d_%H%M%S).sql
+        echo "Backup simulation: $db_name → $backup_path/backup-$(date +%Y%m%d_%H%M%S).sql"
+        
+        echo "Backup completed successfully!"
+    else
+        echo "Backup cancelled"
+    fi
+}
+
+// Release workflow with version input
+serial: release {
+    __input "Current version:" current_version "1.0.0"
+    __input_select "Release type:" release_type ["major", "minor", "patch"] "patch"
+    __input "Release notes:" release_notes "Bug fixes and improvements"
+    __input_confirm "Create release $release_type from $current_version?" confirm "no"
+    
+    if [ "$confirm" != "yes" ]; then
+        echo "Release cancelled"
+        exit 0
+    fi
+    
+    echo "Creating $release_type release..."
+    echo "Current version: $current_version"
+    echo "Release notes: $release_notes"
+    
+    // Calculate new version (simplified)
+    case $release_type in
+        major) new_version="2.0.0" ;;
+        minor) new_version="1.1.0" ;;
+        patch) new_version="1.0.1" ;;
+    esac
+    
+    echo "New version: $new_version"
+    echo "Tagging release..."
+    git tag -a v$new_version -m "$release_notes" || echo "Git tag simulation"
+    
+    echo "Release $new_version created successfully!"
+}
+
+// Configuration generator with multiple inputs
+serial: configure {
+    __input "Application name:" app_name "MyApp"
+    __input "Port number:" port "3000"
+    __input_select "Environment:" env ["development", "test", "production"] "development"
+    __input_confirm "Enable debug mode?" debug "no"
+    __input_password "Admin password:" admin_pass
+    
+    echo "Generating configuration..."
+    
+    cat > config.json << EOF
+{
+    "application": "$app_name",
+    "port": $port,
+    "environment": "$env",
+    "debug": $([ "$debug" = "yes" ] && echo "true" || echo "false"),
+    "admin": {
+        "password": "***"
+    }
+}
+EOF
+    
+    echo "Configuration saved to config.json"
+    cat config.json
+}
+
+// Migration runner with safety checks
+serial critical: migrate {
+    __input "Migration target:" target "latest"
+    __input_confirm "Have you backed up the database?" backup_confirmed "no"
+    
+    if [ "$backup_confirmed" != "yes" ]; then
+        echo "❌ Migration aborted: Please backup database first!"
+        exit 1
+    fi
+    
+    __input_confirm "Run migrations to $target? This cannot be undone!" final_confirm "no"
+    
+    if [ "$final_confirm" != "yes" ]; then
+        echo "Migration cancelled"
+        exit 0
+    fi
+    
+    echo "Running migrations to $target..."
+    echo "Migration 001: Creating users table..."
+    sleep 1
+    echo "Migration 002: Adding indexes..."
+    sleep 1
+    echo "Migration 003: Updating schema to $target..."
+    sleep 1
+    
+    echo "✅ All migrations completed successfully!"
+}
+
+// Multi-stage deployment with various inputs
+serial: full_deploy {
+    // Stage 1: Environment selection
+    __input_select "Deploy environment:" env ["dev", "staging", "prod"] "dev"
+    
+    // Stage 2: Configuration
+    __input "Docker image tag:" image_tag "latest"
+    __input "Replica count:" replicas "2"
+    
+    // Stage 3: Feature flags
+    __input_confirm "Enable new feature X?" feature_x "no"
+    __input_confirm "Enable maintenance mode during deploy?" maintenance "yes"
+    
+    // Stage 4: Final confirmation
+    __input_confirm "Deploy $image_tag to $env with $replicas replicas?" proceed "no"
+    
+    if [ "$proceed" != "yes" ]; then
+        echo "Deployment aborted"
+        exit 0
+    fi
+    
+    if [ "$maintenance" = "yes" ]; then
+        echo "Enabling maintenance mode..."
+    fi
+    
+    echo "Deploying $image_tag to $env..."
+    echo "Scaling to $replicas replicas..."
+    
+    if [ "$feature_x" = "yes" ]; then
+        echo "Feature X enabled"
+    fi
+    
+    echo "Deployment complete!"
+    
+    if [ "$maintenance" = "yes" ]; then
+        echo "Disabling maintenance mode..."
+    fi
+}
+
+// Example showing CI/CD compatibility
+serial: ci_friendly {
+    // These will use defaults in CI/CD environments or when --input overrides are provided
+    __input "Build number:" build_num "0"
+    __input "Branch name:" branch "main"
+    __input_confirm "Run tests?" run_tests "yes"
+    
+    echo "Build #$build_num on branch $branch"
+    
+    if [ "$run_tests" = "yes" ]; then
+        echo "Running tests..."
+        echo "Tests passed!"
+    fi
+}
+
+/*
+ * Usage Examples:
+ * 
+ * Interactive mode:
+ *   yampp setup
+ *   yampp deploy
+ *   yampp db_backup
+ * 
+ * Non-interactive with CLI overrides:
+ *   yampp deploy --input environment=production --input confirm=yes
+ *   yampp setup --input project_name=myapp --input author_name="John Doe"
+ * 
+ * CI/CD mode (uses defaults automatically):
+ *   CI=true yampp ci_friendly
+ * 
+ * Dry-run to preview prompts:
+ *   yampp --dry-run deploy
+ * 
+ * Plan mode to see which tasks have inputs:
+ *   yampp --plan full_deploy
+ */

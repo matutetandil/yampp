@@ -1,0 +1,4 @@
+serial: test {
+    __input "Enter name:" name
+    echo "Hello"
+}

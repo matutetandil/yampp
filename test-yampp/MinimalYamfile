@@ -1,0 +1,9 @@
+const PROJECT_NAME = "test"
+
+hello {
+    echo "Hello from $PROJECT_NAME"
+}
+
+world {
+    echo "World task"
+}

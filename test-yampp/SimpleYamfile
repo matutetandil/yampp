@@ -1,0 +1,15 @@
+// Simple test file
+const PROJECT_NAME = "test"
+
+hello {
+    echo "Hello from Yam++!"
+    echo "Project: $PROJECT_NAME"
+}
+
+world {
+    echo "World task"
+}
+
+all needs hello world {
+    echo "All tasks completed"
+}

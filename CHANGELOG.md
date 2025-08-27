@@ -5,6 +5,67 @@ All notable changes to Yam++ (Yet Another Modern Task Runner) will be documented
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.3] - 2025-08-27
+
+### 🎯 Interactive Input Functions - Now Fully Implemented!
+
+This release completes the implementation of all interactive input functions, transforming Yam++ into a fully interactive task runner suitable for setup wizards, deployment confirmations, and CI/CD pipelines.
+
+### New Features
+
+#### Complete Input Function Implementation
+All internal input functions are now fully operational:
+
+- **`__input`**: Text input with optional defaults
+  ```yamfile
+  __input "Enter your name:" username "John"
+  ```
+
+- **`__input_password`**: Secure password input with character masking
+  ```yamfile
+  __input_password "Database password:" db_pass
+  ```
+
+- **`__input_select`**: Multiple choice selection with array syntax
+  ```yamfile
+  __input_select "Choose environment:" env ["dev", "staging", "prod"] "staging"
+  ```
+
+- **`__input_confirm`**: Yes/no confirmation prompts
+  ```yamfile
+  __input_confirm "Deploy to production?" confirm "no"
+  ```
+
+#### CI/CD Compatibility
+- **Automatic Non-Interactive Mode**: Detects CI environments and uses defaults
+- **Input Overrides**: `--input variable=value` for complete automation
+- **Graceful Fallbacks**: Uses defaults when available in non-interactive mode
+
+#### Technical Improvements
+- **Parser Enhancement**: Added `ArrayLiteral` support for `["opt1", "opt2"]` syntax
+- **Unified Internal Functions**: All `__` functions now handled consistently
+- **`__call` Consolidation**: Removed legacy `_call`, only `__call` exists now
+
+### Fixed
+- Parser now correctly handles array syntax in `__input_select`
+- Internal functions no longer leak into command execution
+- `__call` function now properly executes with parameters
+
+### Examples
+```yamfile
+serial: interactive_deploy {
+    __input "Version to deploy:" version "latest"
+    __input_select "Target:" env ["dev", "staging", "prod"] "staging"
+    __input_password "Deploy key:" key
+    __input_confirm "Proceed?" confirm "no"
+    
+    if [ "$confirm" = "yes" ]; then
+        __call deploy($env, $version)
+        echo "Deployed $version to $env"
+    fi
+}
+```
+
 ## [0.6.2] - 2025-08-26
 
 ### 🌱 New Feature: Environment Variables Support

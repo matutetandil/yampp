@@ -1,6 +1,6 @@
 # Yam++ (Yet Another Modern Task Runner)
 
-![Version](https://img.shields.io/badge/version-0.6.0-blue)
+![Version](https://img.shields.io/badge/version-0.6.3-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)
 ![npm](https://img.shields.io/badge/npm-package-red)
@@ -693,9 +693,10 @@ Internal functions accept various parameter token types:
 #### Built-in Internal Functions
 
 - `__call taskname($params)` - Call tasks internally with parameters
-- `__input "prompt" variable` - Interactive text input (future feature)
-- `__input_password "prompt" variable` - Hidden password input (future feature)  
-- `__input_select "prompt" variable "opt1" "opt2"` - Multiple choice (future feature)
+- `__input "prompt" variable "default"` - Interactive text input with optional defaults
+- `__input_password "prompt" variable` - Hidden password input with character masking  
+- `__input_select "prompt" variable ["opt1", "opt2"] "default"` - Multiple choice selection
+- `__input_confirm "prompt" variable "yes/no"` - Yes/no confirmation prompts
 
 #### Extensibility
 
