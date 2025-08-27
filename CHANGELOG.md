@@ -5,6 +5,45 @@ All notable changes to Yam++ (Yet Another Modern Task Runner) will be documented
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.4] - 2025-08-27
+
+### 🏗️ Architecture Refactor: Strategy Pattern Implementation
+
+Major architectural improvement implementing the Strategy pattern for internal functions, transforming the codebase into a highly scalable and maintainable system.
+
+### Technical Improvements
+
+#### Strategy Pattern Implementation
+- **Eliminated Switch/Case Code Smell**: Replaced large switch/case statement in `executeInternalFunction()` with clean Strategy pattern
+- **One Class Per File**: Professional code organization following SOLID principles
+- **Open/Closed Principle**: Easy to add new internal functions without modifying core runner
+
+#### New Architecture Structure
+```
+lib/internal-functions/
+├── registry.js              # Central registry managing all strategies
+├── base-function.js          # Abstract base class defining interface
+├── input-function.js         # __input strategy
+├── input-password-function.js # __input_password strategy  
+├── input-select-function.js   # __input_select strategy
+├── input-confirm-function.js  # __input_confirm strategy
+└── call-function.js          # __call strategy
+```
+
+#### Benefits Achieved
+- **Scalability**: Adding new internal functions requires only creating new strategy classes
+- **Maintainability**: Each function is isolated in its own file with clear responsibilities
+- **Testability**: Individual strategies can be unit tested independently  
+- **Extensibility**: Perfect foundation for future plugin system
+- **Clean Code**: Elimination of complex conditional logic from core runner
+
+### Developer Experience
+- **Future-Proof**: Plugin authors can easily register custom internal functions
+- **Consistent Interface**: All internal functions follow the same `BaseInternalFunction` contract
+- **Error Handling**: Centralized error handling with graceful unknown function warnings
+
+This refactor significantly improves code quality while maintaining 100% backward compatibility.
+
 ## [0.6.3] - 2025-08-27
 
 ### 🎯 Interactive Input Functions - Now Fully Implemented!

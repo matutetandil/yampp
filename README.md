@@ -1,6 +1,6 @@
 # Yam++ (Yet Another Modern Task Runner)
 
-![Version](https://img.shields.io/badge/version-0.6.3-blue)
+![Version](https://img.shields.io/badge/version-0.6.4-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)
 ![npm](https://img.shields.io/badge/npm-package-red)
@@ -1465,12 +1465,28 @@ yampp/
 │   ├── validator.js    # Syntax/semantic validation
 │   ├── runner.js       # Task executor
 │   ├── file-watcher.js # File watching implementation
-│   └── state.js        # Cache management
-├── vscode-extension/   # VS Code extension
-├── intellij-plugin/    # IntelliJ plugin
+│   ├── output-manager.js # Advanced output handling
+│   ├── input-manager.js  # Interactive input system
+│   ├── state.js        # Cache management
+│   └── internal-functions/  # Strategy pattern for extensibility
+│       ├── registry.js      # Function registry
+│       ├── base-function.js # Abstract base class
+│       ├── input-function.js
+│       ├── input-password-function.js
+│       ├── input-select-function.js
+│       ├── input-confirm-function.js
+│       └── call-function.js
 └── examples/
-    └── Yamfile         # Example configuration
+    └── Interactive-Example.yamfile
 ```
+
+### Architecture Highlights
+
+**Strategy Pattern**: Internal functions use the Strategy pattern for maximum extensibility:
+- Each `__function` has its own class implementing `BaseInternalFunction`
+- `InternalFunctionRegistry` manages all strategies dynamically
+- Easy to add new functions without modifying core runner
+- Perfect for plugin architecture (future enhancement)
 
 ### Running Tests
 ```bash

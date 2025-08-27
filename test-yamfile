@@ -1,0 +1,3 @@
+simple {
+    echo "Testing basic functionality"
+}
