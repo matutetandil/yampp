@@ -2,7 +2,7 @@
   "name": "yampp-vscode",
   "displayName": "Yam++ Task Runner",
   "description": "Language support and task runner for Yamfile",
-  "version": "0.1.0",
+  "version": "0.6.2",
   "publisher": "matutetandil",
   "engines": {
     "vscode": "^1.85.0"
