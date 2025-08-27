@@ -923,30 +923,35 @@ docs watches "src/**/*.ts" "docs/**/*.md" "typedoc.json" {
 
 ## IDE Support
 
+Yam++ has dedicated IDE extensions for enhanced development experience:
+
 ### VS Code Extension
 
-Install from VS Code marketplace:
-```
-ext install yampp-vscode
-```
+**Repository:** [yampp-vscode-extension](https://github.com/matutetandil/yampp-vscode-extension)
 
-Features:
-- Syntax highlighting
-- Code completion
-- Task execution from editor
-- Hover documentation
-- Code lens for running tasks
+Full VS Code support with:
+- Complete syntax highlighting for Yamfile DSL
+- Task execution and management commands
+- Code completion and hover providers
+- Support for latest features (env variables, internal functions)
+- Integrated task provider for VS Code Tasks system
+
+Install from VS Code marketplace or manually from the repository.
 
 ### IntelliJ Plugin
 
-Install from JetBrains marketplace or search for "Yam++ Task Runner" in IDE plugins.
+**Repository:** [yampp-intellij-plugin](https://github.com/matutetandil/yampp-intellij-plugin)
 
-Features:
-- Syntax highlighting
-- Task execution
-- Structure view
-- Code completion
-- Run line markers
+Professional IntelliJ IDEA plugin with:
+- Comprehensive lexer and syntax highlighting
+- Task execution and run configurations
+- Structure view and code completion
+- Tool window integration and line markers
+- Support for all Yamfile DSL features
+
+Install from JetBrains marketplace or build from source.
+
+Both extensions are actively maintained and support all latest Yam++ features including environment variables, internal function calls, and parameterized tasks.
 
 ## Parallelism and Performance
 
@@ -1629,5 +1634,6 @@ MIT
 - [GitHub Repository](https://github.com/matutetandil/yampp)
 - [npm Package](https://www.npmjs.com/package/yampp)
 - [Documentation](https://github.com/matutetandil/yampp#readme)
-- [VS Code Extension](https://marketplace.visualstudio.com/items?itemName=matutetandil.yampp-vscode)
-- [IntelliJ Plugin](https://plugins.jetbrains.com/plugin/yampp)
+- [Yam++ Translator](https://github.com/matutetandil/yampp-translator) - AI-powered task runner translation tool
+- [VS Code Extension](https://github.com/matutetandil/yampp-vscode-extension)
+- [IntelliJ Plugin](https://github.com/matutetandil/yampp-intellij-plugin)
