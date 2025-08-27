@@ -980,6 +980,414 @@ complex_task {
 }
 ```
 
+## Translation Examples from Other Task Runners
+
+> **Note**: For automated migration assistance, consider using `yampp-translator` (separate tool) which can help translate existing build files to Yamfile format using AI.
+
+Migrating from other task runners to Yam++ is straightforward. Here are common patterns and their Yamfile equivalents:
+
+### Makefile → Yamfile
+
+#### Basic Build Pattern
+**Before (Makefile):**
+```makefile
+.PHONY: clean build test install
+CC=gcc
+CFLAGS=-Wall -Wextra -std=c99
+
+all: build
+
+clean:
+	rm -rf build/
+	rm -f *.o
+
+build: clean
+	mkdir -p build/
+	$(CC) $(CFLAGS) src/*.c -o build/myapp
+
+test: build
+	./build/myapp --test
+
+install: build test
+	cp build/myapp /usr/local/bin/
+	chmod +x /usr/local/bin/myapp
+```
+
+**After (Yamfile):**
+```yamfile
+const CC = "gcc"
+const CFLAGS = "-Wall -Wextra -std=c99"
+
+all needs build {
+    echo "Build complete"
+}
+
+always: clean {
+    rm -rf build/
+    rm -f *.o
+}
+
+build needs clean {
+    mkdir -p build/
+    $CC $CFLAGS src/*.c -o build/myapp
+}
+
+test needs build {
+    ./build/myapp --test
+}
+
+install needs build test {
+    cp build/myapp /usr/local/bin/
+    chmod +x /usr/local/bin/myapp
+}
+```
+
+#### Make with File Dependencies
+**Before (Makefile):**
+```makefile
+build/myapp: src/*.c src/*.h Makefile
+	mkdir -p build/
+	gcc -Wall src/*.c -o build/myapp
+
+clean:
+	rm -rf build/
+```
+
+**After (Yamfile):**
+```yamfile
+build watches "src/*.c" "src/*.h" "Makefile" {
+    mkdir -p build/
+    gcc -Wall src/*.c -o build/myapp
+}
+
+always: clean {
+    rm -rf build/
+}
+```
+
+### Gulp → Yamfile
+
+#### Series and Parallel Tasks
+**Before (gulpfile.js):**
+```javascript
+const { src, dest, series, parallel, watch } = require('gulp');
+const sass = require('gulp-sass');
+const uglify = require('gulp-uglify');
+const clean = require('gulp-clean');
+
+function cleanTask() {
+    return src('dist/*', {read: false})
+        .pipe(clean());
+}
+
+function sassTask() {
+    return src('src/scss/**/*.scss')
+        .pipe(sass())
+        .pipe(dest('dist/css'));
+}
+
+function jsTask() {
+    return src('src/js/**/*.js')
+        .pipe(uglify())
+        .pipe(dest('dist/js'));
+}
+
+function watchTask() {
+    watch('src/scss/**/*.scss', sassTask);
+    watch('src/js/**/*.js', jsTask);
+}
+
+exports.clean = cleanTask;
+exports.build = series(cleanTask, parallel(sassTask, jsTask));
+exports.dev = series(cleanTask, parallel(sassTask, jsTask), watchTask);
+exports.default = exports.build;
+```
+
+**After (Yamfile):**
+```yamfile
+all needs build {
+    echo "Build complete"
+}
+
+always: clean {
+    rm -rf dist/
+}
+
+// These run in parallel automatically
+css needs clean watches "src/scss/**/*.scss" {
+    sass src/scss/main.scss dist/css/main.css
+}
+
+js needs clean watches "src/js/**/*.js" {
+    uglifyjs src/js/**/*.js -o dist/js/main.min.js
+}
+
+build needs clean css js {
+    echo "Assets compiled"
+}
+
+// Serial task for development workflow
+serial: dev needs build {
+    echo "Development build complete"
+    echo "Use file watching with 'watches' keyword instead of gulp.watch"
+}
+```
+
+#### Gulp Streams and Pipes
+**Before (gulpfile.js):**
+```javascript
+function buildStyles() {
+    return src('src/sass/**/*.scss')
+        .pipe(sass().on('error', sass.logError))
+        .pipe(autoprefixer())
+        .pipe(cleanCSS())
+        .pipe(dest('dist/css'));
+}
+
+function buildScripts() {
+    return src('src/js/**/*.js')
+        .pipe(babel({presets: ['@babel/preset-env']}))
+        .pipe(concat('main.js'))
+        .pipe(uglify())
+        .pipe(dest('dist/js'));
+}
+```
+
+**After (Yamfile):**
+```yamfile
+styles watches "src/sass/**/*.scss" {
+    sass src/sass/main.scss | autoprefixer | cleancss > dist/css/main.css
+}
+
+scripts watches "src/js/**/*.js" {
+    babel src/js/**/*.js --presets=@babel/preset-env | concat main.js | uglifyjs > dist/js/main.js
+    // Or use external tools:
+    // npx babel src/js --out-file dist/js/main.js --presets=@babel/preset-env
+    // npx uglifyjs dist/js/main.js -o dist/js/main.min.js
+}
+```
+
+### npm scripts → Yamfile
+
+#### Basic npm Scripts
+**Before (package.json):**
+```json
+{
+  "scripts": {
+    "clean": "rm -rf dist/",
+    "prebuild": "npm run clean",
+    "build": "webpack --mode=production",
+    "postbuild": "npm run optimize",
+    "optimize": "terser dist/*.js -o dist/main.min.js",
+    "test": "jest",
+    "pretest": "npm run lint",
+    "lint": "eslint src/",
+    "dev": "webpack serve --mode=development",
+    "start": "npm run build && npm run dev",
+    "deploy": "npm run build && npm run test && aws s3 sync dist/ s3://my-bucket"
+  }
+}
+```
+
+**After (Yamfile):**
+```yamfile
+// Pre/post hooks become explicit dependencies
+always: clean {
+    rm -rf dist/
+}
+
+lint {
+    eslint src/
+}
+
+build needs clean {
+    webpack --mode=production
+}
+
+optimize needs build {
+    terser dist/*.js -o dist/main.min.js
+}
+
+test needs lint {
+    jest
+}
+
+dev needs clean {
+    webpack serve --mode=development
+}
+
+start needs build {
+    __call dev
+}
+
+deploy needs build test {
+    aws s3 sync dist/ s3://my-bucket
+}
+```
+
+#### Complex npm Workflow with Parallelization
+**Before (package.json):**
+```json
+{
+  "scripts": {
+    "build:css": "sass src/styles:dist/css --style=compressed",
+    "build:js": "webpack --entry=./src/index.js --output-path=dist/js",
+    "build:assets": "npm-run-all --parallel build:css build:js",
+    "build": "npm-run-all clean build:assets optimize",
+    "clean": "rimraf dist",
+    "optimize": "npm-run-all --parallel optimize:*",
+    "optimize:css": "cleancss -o dist/css/main.min.css dist/css/*.css",
+    "optimize:js": "terser dist/js/*.js -o dist/js/main.min.js",
+    "test:unit": "jest",
+    "test:e2e": "playwright test",
+    "test": "npm-run-all --parallel test:*",
+    "ci": "npm-run-all lint test build"
+  }
+}
+```
+
+**After (Yamfile):**
+```yamfile
+// Parallel by default - no need for npm-run-all
+always: clean {
+    rimraf dist
+}
+
+// These run in parallel automatically
+build_css needs clean watches "src/styles/**/*.scss" {
+    sass src/styles:dist/css --style=compressed
+}
+
+build_js needs clean watches "src/**/*.js" {
+    webpack --entry=./src/index.js --output-path=dist/js
+}
+
+// Parallel dependencies
+build_assets needs build_css build_js {
+    echo "Assets built"
+}
+
+// These also run in parallel
+optimize_css needs build_css {
+    cleancss -o dist/css/main.min.css dist/css/*.css
+}
+
+optimize_js needs build_js {
+    terser dist/js/*.js -o dist/js/main.min.js
+}
+
+optimize needs optimize_css optimize_js {
+    echo "Assets optimized"
+}
+
+build needs build_assets optimize {
+    echo "Build complete"
+}
+
+// Parallel tests
+test_unit {
+    jest
+}
+
+test_e2e {
+    playwright test
+}
+
+test needs test_unit test_e2e {
+    echo "All tests passed"
+}
+
+lint {
+    eslint src/
+}
+
+ci needs lint test build {
+    echo "CI pipeline complete"
+}
+```
+
+### Advanced Migration Patterns
+
+#### Conditional Execution
+**Before (npm scripts):**
+```json
+{
+  "scripts": {
+    "deploy:dev": "cross-env NODE_ENV=development npm run deploy:base",
+    "deploy:prod": "cross-env NODE_ENV=production npm run deploy:base",
+    "deploy:base": "if [ \"$NODE_ENV\" = \"production\" ]; then npm run build:prod; else npm run build:dev; fi"
+  }
+}
+```
+
+**After (Yamfile):**
+```yamfile
+deploy(env) {
+    if [ "$env" = "production" ]; then
+        __call build_prod
+    else
+        __call build_dev
+    fi
+}
+
+build_dev {
+    NODE_ENV=development webpack --mode=development
+}
+
+build_prod {
+    NODE_ENV=production webpack --mode=production --optimize-minimize
+}
+```
+
+#### Environment-Specific Configurations
+**Before (Multiple package.json files):**
+```json
+// package.json
+{
+  "scripts": {
+    "build": "npm run build:$NODE_ENV",
+    "build:development": "webpack --config webpack.dev.js",
+    "build:staging": "webpack --config webpack.staging.js", 
+    "build:production": "webpack --config webpack.prod.js"
+  }
+}
+```
+
+**After (Yamfile):**
+```yamfile
+env NODE_ENV
+
+build(environment) {
+    const config_file = "webpack.$environment.js"
+    webpack --config $config_file
+}
+
+// Usage: yampp build:development, yampp build:production
+// Or with env var: NODE_ENV=staging yampp build:staging
+```
+
+### Key Migration Benefits
+
+1. **Explicit Dependencies**: No more guessing pre/post hook order
+2. **Built-in Parallelization**: Automatic parallel execution without npm-run-all
+3. **File Watching**: Native incremental builds without gulp.watch
+4. **Parameter Support**: Dynamic task configuration without environment variable juggling  
+5. **Better Error Handling**: Critical tasks and proper exit codes
+6. **Cross-Platform**: No need for cross-env or rimraf
+7. **IDE Support**: Syntax highlighting and task execution
+8. **Validation**: Pre-execution checking of dependencies and syntax
+
+### Migration Checklist
+
+- [ ] Identify pre/post hooks and convert to explicit dependencies
+- [ ] Replace npm-run-all parallel tasks with natural Yam++ parallelization
+- [ ] Convert gulp.watch patterns to `watches` file dependencies
+- [ ] Transform environment-specific scripts to parameterized tasks
+- [ ] Add `always` modifier to clean tasks
+- [ ] Use `serial` modifier for database migrations or deployment steps
+- [ ] Add `critical` modifier to essential deployment tasks
+- [ ] Leverage variables and constants for configuration management
+
 ## Configuration
 
 ### Environment Variables
@@ -1024,7 +1432,7 @@ npm test
 
 **Matias Denda**
 - Email: matutetandil@gmail.com
-- GitHub: [@matiasdenda](https://github.com/matiasdenda)
+- GitHub: [@matutetandil](https://github.com/matutetandil)
 
 ## Execution Modes
 
@@ -1168,8 +1576,8 @@ MIT
 
 ## Links
 
-- [GitHub Repository](https://github.com/matiasdenda/yampp)
+- [GitHub Repository](https://github.com/matutetandil/yampp)
 - [npm Package](https://www.npmjs.com/package/yampp)
-- [Documentation](https://github.com/matiasdenda/yampp#readme)
-- [VS Code Extension](https://marketplace.visualstudio.com/items?itemName=matiasdenda.yampp-vscode)
+- [Documentation](https://github.com/matutetandil/yampp#readme)
+- [VS Code Extension](https://marketplace.visualstudio.com/items?itemName=matutetandil.yampp-vscode)
 - [IntelliJ Plugin](https://plugins.jetbrains.com/plugin/yampp)

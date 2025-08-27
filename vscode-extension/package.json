@@ -3,7 +3,7 @@
   "displayName": "Yam++ Task Runner",
   "description": "Language support and task runner for Yamfile",
   "version": "0.1.0",
-  "publisher": "matiasdenda",
+  "publisher": "matutetandil",
   "engines": {
     "vscode": "^1.85.0"
   },

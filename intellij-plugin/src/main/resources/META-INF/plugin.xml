@@ -1,7 +1,7 @@
 <idea-plugin>
     <id>com.yampp.plugin</id>
     <name>Yam++ Task Runner</name>
-    <vendor email="matutetandil@gmail.com" url="https://github.com/matiasdenda/yampp">Matias Denda</vendor>
+    <vendor email="matutetandil@gmail.com" url="https://github.com/matutetandil/yampp">Matias Denda</vendor>
     
     <description><![CDATA[
     <h2>Yam++ Task Runner Support</h2>
