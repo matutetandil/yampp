@@ -30,6 +30,8 @@ A modern, concurrent, declarative task runner with its own DSL, written in Node.
   - [Output Formats](#output-formats)
   - [Input Overrides](#input-overrides)
 - [Translation Examples from Other Task Runners](#translation-examples-from-other-task-runners)
+  - [AI-Powered Translation with yampp-translator](#ai-powered-translation-with-yampp-translator)
+  - [Manual Translation Patterns](#manual-translation-patterns)
   - [Makefile → Yamfile](#makefile--yamfile)
   - [Gulp → Yamfile](#gulp--yamfile)
   - [npm scripts → Yamfile](#npm-scripts--yamfile)
@@ -44,6 +46,7 @@ A modern, concurrent, declarative task runner with its own DSL, written in Node.
 - [IDE Support](#ide-support)
   - [VS Code Extension](#vs-code-extension)
   - [IntelliJ Plugin](#intellij-plugin)
+  - [AI-Powered Translation Tool](#ai-powered-translation-tool)
 - [Development](#development)
   - [Project Structure](#project-structure)
   - [Building from Source](#building-from-source)
@@ -67,7 +70,8 @@ A modern, concurrent, declarative task runner with its own DSL, written in Node.
 - ⚡ **Task Modifiers** - Support for `always`, `serial`, and `critical` task modifiers
 - 📊 **Execution Summary** - Clear summary of completed and failed tasks
 - ✅ **Syntax Validation** - Pre-execution syntax and semantic checking
-- 🔌 **IDE Support** - VS Code extension and IntelliJ plugin available
+- 🔌 **Complete IDE Ecosystem** - VS Code extension, IntelliJ plugin, and AI-powered translation tools
+- 🤖 **AI-Powered Migration** - Intelligent translation from Makefile, Gulpfile, npm scripts with yampp-translator
 - 🎛️ **Parameterized Tasks** - Tasks can accept parameters with variable substitution
 - 🔄 **Parameter Passing** - Dependencies can receive parameters from parent tasks
 - 💬 **Rich Comments** - Support for both single-line (`//`) and multi-line (`/* */`) comments
@@ -952,7 +956,37 @@ Professional IntelliJ IDEA plugin with:
 
 Install from JetBrains marketplace or build from source.
 
-Both extensions are actively maintained and support all latest Yam++ features including environment variables, internal function calls, and parameterized tasks.
+### AI-Powered Translation Tool
+
+**Repository:** [yampp-translator](https://github.com/matutetandil/yampp-translator)
+
+Dedicated AI-powered translation tool for migrating existing build systems to Yamfile format:
+
+#### Features
+- **9 AI Providers**: Ollama, Claude, OpenAI, Gemini, Mistral, DeepSeek, Hugging Face, Cohere, Grok
+- **Multi-format support**: Makefile, Gulpfile, npm scripts
+- **Smart conversion**: Preserves dependencies, adds modern patterns
+- **Interactive enhancements**: Suggests internal functions for user input
+
+#### AI Editor Agents
+Specialized agents for seamless integration with AI-powered editors:
+- **Claude Code** (`yampp-translation-agent.md`) - Self-contained agent
+- **Cursor AI** (`cursor-yampp-agent.md`) - System prompt integration  
+- **GitHub Copilot** (`copilot-yampp-instructions.md`) - Custom instructions
+- **JetBrains** (`junie-yampp-guidelines.md`) - AI Assistant + Junie support
+
+#### Installation & Usage
+```bash
+npm install -g yampp-translator
+yampp-translator setup
+yampp-translator translate Makefile
+```
+
+Or use AI editor agents for conversational, educational translation directly in your preferred editor.
+
+**Ecosystem Integration**: The translator tool and AI agents work seamlessly with IDE extensions for a complete Yamfile development experience.
+
+Both IDE extensions and the translation ecosystem are actively maintained and support all latest Yam++ features including environment variables, internal function calls, and parameterized tasks.
 
 ## Parallelism and Performance
 
@@ -1038,9 +1072,51 @@ complex_task {
 
 ## Translation Examples from Other Task Runners
 
-> **Note**: For automated migration assistance, consider using `yampp-translator` (separate tool) which can help translate existing build files to Yamfile format using AI.
+### 🤖 AI-Powered Translation with yampp-translator
 
-Migrating from other task runners to Yam++ is straightforward. Here are common patterns and their Yamfile equivalents:
+For **automated migration assistance**, use **yampp-translator** - a dedicated AI-powered tool that intelligently converts build files to Yamfile format:
+
+**Repository:** [yampp-translator](https://github.com/matutetandil/yampp-translator)
+
+#### Universal AI Editor Support
+yampp-translator provides specialized agents for all major AI-powered editors:
+
+- **🤖 Claude Code**: Self-contained translation agent (`yampp-translation-agent.md`)
+- **🎯 Cursor AI**: System prompt integration (`cursor-yampp-agent.md`) 
+- **🚀 GitHub Copilot**: Custom instructions (`copilot-yampp-instructions.md`)
+- **🧠 JetBrains IDEs**: AI Assistant + Junie guidelines (`junie-yampp-guidelines.md`)
+
+#### AI Provider Support (9 Providers)
+- **Local & Open Source**: Ollama, Hugging Face
+- **Enterprise**: OpenAI (GPT-4), Claude, Google Gemini, Cohere
+- **Specialized**: Mistral AI, DeepSeek, Grok (X AI)
+
+#### Installation & Usage
+```bash
+# Install globally
+npm install -g yampp-translator
+
+# Interactive setup
+yampp-translator setup
+
+# Translate any build file
+yampp-translator translate Makefile
+yampp-translator translate gulpfile.js  
+yampp-translator translate package.json
+
+# Or use AI editor agents for conversational translation
+```
+
+#### Key Features
+- ✅ **Smart conversion** with dependency preservation
+- ✅ **Interactive enhancements** using internal functions (`__input`, `__call`, etc.)
+- ✅ **Educational explanations** of translation decisions
+- ✅ **Modern patterns** (file watching, parallel execution)
+- ✅ **Zero-setup** experience with AI editor agents
+
+### Manual Translation Patterns
+
+For manual migration or understanding the conversion patterns, here are common examples:
 
 ### Makefile → Yamfile
 
@@ -1651,6 +1727,6 @@ MIT
 - [GitHub Repository](https://github.com/matutetandil/yampp)
 - [npm Package](https://www.npmjs.com/package/yampp)
 - [Documentation](https://github.com/matutetandil/yampp#readme)
-- [Yam++ Translator](https://github.com/matutetandil/yampp-translator) - AI-powered task runner translation tool
+- [yampp-translator](https://github.com/matutetandil/yampp-translator) - AI-powered translation tool with 9 AI providers and universal editor agents
 - [VS Code Extension](https://github.com/matutetandil/yampp-vscode-extension)
 - [IntelliJ Plugin](https://github.com/matutetandil/yampp-intellij-plugin)
