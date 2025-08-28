@@ -1,6 +1,6 @@
 {
   "name": "yampp",
-  "version": "0.6.4",
+  "version": "0.7.0",
   "description": "Yet Another Modern Task Runner - A concurrent, declarative task runner with its own DSL",
   "type": "module",
   "main": "lib/index.js",
@@ -32,7 +32,8 @@
     "glob": "^10.3.10",
     "js-yaml": "^4.1.0",
     "p-limit": "^5.0.0",
-    "peggy": "^5.0.6"
+    "peggy": "^5.0.6",
+    "strip-ansi": "^7.1.0"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",

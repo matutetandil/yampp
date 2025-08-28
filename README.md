@@ -1,6 +1,6 @@
 # Yam++ (Yet Another Modern Task Runner)
 
-![Version](https://img.shields.io/badge/version-0.6.4-blue)
+![Version](https://img.shields.io/badge/version-0.7.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)
 ![npm](https://img.shields.io/badge/npm-package-red)
@@ -65,7 +65,8 @@ A modern, concurrent, declarative task runner with its own DSL, written in Node.
 - 🚀 **Concurrent by Default** - Executes tasks in parallel using worker threads
 - 📝 **Custom DSL** - Clean, readable syntax for defining tasks and dependencies
 - 🎯 **Smart Caching** - Tracks completed tasks to avoid redundant executions
-- 🎨 **Colored Output** - Beautiful, prefixed logs with task-specific colors
+- 🎨 **Claude Code Interface** - Professional output system with real-time task blocks, animated spinners, and intelligent collapse
+- ✨ **Dynamic Task Visualization** - Live task blocks with timers, smart truncation, and multi-task parallel display
 - 🔄 **Dependency Management** - Automatic dependency resolution with DAG validation
 - ⚡ **Task Modifiers** - Support for `always`, `serial`, and `critical` task modifiers
 - 📊 **Execution Summary** - Clear summary of completed and failed tasks
@@ -1678,11 +1679,61 @@ Perfect for:
 - Simple CI/CD environments
 - When you want immediate output without formatting
 
-### 📊 Standard Output Modes
+### 🎨 Claude Code Interface (Default)
 
-**Default Mode**: Organized blocks with clean separation
-**Verbose Mode (`-v`)**: Shows detailed command output within organized blocks
-**Quiet Mode (`-q`)**: Suppresses all output except errors
+**Revolutionary output system inspired by Claude Code's professional interface:**
+
+```bash
+yampp build test deploy
+```
+
+**Live Execution Display:**
+```
+→ Executing tasks: build, test, deploy
+→ Executing 3 task instance(s) with max 10 parallel job(s)
+
+⠹ build [1.2s]
+  Building project...
+  Compiling sources...
+
+⠴ test [0.8s]
+  Running unit tests...
+  Running integration tests...
+
+⠦ deploy [2.1s]
+  Uploading to server...
+  Configuring services...
+```
+
+**On Task Completion:**
+```
+✅ build Completed [1.8s]
+✅ test Completed [1.2s] 
+❌ deploy Failed [2.1s]
+  Uploading to server...
+  Configuring services...
+  Error: Connection timeout
+
+Execution Summary:
+✓ 2 tasks completed successfully
+✗ 1 task failed
+  ✗ deploy: Command failed: curl -X POST ...
+Total: 3 tasks in 2.15s
+```
+
+**Key Features:**
+- **🎯 Real-time Task Blocks**: Live task visualization with animated spinners
+- **⏱️ Live Timers**: Real-time duration tracking for each task
+- **📝 Smart Output Truncation**: Maximum 6 lines per task to prevent information overload
+- **✨ Intelligent Collapse**: Successful tasks collapse to single lines, failed tasks stay expanded for debugging
+- **🎭 Multi-task Display**: Multiple task blocks shown simultaneously during parallel execution
+- **🎨 Professional Typography**: Consistent emojis, bold text, and color coding
+- **📊 Detailed Summary**: Comprehensive execution summary with specific error details
+
+### 📊 Additional Output Modes
+
+**Verbose Mode (`-v`)**: Shows command execution within task blocks
+**Quiet Mode (`-q`)**: Completely silent execution
 
 ## Comparison with Other Tools
 
