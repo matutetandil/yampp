@@ -5,6 +5,46 @@ All notable changes to Yam++ (Yet Another Modern Task Runner) will be documented
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.1] - 2025-08-29
+
+### 🔍 Enhanced Verbose Output Modes
+
+**Major UX Improvement** - Comprehensive verbose mode overhaul with distinct output modes for different debugging and monitoring scenarios.
+
+#### New Verbose Mode Features
+
+##### Enhanced `--verbose` Mode
+- **No Task Collapsing**: Completed tasks remain expanded for full visibility
+- **Unlimited Output Lines**: Removes 6-line limit, shows complete command output
+- **Live Timer Updates**: Real-time duration tracking during task execution
+- **Professional Interface**: Maintains Claude Code interface aesthetics with full content
+
+##### New `--verbose-ugly` Mode  
+- **Precise Timestamps**: HH:MM:SS.mmm format for every output line
+- **Process Tracking**: Shows actual PID for system monitoring and correlation
+- **Detailed Lifecycle**: Start/end times with full ISO timestamps
+- **Task Prefixes**: Clear task identification during parallel execution
+- **Production Ready**: Perfect for CI/CD, log analysis, and debugging
+
+#### Technical Improvements
+- **ClaudeOutputManager Enhancement**: Differentiated behavior for verbose vs standard modes
+- **CLI Integration**: New `--verbose-ugly` command-line option with proper help documentation
+- **Process Information**: Real PID tracking instead of redundant task IDs
+- **Timestamp Precision**: Millisecond-accurate timestamps for performance analysis
+
+#### Use Case Optimization
+- **Development**: `--verbose` for detailed debugging with clean interface
+- **Production**: `--verbose-ugly` for audit trails and log analysis
+- **CI/CD**: `--verbose-ugly` for detailed build logs and troubleshooting
+- **System Administration**: PID tracking for process monitoring
+
+#### Documentation Updates
+- **README.md**: Complete verbose modes documentation with examples
+- **CLI Help**: Updated help text with clear descriptions
+- **Feature Descriptions**: Detailed use case explanations
+
+This release significantly improves debugging capabilities while maintaining the professional UX that makes Yam++ unique in the task runner ecosystem.
+
 ## [0.8.0] - 2025-08-29
 
 ### 🚀 REVOLUTIONARY FEATURE: Cross-Platform Shell Execution with Cooperative Control

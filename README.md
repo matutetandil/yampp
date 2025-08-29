@@ -1,6 +1,6 @@
 # Yam++ (Yet Another Modern Task Runner)
 
-![Version](https://img.shields.io/badge/version-0.8.0-blue)
+![Version](https://img.shields.io/badge/version-0.8.1-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)
 ![npm](https://img.shields.io/badge/npm-package-red)
@@ -87,7 +87,7 @@ A modern, concurrent, declarative task runner with native cross-platform shell e
 - 🔍 **Professional Parser** - Powered by Peggy parser generator for robust syntax parsing with precise error messages
 - 🔎 **Dry Run Mode** - Preview commands without execution using `--dry-run`
 - 📋 **Execution Planning** - Terraform-style execution plans with `--plan`
-- 🎭 **Multiple Output Modes** - Choose between organized, verbose, quiet, or ugly output formats
+- 🎭 **Multiple Output Modes** - Choose between Claude Code interface, verbose (no collapsing), verbose-ugly (with timestamps/PID), quiet, or ugly output formats
 
 ### 🔌 Advanced Features & Ecosystem
 - 🔌 **Complete IDE Ecosystem** - VS Code extension, IntelliJ plugin, and AI-powered translation tools
@@ -2128,8 +2128,59 @@ Total: 3 tasks in 2.15s
 
 ### 📊 Additional Output Modes
 
-**Verbose Mode (`-v`)**: Shows command execution within task blocks
-**Quiet Mode (`-q`)**: Completely silent execution
+#### 🔍 Verbose Mode (`-v`, `--verbose`)
+Enhanced Claude Code interface with **no task collapsing** and unlimited output lines:
+
+```bash
+yampp --verbose build test
+```
+
+**Features:**
+- **📄 No Output Truncation**: Shows all command output (not limited to 6 lines)
+- **🔄 No Task Collapsing**: Completed tasks stay expanded for full visibility
+- **⏱️ Live Timers**: Real-time duration tracking during execution
+- **🎨 Professional Interface**: Maintains Claude Code interface with full content
+
+Perfect for:
+- Detailed debugging and troubleshooting
+- Development environments where full output is needed
+- Monitoring long-running tasks with extensive output
+
+#### 🔧 Verbose Ugly Mode (`--verbose-ugly`)
+Detailed text-based output with timestamps and process information:
+
+```bash
+yampp --verbose-ugly build test
+```
+
+**Output:**
+```
+[build] Starting task... (PID: 12345, Time: 2025-08-29T18:22:39.546Z)
+18:22:39.123 [build] Building project...
+18:22:39.456 [build] Compiling sources...
+18:22:40.789 [build] Build complete!
+[build] ✓ Completed (1.2s, PID: 12345, End: 2025-08-29T18:22:40.746Z)
+
+[test] Starting task... (PID: 12345, Time: 2025-08-29T18:22:40.750Z)
+18:22:40.234 [test] Running tests...
+18:22:41.567 [test] All tests passed!
+[test] ✓ Completed (0.8s, PID: 12345, End: 2025-08-29T18:22:41.550Z)
+```
+
+**Features:**
+- **🕒 Precise Timestamps**: HH:MM:SS.mmm for every output line
+- **🔍 Process Tracking**: Shows PID for system monitoring
+- **📊 Detailed Lifecycle**: Start/end times with full ISO timestamps  
+- **🎯 Task Prefixes**: Clear task identification for parallel execution
+
+Perfect for:
+- Production debugging and log analysis
+- Performance profiling and timing analysis
+- System administration and process monitoring
+- CI/CD environments requiring detailed audit trails
+
+#### 🤫 Quiet Mode (`-q`, `--quiet`)
+Completely silent execution - no output except errors
 
 ## Comparison with Other Tools
 

@@ -59,6 +59,10 @@ const options = {
     short: 'u',
     default: false
   },
+  'verbose-ugly': {
+    type: 'boolean',
+    default: false
+  },
   'dry-run': {
     type: 'boolean',
     short: 'n',
@@ -112,9 +116,10 @@ ${chalk.yellow('Options:')}
   -l, --list           List all available tasks
   -g, --graph          Show task dependency graph
   -c, --clean          Clean all .done cache files
-  -v, --verbose        Enable verbose output
+  -v, --verbose        Enable verbose output (no task collapsing)
   -q, --quiet          Suppress all output
   -u, --ugly           Enable ugly mixed output (everything together)
+  --verbose-ugly       Enable verbose ugly mode (detailed output with prefixes)
   -n, --dry-run        Show what would be executed without running
   -p, --plan           Show execution plan (similar to Terraform)
   --input key=value    Override input prompts (can be used multiple times)
@@ -195,6 +200,7 @@ async function main() {
       verbose: args.values.verbose,
       quiet: args.values.quiet,
       ugly: args.values.ugly,
+      verboseUgly: args.values['verbose-ugly'],
       dryRun: args.values['dry-run'],
       plan: args.values.plan,
       inputOverrides: inputOverrides
