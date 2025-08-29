@@ -1,5 +1,0 @@
-serial: simple_test {
-    __input "Your name:" name "World"
-    __input_select "Choose option:" opt ["A", "B", "C"] "B"
-    echo "Hello $name, you chose $opt"
-}

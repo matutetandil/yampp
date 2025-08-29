@@ -1,11 +1,11 @@
 # Yam++ (Yet Another Modern Task Runner)
 
-![Version](https://img.shields.io/badge/version-0.7.0-blue)
+![Version](https://img.shields.io/badge/version-0.8.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)
 ![npm](https://img.shields.io/badge/npm-package-red)
 
-A modern, concurrent, declarative task runner with its own DSL, written in Node.js with ES6 modules. Yam++ provides parallel task execution by default, intelligent caching, and a clean, readable syntax for defining build tasks.
+A modern, concurrent, declarative task runner with native cross-platform shell execution. THE unique task runner that combines the power of Make with cross-platform compatibility, native shell integration (bash/PowerShell/cmd), and a modern professional interface. Perfect for DevOps teams working across Windows, Mac, and Linux.
 
 ## Table of Contents
 
@@ -24,6 +24,7 @@ A modern, concurrent, declarative task runner with its own DSL, written in Node.
   - [File Watching](#file-watching)
   - [Parameterized Tasks](#parameterized-tasks)
   - [Input Prompts](#input-prompts)
+  - [Cross-Platform Shell Execution](#cross-platform-shell-execution)
 - [CLI Options](#cli-options)
 - [Advanced Features](#advanced-features)
   - [Execution Modes](#execution-modes)
@@ -42,6 +43,7 @@ A modern, concurrent, declarative task runner with its own DSL, written in Node.
   - [Interactive Build System](#interactive-build-system)
   - [CI/CD Pipeline](#cicd-pipeline)
   - [File Watching Example](#file-watching-example)
+  - [Cross-Platform Deployment](#cross-platform-deployment)
 - [Working with Legacy Scripts](#working-with-legacy-scripts)
 - [IDE Support](#ide-support)
   - [VS Code Extension](#vs-code-extension)
@@ -62,15 +64,32 @@ A modern, concurrent, declarative task runner with its own DSL, written in Node.
 
 ## Features
 
+### 🌟 Revolutionary Cross-Platform Shell Execution
+- **🌍 Native Shell Power** - Full bash/PowerShell/cmd execution within tasks with Yampp enhancements
+- **📱 Platform Annotations** - Use `@linux @mac @windows` to define platform-specific task implementations
+- **🔄 Cooperative Control** - Seamless bidirectional communication between shell and Yampp functions
+- **⚡ Variable Interoperability** - Shell variables flow to internal functions, internal function outputs flow back to shell
+- **🎯 Universal Tasks** - Tasks without platform annotations run everywhere
+- **🚀 Market Leadership** - THE unique cross-platform task runner with native shell integration
+
+### 💡 Core Task Runner Features  
 - 🚀 **Concurrent by Default** - Executes tasks in parallel using worker threads
 - 📝 **Custom DSL** - Clean, readable syntax for defining tasks and dependencies
 - 🎯 **Smart Caching** - Tracks completed tasks to avoid redundant executions
-- 🎨 **Claude Code Interface** - Professional output system with real-time task blocks, animated spinners, and intelligent collapse
-- ✨ **Dynamic Task Visualization** - Live task blocks with timers, smart truncation, and multi-task parallel display
 - 🔄 **Dependency Management** - Automatic dependency resolution with DAG validation
 - ⚡ **Task Modifiers** - Support for `always`, `serial`, and `critical` task modifiers
 - 📊 **Execution Summary** - Clear summary of completed and failed tasks
 - ✅ **Syntax Validation** - Pre-execution syntax and semantic checking
+
+### 🎨 Professional User Experience
+- 🎨 **Claude Code Interface** - Professional output system with real-time task blocks, animated spinners, and intelligent collapse
+- ✨ **Dynamic Task Visualization** - Live task blocks with timers, smart truncation, and multi-task parallel display
+- 🔍 **Professional Parser** - Powered by Peggy parser generator for robust syntax parsing with precise error messages
+- 🔎 **Dry Run Mode** - Preview commands without execution using `--dry-run`
+- 📋 **Execution Planning** - Terraform-style execution plans with `--plan`
+- 🎭 **Multiple Output Modes** - Choose between organized, verbose, quiet, or ugly output formats
+
+### 🔌 Advanced Features & Ecosystem
 - 🔌 **Complete IDE Ecosystem** - VS Code extension, IntelliJ plugin, and AI-powered translation tools
 - 🤖 **AI-Powered Migration** - Intelligent translation from Makefile, Gulpfile, npm scripts with yampp-translator
 - 🎛️ **Parameterized Tasks** - Tasks can accept parameters with variable substitution
@@ -79,10 +98,6 @@ A modern, concurrent, declarative task runner with its own DSL, written in Node.
 - 📦 **Variables & Constants** - Global and local variable declarations with proper scoping
 - 🔧 **Internal Task Calls** - Call tasks internally using `__call` syntax for better control flow
 - 📁 **File Watching** - Make-style file dependency checking with `watches` keyword
-- 🔍 **Professional Parser** - Powered by Peggy parser generator for robust syntax parsing with precise error messages
-- 🔎 **Dry Run Mode** - Preview commands without execution using `--dry-run`
-- 📋 **Execution Planning** - Terraform-style execution plans with `--plan`
-- 🎭 **Multiple Output Modes** - Choose between organized, verbose, quiet, or ugly output formats
 - 🎯 **Interactive Input Prompts** - Revolutionary user input system with text, password, confirm, and select types
 - 🤖 **CI/CD Compatible** - Automatic default handling in non-interactive environments
 - 🔐 **Secure Password Input** - Hidden input for sensitive data
@@ -927,6 +942,198 @@ docs watches "src/**/*.ts" "docs/**/*.md" "typedoc.json" {
 - **Glob Support**: Flexible pattern matching for complex projects
 - **Cache Integration**: Works seamlessly with existing task caching
 
+## Cross-Platform Shell Execution 🌍
+
+**🚀 THE GAME CHANGER** - Yam++ is THE unique cross-platform task runner that combines native shell power with modern task orchestration. Write one Yamfile that leverages the full power of bash on Unix systems and PowerShell on Windows.
+
+### Platform Annotations
+
+Use `@platform` annotations to define platform-specific task implementations:
+
+```yamfile
+// Universal task - runs on all platforms
+setup {
+    echo "🚀 Setting up cross-platform project..."
+    __input "Project name:" name "my-app"
+    echo "Project '$name' initialized"
+}
+
+// Unix-specific implementation (Linux and macOS)
+@linux @mac {
+    build_unix {
+        echo "🔨 Building for Unix-like system..."
+        
+        # Full bash power with Yampp enhancements
+        export NODE_ENV=production
+        
+        if [ -f "package.json" ]; then
+            echo "📋 Found package.json, running build..."
+            npm run build
+            
+            # Complex bash operations work perfectly
+            for file in dist/*.js; do
+                if [ -f "$file" ]; then
+                    echo "✨ Generated: $(basename $file) ($(stat -c%s "$file") bytes)"
+                fi
+            done
+        else
+            echo "❌ No package.json found"
+            exit 1
+        fi
+        
+        echo "✅ Unix build completed"
+    }
+}
+
+// Windows-specific implementation  
+@windows {
+    build_windows {
+        Write-Host "🔨 Building for Windows system..." -ForegroundColor Green
+        
+        # Full PowerShell power with Yampp enhancements
+        $env:NODE_ENV = "production"
+        
+        if (Test-Path "package.json") {
+            Write-Host "📋 Found package.json, running build..." -ForegroundColor Yellow
+            npm run build
+            
+            # Complex PowerShell operations work perfectly
+            Get-ChildItem "dist\*.js" | ForEach-Object {
+                $size = [math]::Round($_.Length / 1KB, 2)
+                Write-Host "✨ Generated: $($_.Name) ($size KB)" -ForegroundColor Cyan
+            }
+        } else {
+            Write-Host "❌ No package.json found" -ForegroundColor Red
+            exit 1
+        }
+        
+        Write-Host "✅ Windows build completed" -ForegroundColor Green
+    }
+}
+```
+
+### Same Task Name, Different Implementations
+
+Define the same task name with different platform-specific implementations:
+
+```yamfile
+// Deploy task - different implementation per platform
+@linux @mac {
+    deploy(server) {
+        echo "🐧🍎 Unix deployment strategy"
+        
+        # Full bash power with loops and conditionals  
+        for host in $(cat servers.txt); do
+            echo "🔄 Deploying to $host..."
+            ssh $host "systemctl restart myapp"
+            __call notify_success("Deployed to $host")
+        done
+        
+        echo "✅ Unix deployment completed"
+    }
+}
+
+@windows {
+    deploy(server) {
+        Write-Host "🪟 Windows deployment strategy" -ForegroundColor Green
+        
+        # Full PowerShell power with native cmdlets
+        foreach ($host in Get-Content servers.txt) {
+            Write-Host "🔄 Deploying to $host..." -ForegroundColor Cyan
+            Invoke-Command -ComputerName $host -ScriptBlock {
+                Restart-Service "MyApp" -Force
+            }
+            __call notify_success("Deployed to $host")
+        }
+        
+        Write-Host "✅ Windows deployment completed" -ForegroundColor Green
+    }
+}
+
+// Universal wrapper that calls platform-specific implementation
+deploy_all(server) needs deploy($server) {
+    echo "🌍 Cross-platform deployment complete!"
+    __call celebrate("Multi-platform success!")
+}
+```
+
+### Cooperative Control System
+
+**Revolutionary Feature**: Yam++ provides seamless bidirectional communication between native shell and internal functions:
+
+```yamfile
+@linux @mac {
+    interactive_loop {
+        # Bash variables work with Yampp functions
+        echo "Starting interactive deployment process..."
+        
+        for i in {1..5}; do
+            echo "🔄 Processing batch $i..."
+            
+            # Shell variable $i is available to internal functions
+            __call process_batch($i)
+            
+            # Internal function can create variables for shell
+            __input_confirm "Continue with batch $((i+1))?" continue "yes"
+            
+            if [ "$continue" != "yes" ]; then
+                echo "Stopping at user request"
+                break
+            fi
+        done
+        
+        echo "✅ Interactive process completed"
+    }
+}
+```
+
+### Variable Interoperability
+
+Variables flow bidirectionally between shell and Yampp:
+
+- **Shell → Yampp**: Shell variables (like `$i` in loops) are available to `__call`, `__input`, etc.
+- **Yampp → Shell**: Variables created by `__input` and other internal functions are available to shell
+
+```yamfile
+@linux @mac {
+    dynamic_deployment {
+        # Get deployment config from user  
+        __input "How many servers?" count "3"
+        __input_select "Environment:" env ["dev", "staging", "prod"] "staging"
+        
+        # Use Yampp variables in bash
+        echo "Deploying to $count servers in $env environment"
+        
+        # Complex bash with Yampp variables
+        for i in $(seq 1 $count); do
+            server="server-${env}-${i}"
+            echo "Deploying to $server..."
+            
+            # Internal functions can access bash loop variable $i
+            __call deploy_to_server($server, $i, $env)
+        done
+    }
+}
+```
+
+### Benefits of Cross-Platform Shell Execution
+
+- **🌍 True Cross-Platform**: One Yamfile works optimally on Windows, Mac, and Linux
+- **💪 Native Shell Power**: Full bash/PowerShell capabilities with complex loops, conditionals, pipes
+- **🔄 Seamless Integration**: Internal functions work naturally within native shell code
+- **⚡ Variable Interoperability**: Bidirectional variable sharing between shell and Yampp
+- **🚀 Enterprise Ready**: Handles complex DevOps workflows across all platforms
+- **🎯 Market Leadership**: Unique positioning - no other tool combines these capabilities
+
+### Platform Detection
+
+Yam++ automatically detects the current platform:
+- `@linux` - Linux systems
+- `@mac` - macOS systems  
+- `@windows` - Windows systems
+
+Tasks without platform annotations run on all platforms (universal tasks).
+
 ## IDE Support
 
 Yam++ has dedicated IDE extensions for enhanced development experience:
@@ -1520,6 +1727,195 @@ build(environment) {
 - [ ] Use `serial` modifier for database migrations or deployment steps
 - [ ] Add `critical` modifier to essential deployment tasks
 - [ ] Leverage variables and constants for configuration management
+
+### Cross-Platform Deployment
+
+**Real-world example** showing the power of cross-platform shell execution with cooperative control:
+
+```yamfile
+// Universal setup task - runs on all platforms
+setup {
+    echo "🚀 Setting up cross-platform deployment environment..."
+    __input "Project name:" project_name "my-app"  
+    __input_select "Target environment:" env ["dev", "staging", "prod"] "staging"
+    echo "Project '$project_name' configured for $env environment"
+}
+
+// Unix-specific deployment (Linux and macOS)
+@linux @mac {
+    deploy_unix(server) {
+        echo "🐧🍎 Starting Unix deployment to $server..."
+        
+        # Full bash power with Yampp enhancements
+        __input_confirm "Deploy to production server $server?" confirm "no"
+        
+        if [ "$confirm" = "yes" ]; then
+            echo "📡 Starting deployment process..."
+            
+            # Complex bash operations with internal function calls
+            for host in $(cat deployment/servers-$env.txt); do
+                echo "🔄 Deploying to $host..."
+                
+                # SSH with error handling
+                if ssh -q "$host" "test -d /app"; then
+                    # Rsync with progress
+                    rsync -avz --progress dist/ "$host:/app/"
+                    
+                    # Remote service restart with confirmation
+                    ssh "$host" "sudo systemctl restart $project_name"
+                    
+                    # Use internal function with shell variables
+                    __call verify_deployment($host, $project_name)
+                else
+                    echo "⚠️  Directory /app not found on $host"
+                    __call handle_deployment_error($host, "missing_directory")
+                fi
+            done
+            
+            echo "✅ Unix deployment completed successfully"
+        else
+            echo "❌ Deployment cancelled by user"
+        fi
+    }
+    
+    verify_deployment(host, app_name) {
+        echo "✅ Verifying deployment on $host for $app_name..."
+        
+        # Complex verification with timeout
+        timeout 30 ssh "$host" "curl -f http://localhost:8080/health" || {
+            echo "❌ Health check failed for $app_name on $host"
+            __call rollback_deployment($host, $app_name)
+            exit 1
+        }
+        
+        echo "🎉 Deployment verified successfully on $host"
+    }
+}
+
+// Windows-specific deployment
+@windows {  
+    deploy_windows(server) {
+        Write-Host "🪟 Starting Windows deployment to $server..." -ForegroundColor Green
+        
+        # Full PowerShell power with Yampp enhancements
+        __input_confirm "Deploy to production server $server?" confirm "no"
+        
+        if ($confirm -eq "yes") {
+            Write-Host "📡 Starting deployment process..." -ForegroundColor Yellow
+            
+            # Complex PowerShell operations with internal function calls
+            $servers = Get-Content "deployment\servers-$env.txt"
+            
+            foreach ($host in $servers) {
+                Write-Host "🔄 Deploying to $host..." -ForegroundColor Cyan
+                
+                # Test connection with timeout
+                if (Test-Connection $host -Count 1 -Quiet) {
+                    # Copy files with progress
+                    Write-Host "📁 Copying files to $host..." -ForegroundColor Yellow
+                    Copy-Item -Path "dist\*" -Destination "\\$host\c$\app\" -Recurse -Force
+                    
+                    # Remote service restart
+                    Invoke-Command -ComputerName $host -ScriptBlock {
+                        param($appName)
+                        Restart-Service $appName -Force
+                    } -ArgumentList $project_name
+                    
+                    # Use internal function with PowerShell variables
+                    __call verify_deployment($host, $project_name)
+                } else {
+                    Write-Host "⚠️  Cannot reach $host" -ForegroundColor Yellow
+                    __call handle_deployment_error($host, "connection_failed")
+                }
+            }
+            
+            Write-Host "✅ Windows deployment completed successfully" -ForegroundColor Green
+        } else {
+            Write-Host "❌ Deployment cancelled by user" -ForegroundColor Red
+        }
+    }
+    
+    verify_deployment(host, app_name) {
+        Write-Host "✅ Verifying deployment on $host for $app_name..." -ForegroundColor Green
+        
+        # PowerShell health check with retry logic
+        $retries = 3
+        $success = $false
+        
+        for ($i = 1; $i -le $retries; $i++) {
+            try {
+                $response = Invoke-WebRequest "http://$host:8080/health" -TimeoutSec 10
+                if ($response.StatusCode -eq 200) {
+                    $success = $true
+                    break
+                }
+            } catch {
+                Write-Host "Attempt $i failed, retrying..." -ForegroundColor Yellow
+                Start-Sleep -Seconds 5
+            }
+        }
+        
+        if (-not $success) {
+            Write-Host "❌ Health check failed for $app_name on $host" -ForegroundColor Red
+            __call rollback_deployment($host, $app_name)
+            exit 1
+        }
+        
+        Write-Host "🎉 Deployment verified successfully on $host" -ForegroundColor Green
+    }
+}
+
+// Universal helper functions (work on all platforms)
+handle_deployment_error(host, error_type) {
+    echo "🚨 Deployment error on $host: $error_type"
+    __input_confirm "Continue with remaining servers?" continue "yes"
+    
+    if [ "$continue" != "yes" ]; then
+        echo "Deployment aborted by user"
+        exit 1
+    fi
+}
+
+rollback_deployment(host, app_name) {
+    echo "🔄 Rolling back deployment on $host for $app_name..."
+    # Add rollback logic here
+    echo "⚠️  Rollback completed for $host"
+}
+
+// Universal deployment wrapper
+deploy_to_all(server) needs setup {
+    echo "🌍 Starting cross-platform deployment..."
+    
+    # This automatically calls the correct platform-specific deploy function
+    __call deploy($server)
+    
+    echo "🎊 Cross-platform deployment process completed!"
+    __call send_notification("Deployment finished for $project_name in $env environment")
+}
+
+send_notification(message) {
+    echo "📢 Notification: $message"
+    # Could integrate with Slack, Teams, email, etc.
+}
+```
+
+**Usage:**
+```bash
+# On Linux/macOS - uses bash implementation
+yampp deploy_to_all:production-server-1
+
+# On Windows - uses PowerShell implementation  
+yampp deploy_to_all:production-server-1
+
+# Same command, different native shell execution!
+```
+
+This example demonstrates:
+- **🌍 Cross-Platform Compatibility**: Same logical flow, platform-native implementation
+- **🔄 Cooperative Control**: Shell variables accessible to internal functions
+- **💪 Native Shell Power**: Full bash/PowerShell capabilities with complex loops and conditionals
+- **⚡ Variable Interoperability**: User inputs flow to shell, shell variables flow to internal functions
+- **🎯 Enterprise Ready**: Real-world deployment patterns with error handling and verification
 
 ## Configuration
 

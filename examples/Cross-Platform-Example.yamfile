@@ -1,0 +1,214 @@
+// Cross-Platform Task Runner Example
+// Demonstrates Yam++ platform annotations for native shell execution
+// This example shows how one Yamfile can work optimally across Windows, Mac, and Linux
+
+// Regular tasks run on all platforms (no annotations)
+serial setup {
+    echo "🚀 Setting up cross-platform project..."
+    __input "Project name:" name
+    echo "Project '$name' initialized"
+}
+
+install {
+    echo "📦 Installing dependencies..."
+    npm install
+    echo "✅ Dependencies installed"
+}
+
+// Unix-like systems (Linux and macOS) 
+@linux @mac {
+    build_unix {
+        echo "🔨 Building for Unix-like system..."
+        
+        # Full bash power with native shell features
+        export NODE_ENV=production
+        
+        if [ -f "package.json" ]; then
+            echo "📋 Found package.json, running build..."
+            npm run build
+            
+            # Complex bash operations work perfectly
+            for file in dist/*.js; do
+                if [ -f "$file" ]; then
+                    echo "✨ Generated: $(basename $file) ($(stat -f%z "$file") bytes)"
+                fi
+            done
+        else
+            echo "❌ No package.json found"
+            exit 1
+        fi
+        
+        echo "✅ Unix build completed"
+    }
+    
+    deploy_unix(server) {
+        echo "🚀 Deploying to Unix server: $server"
+        
+        # Native bash with yampp enhancements
+        __input_confirm "Deploy to production?" confirm "no"
+        
+        if [ "$confirm" = "yes" ]; then
+            echo "📡 Starting deployment..."
+            
+            # Use full bash power
+            servers=($(cat servers.txt 2>/dev/null || echo "$server"))
+            
+            for host in "${servers[@]}"; do
+                echo "🔄 Deploying to $host..."
+                
+                if ssh -q "$host" "test -d /app"; then
+                    scp -r dist/* "$host:/app/"
+                    ssh "$host" "sudo systemctl restart myapp"
+                    __call notify_success("Deployed to $host")
+                else
+                    echo "⚠️  Directory /app not found on $host"
+                fi
+            done
+        else
+            echo "❌ Deployment cancelled"
+        fi
+    }
+    
+    logs_unix {
+        echo "📋 Viewing Unix system logs..."
+        
+        # Native bash features
+        tail -f /var/log/myapp.log 2>/dev/null || {
+            echo "💡 Log file not found, trying alternatives..."
+            find /var/log -name "*myapp*" -type f | head -5 | while read logfile; do
+                echo "📄 Found: $logfile"
+            done
+        }
+    }
+}
+
+// Windows PowerShell
+@windows {
+    build_windows {
+        Write-Host "🔨 Building for Windows system..." -ForegroundColor Green
+        
+        # Full PowerShell power with native features
+        $env:NODE_ENV = "production"
+        
+        if (Test-Path "package.json") {
+            Write-Host "📋 Found package.json, running build..." -ForegroundColor Yellow
+            npm run build
+            
+            # Complex PowerShell operations work perfectly  
+            Get-ChildItem "dist\*.js" | ForEach-Object {
+                $size = [math]::Round($_.Length / 1KB, 2)
+                Write-Host "✨ Generated: $($_.Name) ($size KB)" -ForegroundColor Cyan
+            }
+        } else {
+            Write-Host "❌ No package.json found" -ForegroundColor Red
+            exit 1
+        }
+        
+        Write-Host "✅ Windows build completed" -ForegroundColor Green
+    }
+    
+    deploy_windows(server) {
+        Write-Host "🚀 Deploying to Windows server: $server" -ForegroundColor Green
+        
+        # Native PowerShell with yampp enhancements
+        __input_confirm "Deploy to production?" confirm "no"
+        
+        if ($confirm -eq "yes") {
+            Write-Host "📡 Starting deployment..." -ForegroundColor Yellow
+            
+            # Use full PowerShell power
+            $servers = if (Test-Path "servers.txt") {
+                Get-Content "servers.txt"
+            } else {
+                @($server)
+            }
+            
+            foreach ($host in $servers) {
+                Write-Host "🔄 Deploying to $host..." -ForegroundColor Cyan
+                
+                if (Test-Connection $host -Count 1 -Quiet) {
+                    Copy-Item -Path "dist\*" -Destination "\\$host\c$\app\" -Recurse -Force
+                    Invoke-Command -ComputerName $host -ScriptBlock {
+                        Restart-Service "MyApp" -Force
+                    }
+                    __call notify_success("Deployed to $host")
+                } else {
+                    Write-Host "⚠️  Cannot reach $host" -ForegroundColor Yellow
+                }
+            }
+        } else {
+            Write-Host "❌ Deployment cancelled" -ForegroundColor Red
+        }
+    }
+    
+    logs_windows {
+        Write-Host "📋 Viewing Windows system logs..." -ForegroundColor Green
+        
+        # Native PowerShell features
+        try {
+            Get-EventLog -LogName Application -Source "MyApp" -Newest 50 | 
+            Format-Table TimeGenerated, EntryType, Message -AutoSize
+        } catch {
+            Write-Host "💡 Application log not found, checking alternatives..." -ForegroundColor Yellow
+            Get-ChildItem "C:\Logs" -Filter "*myapp*" -ErrorAction SilentlyContinue |
+            ForEach-Object {
+                Write-Host "📄 Found: $($_.FullName)" -ForegroundColor Cyan
+            }
+        }
+    }
+}
+
+// Universal tasks that work everywhere
+test {
+    echo "🧪 Running tests on $(uname -s 2>/dev/null || echo Windows)..."
+    npm test
+    echo "✅ All tests passed!"
+}
+
+clean {
+    echo "🧹 Cleaning build artifacts..."
+    
+    # Simple commands work on all platforms
+    npm run clean || echo "No clean script defined"
+    
+    echo "✅ Cleanup completed"
+}
+
+// Same task name, different implementations per platform! 
+@linux @mac {
+    deploy(server) {
+        echo "🐧🍎 Unix deployment strategy"
+        __call deploy_unix($server)
+        echo "✅ Unix deployment completed"
+    }
+}
+
+@windows {
+    deploy(server) {
+        echo "🪟 Windows deployment strategy"  
+        __call deploy_windows($server)
+        echo "✅ Windows deployment completed"
+    }
+}
+
+// Universal task that depends on platform-specific 'deploy'
+deploy_all(server) needs deploy($server) {
+    echo "🌍 Cross-platform deployment complete!"
+    echo "✅ Platform-optimized deployment finished"
+    __call celebrate("Multi-platform success!")
+}
+
+// Helper tasks using internal functions
+notify_success(message) {
+    echo "🎉 SUCCESS: $message"
+    __call log_event("DEPLOY_SUCCESS", $message)
+}
+
+celebrate(message) {
+    echo "🎊 CELEBRATION: $message"
+    echo "🏆 Yam++ cross-platform power in action!"
+}
+
+log_event(type, message) {
+    echo "[$(date)] [$type] $message" 
+}

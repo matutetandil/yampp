@@ -5,6 +5,164 @@ All notable changes to Yam++ (Yet Another Modern Task Runner) will be documented
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0] - 2025-08-29
+
+### 🚀 REVOLUTIONARY FEATURE: Cross-Platform Shell Execution with Cooperative Control
+
+**THE GAME CHANGER** - This release transforms Yam++ into THE unique cross-platform task runner with native shell power, positioning it as the market leader in modern task automation.
+
+### Major New Features
+
+#### Cross-Platform Shell Execution
+- **Platform Annotations**: New `@linux @mac @windows` syntax for platform-specific task blocks
+- **Native Shell Integration**: Full bash/PowerShell/cmd execution within tasks while maintaining Yampp enhancements
+- **Universal Task Support**: Tasks without platform annotations run on all platforms
+- **Cross-Platform Strategy**: One Yamfile works optimally across Windows, Mac, and Linux
+
+#### Revolutionary Cooperative Control System
+- **Bidirectional Communication**: Seamless interaction between native shell and Yampp internal functions
+- **Shell Function Proxies**: Automatic proxy injection for all `__function` calls during shell execution
+- **State Synchronization**: Variables flow bidirectionally between bash and Yampp (bash `$i` available to internal functions, `__input` variables available to bash)
+- **Complex Structure Support**: Full support for loops, conditionals, pipes, and nested structures with internal function calls throughout
+
+#### Technical Architecture
+
+##### Platform Detection & Filtering
+- **Strategy Pattern Implementation**: `PlatformStrategy` abstract base with platform-specific implementations
+- **Runtime Platform Detection**: Automatic OS detection (`linux`/`darwin`/`win32`) with singleton pattern
+- **Task Filtering**: Execute universal tasks + matching platform-specific tasks
+- **Singleton Factory**: `PlatformDetectorFactory` for consistent platform detection
+
+##### Shell Integration Components
+```
+lib/platform/
+├── platform-strategy.js         # Abstract base class for platform implementations  
+├── platform-detector-factory.js # Singleton factory for platform detection
+├── linux-strategy.js           # Linux implementation with bash execution
+├── mac-strategy.js             # macOS implementation with bash execution  
+└── windows-strategy.js         # Windows implementation with PowerShell execution
+
+lib/state-sync/
+├── shared-state-manager.js     # Abstract base for variable synchronization
+├── unix-state-manager.js       # Unix variable extraction from bash context
+└── windows-state-manager.js    # Windows variable handling for PowerShell
+
+lib/shell-proxy/
+├── shell-proxy-strategy.js     # Abstract base for proxy generation
+├── bash-proxy-strategy.js      # Bash proxy functions with temp files
+├── powershell-proxy-strategy.js # PowerShell proxy functions  
+└── shell-proxy-manager.js      # Orchestrates proxy injection
+```
+
+#### Parser Enhancements
+- **Grammar Extension**: Enhanced Peggy parser with `PlatformBlock` support for platform annotations
+- **Complex Command Support**: Fixed `RawCommandContent` to handle nested braces in bash functions/loops
+- **Robust Error Handling**: Better error messages with context for platform-specific syntax
+
+#### Internal Function Registry
+- **Auto-Discovery**: Automatic detection of all internal functions using Registry pattern
+- **Plugin Ready**: Extensible architecture for custom internal functions
+- **Strategy Integration**: Seamless integration with platform-specific proxy systems
+
+### Examples
+
+#### Cross-Platform Task Definition
+```yamfile
+// Universal task (runs everywhere)
+setup {
+    echo "🚀 Setting up cross-platform project..."
+    __input "Project name:" name
+    echo "Project '$name' initialized"
+}
+
+// Unix-specific implementation  
+@linux @mac {
+    deploy(server) {
+        # Full bash power with Yampp enhancements
+        for host in $(cat servers.txt); do
+            echo "🔄 Deploying to $host..."
+            ssh $host "systemctl restart app"
+            __call notify_success("Deployed to $host")
+        done
+    }
+}
+
+// Windows-specific implementation
+@windows {
+    deploy(server) {
+        # Full PowerShell power with Yampp enhancements
+        foreach ($host in Get-Content servers.txt) {
+            Write-Host "🔄 Deploying to $host..." -ForegroundColor Cyan
+            Invoke-Command -ComputerName $host -ScriptBlock {
+                Restart-Service "MyApp" -Force
+            }
+            __call notify_success("Deployed to $host")
+        }
+    }
+}
+```
+
+#### Variable Interoperability
+```yamfile
+@linux @mac {
+    test_loop {
+        # Bash variables work with internal functions
+        for i in {1..5}; do
+            echo "Iteration $i"
+            __call simple_task($i)  # $i from bash context
+        done
+    }
+}
+```
+
+### Technical Implementation Details
+
+#### Cooperative Control Flow
+1. **Proxy Injection**: Shell commands with `__function` calls get proxy functions injected
+2. **Execution Handoff**: Shell executes normally until encountering `__function` proxy
+3. **State Capture**: Proxy captures current shell variable state to temp file
+4. **Yampp Processing**: Yampp processes internal function with full variable context
+5. **Response Return**: Yampp writes response back for shell consumption
+6. **Bidirectional Sync**: Variables flow both directions (shell→Yampp, Yampp→shell)
+
+#### Platform Strategy Architecture
+- **Abstract Base**: `PlatformStrategy` defines interface for shell execution and state management
+- **Concrete Implementations**: Platform-specific strategies handle native shell commands
+- **State Managers**: Bidirectional variable synchronization between shell and Yampp
+- **Proxy Managers**: Generate shell-specific proxy functions for internal function interception
+
+#### Performance Optimizations
+- **Singleton Pattern**: Platform detection cached at startup
+- **Lazy Loading**: Platform strategies instantiated only when needed
+- **Efficient Parsing**: Enhanced grammar reduces parsing overhead
+- **Smart Proxy Injection**: Only inject proxies when internal functions detected
+
+### Breaking Changes
+- **New Platform Syntax**: Added `@platform` annotation syntax (additive, no breaking changes)
+- **Enhanced Grammar**: Extended Peggy parser (backward compatible)
+- **Directory Structure**: New platform-specific modules (non-breaking)
+
+### Migration Notes
+- **Existing Yamfiles**: Continue to work unchanged
+- **Universal Tasks**: All current tasks automatically become universal (run on all platforms)
+- **Enhanced Capabilities**: Existing tasks can now use complex bash/PowerShell features
+- **Performance**: No impact on existing simple command tasks
+
+### Competitive Advantage
+This release establishes Yam++ as THE unique solution in the market:
+- **Make**: Powerful but Unix-only ❌
+- **Just/Gradle**: Cross-platform but limited shell integration ❌  
+- **Yampp**: Cross-platform + Native shell power + Modern UX + Cooperative control ✅
+
+### Impact
+- **Enterprise Ready**: Complex DevOps workflows now fully supported
+- **Cross-Platform DevOps**: Single Yamfile for Windows, Mac, Linux teams
+- **Native Shell Power**: Leverage full bash/PowerShell capabilities
+- **Modern UX**: Professional interface with advanced shell capabilities
+- **Market Leadership**: Unique positioning as the only tool combining these features
+
+This release represents a quantum leap in task runner capabilities, delivering enterprise-grade cross-platform automation with native shell power.
+
 ## [0.7.0] - 2025-08-28
 
 ### 🎨 Major Feature: Claude Code Interface Output System
