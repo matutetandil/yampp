@@ -1061,6 +1061,8 @@ deploy_all(server) needs deploy($server) {
 
 **Revolutionary Feature**: Yam++ provides seamless bidirectional communication between native shell and internal functions:
 
+> **✅ v0.8.2 Update**: Fixed critical variable scope issues - internal function variables now properly available to shell commands, and task parameters work correctly in all contexts including loops.
+
 ```yamfile
 @linux @mac {
     interactive_loop {

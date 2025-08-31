@@ -5,6 +5,60 @@ All notable changes to Yam++ (Yet Another Modern Task Runner) will be documented
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.2] - 2025-08-31
+
+### 🔧 Critical Fixes - Cooperative Control System
+
+**Major Stability Update** - Fixed critical bugs in the cooperative control system that prevented proper variable sharing between internal functions and shell commands.
+
+#### Fixed Issues
+
+##### Variable Scope Resolution
+- **Fixed**: Variables from `__input` and other internal functions now properly available to subsequent bash commands
+- **Fixed**: Task parameters correctly passed to parametrized tasks in all contexts
+- **Fixed**: Variable scope issues when `__call` or other internal functions used inside loops
+- **Implementation**: Pre-export task parameters to shell scope before script execution
+- **Result**: Complete end-to-end variable flow from internal functions → bash → internal functions
+
+##### Inline Intercept Architecture
+- **Improved**: Replaced bash proxy functions with inline intercept code for better variable scope
+- **Fixed**: Bash subshell variable export issues by using `source` command instead of subshells
+- **Enhanced**: Argument parsing to properly handle quoted strings and complex parameters
+- **Added**: Cross-platform inline intercept system for both bash and PowerShell
+
+##### CallFunction Parameter Handling  
+- **Fixed**: `__call` function now handles both parser format `task(param1, param2)` and intercept format `task param1 param2`
+- **Enhanced**: Dynamic parameter resolution during task execution
+- **Result**: Parametrized task calls work correctly in all contexts
+
+#### Platform Support
+
+##### Bash (Fully Tested ✅)
+- Inline intercept code with proper variable scope
+- Pre-export of task parameters 
+- Robust argument parsing with quote support
+- Source-based variable export to avoid subshell issues
+
+##### PowerShell (Implemented, Not Tested ⚠️)
+- Migrated from proxy functions to inline intercept code for consistency
+- PowerShell-specific variable export using `$env:` variables
+- `Invoke-Expression` for main script scope execution
+- **Note**: PowerShell implementation follows same patterns as bash but requires Windows testing
+
+#### Technical Improvements
+- **Architecture**: Clean separation between parser and shell content processors
+- **Strategy Pattern**: Consistent cross-platform shell processing
+- **Unified Processing**: Tasks with internal functions processed as single blocks
+- **Variable Synchronization**: Bidirectional sync between Yampp context and shell environment
+
+#### Breaking Changes
+- None - all changes are backward compatible
+
+#### Migration Notes
+- Existing yamfiles continue to work without modification
+- Internal functions now properly export variables to shell scope
+- Loop contexts with internal functions now work correctly
+
 ## [0.8.1] - 2025-08-29
 
 ### 🔍 Enhanced Verbose Output Modes
