@@ -145,7 +145,6 @@ yampp --clean          # Clean cache
 
 # Execution control
 yampp -j 2 build test  # Limit parallelism
-yampp --force build    # Ignore cache
 yampp --dry-run deploy # Preview without execution
 yampp --plan deploy    # Show execution plan
 ```

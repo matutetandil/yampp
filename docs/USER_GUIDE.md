@@ -361,7 +361,6 @@ test watches src/**/*.ts tests/**/*.spec.ts {
 Tasks with `watches` only run if:
 1. Watched files have changed since last run
 2. Task hasn't been completed in current session
-3. Using `--force` flag
 
 ### Watch Patterns
 
@@ -451,12 +450,6 @@ test {
 # Limit parallelism
 yampp -j 2 build test deploy
 
-# Force run (ignore cache)
-yampp --force build
-
-# Continue on error
-yampp --continue test1 test2 test3
-
 # Specify Yamfile
 yampp -f build/Yamfile.prod deploy
 ```
@@ -522,16 +515,7 @@ Shows:
 
 ### Input Override Mode
 
-Skip all interactive prompts with defaults:
-
-```bash
-yampp --yes deploy
-```
-
-Useful for:
-- CI/CD environments
-- Automated scripts
-- Non-interactive execution
+Internal functions automatically use default values in CI/CD environments (non-interactive).
 
 ## Examples
 
@@ -679,7 +663,6 @@ package needs build_native {
 
 **Cache issues:**
 - Run `yampp clean` to clear cache
-- Use `--force` to bypass cache for single run
 
 **Platform-specific task not running:**
 - Verify platform annotation syntax

@@ -31,15 +31,12 @@ yampp [options] [tasks...]
 | `--version` | `-v` | Show version | - |
 | `--file` | `-f` | Specify Yamfile path | `./Yamfile` |
 | `--jobs` | `-j` | Max parallel jobs | CPU count |
-| `--force` | - | Ignore cache | `false` |
-| `--continue` | `-k` | Continue on error | `false` |
 | `--dry-run` | `-n` | Preview without execution | `false` |
 | `--plan` | - | Show execution plan | `false` |
 | `--quiet` | `-q` | Minimal output | `false` |
 | `--verbose` | - | Show all output | `false` |
 | `--ugly` | - | Raw output format | `false` |
 | `--verbose-ugly` | - | Raw with timestamps | `false` |
-| `--yes` | `-y` | Auto-confirm prompts | `false` |
 | `--clean` | - | Clean cache | - |
 | `--list` | - | List available tasks | - |
 | `--graph` | - | Show dependency graph | - |
@@ -80,12 +77,6 @@ yampp --clean
 ```bash
 # Limit parallelism
 yampp -j 2 task1 task2 task3
-
-# Force execution (ignore cache)
-yampp --force build
-
-# Continue on error
-yampp --continue test1 test2 test3
 
 # Dry run
 yampp --dry-run deploy
