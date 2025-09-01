@@ -305,8 +305,8 @@ build(env = "dev") {
 From command line:
 
 ```bash
-yampp "greet(World)"
-yampp "build(production)"
+yampp greet:World
+yampp build:production
 ```
 
 From other tasks:

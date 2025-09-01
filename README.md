@@ -136,7 +136,7 @@ npm install -g .
 # Task execution
 yampp                   # Run default task
 yampp build test        # Run specific tasks
-yampp "build(prod)"     # Run with parameters
+yampp build:prod        # Run with parameters
 
 # Task management
 yampp --list           # List all tasks

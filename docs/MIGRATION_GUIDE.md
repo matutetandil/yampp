@@ -644,8 +644,8 @@ build(env = "dev") {
 }
 
 // Can be called as:
-// yampp "build(prod)"
-// yampp "build(staging)"
+// yampp build:prod
+// yampp build:staging
 ```
 
 ### Parallel Execution Control

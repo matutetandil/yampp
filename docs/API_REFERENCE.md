@@ -56,7 +56,7 @@ yampp
 yampp build test deploy
 
 # Run with parameters
-yampp "build(production)" "test(e2e)"
+yampp build:production test:e2e
 ```
 
 #### Task Management
