@@ -1,2232 +1,328 @@
 # Yam++ (Yet Another Modern Task Runner)
 
-![Version](https://img.shields.io/badge/version-0.8.1-blue)
+![Version](https://img.shields.io/badge/version-0.8.2-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)
 ![npm](https://img.shields.io/badge/npm-package-red)
 
-A modern, concurrent, declarative task runner with native cross-platform shell execution. THE unique task runner that combines the power of Make with cross-platform compatibility, native shell integration (bash/PowerShell/cmd), and a modern professional interface. Perfect for DevOps teams working across Windows, Mac, and Linux.
+A modern, concurrent, declarative task runner with native cross-platform shell execution. The unique task runner that combines the power of Make with cross-platform compatibility, native shell integration (bash/PowerShell/cmd), and a modern professional interface.
 
-## Table of Contents
+## 🚀 Quick Start
 
-- [Features](#features)
-- [Installation](#installation)
-- [Quick Start](#quick-start)
-- [Basic Usage](#basic-usage)
-- [Yamfile Syntax](#yamfile-syntax)
-  - [Task Definition](#task-definition)
-  - [Dependencies](#dependencies)
-  - [Task Modifiers](#task-modifiers)
-  - [Comments](#comments)
-  - [Variables and Constants](#variables-and-constants)
-  - [Environment Variables](#environment-variables)
-  - [Internal Task Calls](#internal-task-calls)
-  - [File Watching](#file-watching)
-  - [Parameterized Tasks](#parameterized-tasks)
-  - [Input Prompts](#input-prompts)
-  - [Cross-Platform Shell Execution](#cross-platform-shell-execution)
-- [CLI Options](#cli-options)
-- [Advanced Features](#advanced-features)
-  - [Execution Modes](#execution-modes)
-  - [Output Formats](#output-formats)
-  - [Input Overrides](#input-overrides)
-- [Translation Examples from Other Task Runners](#translation-examples-from-other-task-runners)
-  - [AI-Powered Translation with yampp-translator](#ai-powered-translation-with-yampp-translator)
-  - [Manual Translation Patterns](#manual-translation-patterns)
-  - [Makefile → Yamfile](#makefile--yamfile)
-  - [Gulp → Yamfile](#gulp--yamfile)
-  - [npm scripts → Yamfile](#npm-scripts--yamfile)
-- [Examples](#examples)
-  - [Basic Build Pipeline](#basic-build-pipeline)
-  - [Web Development Workflow](#web-development-workflow)
-  - [Complex Project with Parameters](#complex-project-with-parameters)
-  - [Interactive Build System](#interactive-build-system)
-  - [CI/CD Pipeline](#cicd-pipeline)
-  - [File Watching Example](#file-watching-example)
-  - [Cross-Platform Deployment](#cross-platform-deployment)
-- [Working with Legacy Scripts](#working-with-legacy-scripts)
-- [IDE Support](#ide-support)
-  - [VS Code Extension](#vs-code-extension)
-  - [IntelliJ Plugin](#intellij-plugin)
-  - [AI-Powered Translation Tool](#ai-powered-translation-tool)
-- [Development](#development)
-  - [Project Structure](#project-structure)
-  - [Building from Source](#building-from-source)
-  - [Testing](#testing)
-- [API Reference](#api-reference)
-- [FAQ](#faq)
-- [Troubleshooting](#troubleshooting)
-- [Performance](#performance)
-- [Contributing](#contributing)
-- [License](#license)
-- [Author](#author)
-- [Links](#links)
+```bash
+# Install globally
+npm install -g yampp
 
-## Features
+# Create a Yamfile in your project
+cat > Yamfile << 'EOF'
+build {
+    echo "Building project..."
+    npm run compile
+}
 
-### 🌟 Revolutionary Cross-Platform Shell Execution
-- **🌍 Native Shell Power** - Full bash/PowerShell/cmd execution within tasks with Yampp enhancements
-- **📱 Platform Annotations** - Use `@linux @mac @windows` to define platform-specific task implementations
-- **🔄 Cooperative Control** - Seamless bidirectional communication between shell and Yampp functions
-- **⚡ Variable Interoperability** - Shell variables flow to internal functions, internal function outputs flow back to shell
-- **🎯 Universal Tasks** - Tasks without platform annotations run everywhere
-- **🚀 Market Leadership** - THE unique cross-platform task runner with native shell integration
+test needs build {
+    echo "Running tests..."
+    npm test
+}
 
-### 💡 Core Task Runner Features  
-- 🚀 **Concurrent by Default** - Executes tasks in parallel using worker threads
-- 📝 **Custom DSL** - Clean, readable syntax for defining tasks and dependencies
-- 🎯 **Smart Caching** - Tracks completed tasks to avoid redundant executions
-- 🔄 **Dependency Management** - Automatic dependency resolution with DAG validation
-- ⚡ **Task Modifiers** - Support for `always`, `serial`, and `critical` task modifiers
-- 📊 **Execution Summary** - Clear summary of completed and failed tasks
-- ✅ **Syntax Validation** - Pre-execution syntax and semantic checking
+deploy needs test {
+    echo "Deploying..."
+    ./deploy.sh
+}
+EOF
 
-### 🎨 Professional User Experience
-- 🎨 **Claude Code Interface** - Professional output system with real-time task blocks, animated spinners, and intelligent collapse
-- ✨ **Dynamic Task Visualization** - Live task blocks with timers, smart truncation, and multi-task parallel display
-- 🔍 **Professional Parser** - Powered by Peggy parser generator for robust syntax parsing with precise error messages
-- 🔎 **Dry Run Mode** - Preview commands without execution using `--dry-run`
-- 📋 **Execution Planning** - Terraform-style execution plans with `--plan`
-- 🎭 **Multiple Output Modes** - Choose between Claude Code interface, verbose (no collapsing), verbose-ugly (with timestamps/PID), quiet, or ugly output formats
+# Run tasks
+yampp build         # Run single task
+yampp test deploy   # Run multiple tasks
+yampp --list        # List all tasks
+```
 
-### 🔌 Advanced Features & Ecosystem
-- 🔌 **Complete IDE Ecosystem** - VS Code extension, IntelliJ plugin, and AI-powered translation tools
-- 🤖 **AI-Powered Migration** - Intelligent translation from Makefile, Gulpfile, npm scripts with yampp-translator
-- 🎛️ **Parameterized Tasks** - Tasks can accept parameters with variable substitution
-- 🔄 **Parameter Passing** - Dependencies can receive parameters from parent tasks
-- 💬 **Rich Comments** - Support for both single-line (`//`) and multi-line (`/* */`) comments
-- 📦 **Variables & Constants** - Global and local variable declarations with proper scoping
-- 🔧 **Internal Task Calls** - Call tasks internally using `__call` syntax for better control flow
-- 📁 **File Watching** - Make-style file dependency checking with `watches` keyword
-- 🎯 **Interactive Input Prompts** - Revolutionary user input system with text, password, confirm, and select types
-- 🤖 **CI/CD Compatible** - Automatic default handling in non-interactive environments
-- 🔐 **Secure Password Input** - Hidden input for sensitive data
+## 🌟 Key Features
 
-## Installation
+- **🌍 Cross-Platform Native Shell** - Full bash/PowerShell/cmd execution with platform annotations (`@linux @mac @windows`)
+- **⚡ Concurrent by Default** - Parallel task execution using worker threads
+- **🎨 Professional Interface** - Real-time task blocks with animated spinners (Claude Code interface)
+- **🔄 Smart Dependencies** - Automatic dependency resolution with DAG validation
+- **📦 Intelligent Caching** - Skip unchanged tasks with file watching support
+- **💬 Interactive Functions** - Built-in prompts for user input (`__input`, `__input_password`, `__input_select`, `__input_confirm`)
+- **🎯 Parameterized Tasks** - Tasks with parameters and variable substitution
+- **🔌 Complete Ecosystem** - VS Code extension, IntelliJ plugin, and AI-powered migration tools
 
-### Global Installation (Recommended)
+## 📚 Documentation
+
+- **[User Guide](docs/USER_GUIDE.md)** - Complete guide to using Yampp
+- **[Migration Guide](docs/MIGRATION_GUIDE.md)** - Migrate from Make, Gulp, npm scripts, and more
+- **[Architecture](docs/ARCHITECTURE.md)** - Technical architecture and design decisions
+- **[Advanced Features](docs/ADVANCED_FEATURES.md)** - Deep dive into advanced capabilities
+- **[API Reference](docs/API_REFERENCE.md)** - Programmatic usage and extension
+
+## 💡 Why Yampp?
+
+### The Problem
+- **Make** is powerful but Unix-only and has arcane syntax
+- **npm scripts** lack proper dependency management and parallelization
+- **Gulp/Grunt** require JavaScript programming and complex configurations
+- **Just** is simpler but lacks advanced features and cross-platform support
+
+### The Solution
+Yampp combines the best of all worlds:
+- Simple declarative syntax like Make
+- Cross-platform native shell execution
+- Modern features like file watching and interactive prompts
+- Professional output with real-time feedback
+- Zero configuration with sensible defaults
+
+## 🎯 Example Yamfile
+
+```yamfile
+// Variables
+var PROJECT = "myapp"
+const VERSION = "1.0.0"
+
+// Cross-platform task
+@linux @mac: install {
+    ./install.sh
+}
+
+@windows: install {
+    .\install.ps1
+}
+
+// Parameterized task with file watching
+build(env = "dev") watches src/**/*.ts {
+    echo "Building $PROJECT v$VERSION for $env"
+    npm run build:$env
+}
+
+// Interactive deployment
+deploy needs build(production) {
+    __input_select "Deploy target:" target ["aws", "azure", "gcp"] "aws"
+    __input_confirm "Deploy to $target?" confirm "false"
+    
+    if [ "$confirm" = "true" ]; then
+        ./deploy.sh --target $target
+    fi
+}
+
+// Task with modifiers
+always serial critical: backup {
+    pg_dump mydb > backup.sql
+    aws s3 cp backup.sql s3://backups/
+}
+```
+
+## 🛠️ Installation
+
+### From npm
 
 ```bash
 npm install -g yampp
 ```
 
-### Local Installation
+### From Source
 
 ```bash
-npm install --save-dev yampp
+git clone https://github.com/yourusername/yampp.git
+cd yampp
+npm install
+npm install -g .
 ```
 
-## Quick Start
+## 📖 Basic Usage
 
-1. Create a `Yamfile` in your project root:
+### CLI Commands
+
+```bash
+# Task execution
+yampp                   # Run default task
+yampp build test        # Run specific tasks
+yampp "build(prod)"     # Run with parameters
+
+# Task management
+yampp --list           # List all tasks
+yampp --graph          # Show dependency graph
+yampp --clean          # Clean cache
+
+# Execution control
+yampp -j 2 build test  # Limit parallelism
+yampp --force build    # Ignore cache
+yampp --dry-run deploy # Preview without execution
+yampp --plan deploy    # Show execution plan
+```
+
+### Yamfile Syntax
 
 ```yamfile
-build {
-    npm run build
-}
-
-test needs build {
-    npm test
-}
-
-always: clean {
-    rm -rf dist/
-}
-```
-
-2. Run tasks:
-
-```bash
-# Run default task (first task or 'all')
-yampp
-
-# Run specific task
-yampp test
-
-# Run task with parameters (using : separator)
-yampp deploy:production
-yampp db_backup:mydb:sql
-
-# Run with limited parallelism
-yampp -j 2 build test
-```
-
-## Usage
-
-### CLI Syntax (Make-style)
-
-```bash
-# Run default task
-yampp
-
-# Run specific tasks
-yampp build test deploy
-
-# Run tasks with parameters
-yampp deploy:staging
-yampp build:debug test:unit
-
-# Options
-yampp -j 4 build        # Limit to 4 parallel jobs
-yampp -l                # List all tasks
-yampp -g                # Show dependency graph
-yampp -c                # Clean cache
-yampp -v build:release  # Verbose output
-yampp -q build          # Quiet mode (suppress all output)
-yampp -u build          # Ugly mode (mixed output, simple prefixes)
-yampp -n test           # Dry run (show what would be executed)
-yampp -p deploy         # Show execution plan (Terraform-style)
-```
-
-## DSL Syntax
-
-### Basic Task
-
-```yamfile
+// Task definition
 taskname {
     command1
     command2
 }
-```
 
-### Task with Dependencies
-
-```yamfile
+// Dependencies
 taskname needs dep1 dep2 {
-    command
+    commands
+}
+
+// Modifiers
+always: taskname { }      // Always run
+serial: taskname { }      // Sequential execution
+critical: taskname { }    // Must succeed
+
+// Variables
+var name = "value"        // Mutable
+const name = "value"      // Immutable
+
+// File watching
+taskname watches pattern {
+    commands
+}
+
+// Platform specific
+@linux @mac: taskname { }
+@windows: taskname { }
+
+// Parameters
+taskname(param1, param2 = "default") {
+    echo "$param1 $param2"
+}
+
+// Internal functions
+taskname {
+    __input "Prompt:" varname "default"
+    __call other_task($varname)
 }
 ```
 
-### Task with Modifiers
-
-```yamfile
-modifier1 modifier2: taskname {
-    command
-}
-```
-
-### Available Modifiers
-
-- `always` - Always execute, ignoring cache
-- `serial` - Execute serially (not in parallel)
-- `critical` - Task failure aborts entire execution
-
-### Comments
-
-Yam++ supports both single-line and multi-line comments:
-
-```yamfile
-// This is a single-line comment
-
-/*
- * This is a multi-line comment
- * that can span multiple lines
- */
-
-task {
-    command // Inline comment
-    /* Multi-line comment
-       can also be used inline */
-    another_command
-}
-```
-
-### Command Chaining
-
-```yamfile
-task {
-    command1 && command2 && command3
-}
-```
-
-### Parameterized Tasks
-
-```yamfile
-// Task with parameters
-deploy(env) {
-    kubectl apply -f k8s/deployment-$env.yaml
-}
-
-// Task with multiple parameters
-db_backup(database, format) {
-    pg_dump --format=$format $database > backup.$format
-}
-
-// Task that passes parameters to dependencies
-full_deploy(target_env, image_tag) needs docker_build($image_tag) deploy($target_env) {
-    echo "Deployed $image_tag to $target_env"
-}
-```
-
-## Examples
-
-### Node.js Project
-
-```yamfile
-/*
- * Node.js Project Build Configuration with Variables
- * Demonstrates variables, constants, and internal task calls
- */
-
-// Global constants and variables
-const PROJECT_NAME = "my-node-app"
-const VERSION = "2.1.0"
-var NODE_ENV = "development"
-var REGISTRY = "docker.io"
-
-// Default task with variable usage
-all {
-    echo "Building $PROJECT_NAME v$VERSION"
-    echo "Environment: $NODE_ENV"
-    
-    __call install
-    __call build
-    __call test
-    
-    echo "Build complete for $PROJECT_NAME!"
-}
-
-// Install dependencies
-install {
-    const INSTALL_CMD = "npm ci"
-    echo "Installing dependencies..."
-    $INSTALL_CMD
-}
-
-/* 
- * Build the project with environment-specific configuration
- */
-build {
-    var build_cmd = "npm run build"
-    
-    if [ "$NODE_ENV" = "production" ]; then
-        build_cmd = "npm run build:prod"
-    fi
-    
-    echo "Building with: $build_cmd"
-    $build_cmd
-}
-
-// Run tests with dynamic configuration
-test {
-    const TEST_TIMEOUT = "30s"
-    var test_config = "--coverage"
-    
-    if [ "$NODE_ENV" = "ci" ]; then
-        test_config = "--ci --coverage --watchAll=false"
-    fi
-    
-    echo "Running tests with timeout: $TEST_TIMEOUT"
-    npm test $test_config --timeout=$TEST_TIMEOUT
-}
-
-// Lint code
-always: lint {
-    eslint src/ --fix
-    prettier --write "src/**/*.{js,ts,json}"
-}
-
-/*
- * Docker operations with dynamic tagging
- */
-docker_ops(environment) {
-    const DOCKERFILE = "Dockerfile"
-    var image_tag = "$PROJECT_NAME:$VERSION"
-    var push_registry = "$REGISTRY"
-    
-    if [ "$environment" = "production" ]; then
-        image_tag = "$push_registry/$PROJECT_NAME:$VERSION"
-    fi
-    
-    echo "Building Docker image: $image_tag"
-    docker build -f $DOCKERFILE -t $image_tag .
-    
-    if [ "$environment" = "production" ]; then
-        echo "Pushing to registry: $push_registry"
-        docker push $image_tag
-    fi
-}
-
-/*
- * Full deployment pipeline
- * Uses internal calls for better control flow
- */
-serial critical: deploy(target_env) {
-    const DEPLOY_ID = "$(date +%Y%m%d_%H%M%S)"
-    var k8s_namespace = "default"
-    
-    echo "=== Deployment Pipeline $DEPLOY_ID ==="
-    echo "Target: $target_env"
-    
-    // Set environment-specific variables
-    if [ "$target_env" = "production" ]; then
-        NODE_ENV = "production"
-        k8s_namespace = "prod"
-    elif [ "$target_env" = "staging" ]; then
-        NODE_ENV = "staging" 
-        k8s_namespace = "staging"
-    fi
-    
-    echo "Namespace: $k8s_namespace"
-    
-    // Execute pipeline steps with internal calls
-    __call lint
-    __call test
-    __call build
-    __call docker_ops($target_env)
-    
-    // Deploy to Kubernetes
-    kubectl apply -f k8s/ --namespace=$k8s_namespace
-    
-    echo "=== Deployment $DEPLOY_ID Complete ==="
-}
-
-/*
- * Clean build artifacts
- * Always runs regardless of cache state
- */
-always: clean {
-    echo "Cleaning $PROJECT_NAME build artifacts..."
-    rm -rf dist/ node_modules/.cache/
-    rm -rf .yampp/
-    docker system prune -f
-}
-```
-
-### Multi-Language Project
-
-```yamfile
-// Frontend tasks
-frontend_install {
-    cd frontend && npm install
-}
-
-frontend_build needs frontend_install {
-    cd frontend && npm run build
-}
-
-// Backend tasks
-backend_build {
-    cd backend && cargo build --release
-}
-
-backend_test needs backend_build {
-    cd backend && cargo test
-}
-
-// Combined build
-build needs frontend_build backend_build {
-    echo "Full build complete"
-}
-
-// Docker operations
-serial: docker needs build {
-    docker-compose build
-    docker-compose up -d
-}
-```
-
-## Syntax and Semantic Validation
-
-Yam++ performs comprehensive validation before execution:
-
-### Syntax Validation
-- Task name format checking
-- Modifier validation
-- Command structure verification
-- Brace matching
-
-### Semantic Validation
-- Circular dependency detection
-- Undefined dependency checking
-- Duplicate task detection
-- Dangerous command warnings
-
-### Example Error Messages
-
-```
-Validation errors found:
-  ✗ Circular dependency detected: build → test → lint → build
-    at line 15: test needs build {
-  ✗ Task 'deploy' depends on undefined task 'package'
-    at line 22: deploy needs package {
-  ✗ Task 'full_deploy' passes 1 parameter(s) to dependency 'build', but 'build' expects 0 parameter(s)
-    at line 35: full_deploy(env) needs build($env) {
-  ✗ Variable '$unknown' passed to dependency 'deploy' in task 'test_task' is not defined as a task parameter
-    at line 42: test_task(env) needs deploy($unknown) {
-```
-
-## Parameters and Variables
-
-Yam++ supports parameterized tasks with variable substitution, enabling reusable and configurable task definitions.
-
-### Defining Parameterized Tasks
-
-```yamfile
-// Task with single parameter
-deploy(env) {
-    echo "Deploying to $env"
-    kubectl apply -f k8s/deployment-$env.yaml
-}
-
-// Task with multiple parameters
-backup_db(database, format, location) {
-    pg_dump --format=$format $database > $location/backup-$database.$(format)
-}
-```
-
-### Calling Parameterized Tasks
-
-```bash
-# Single parameter
-yampp deploy:production
-
-# Multiple parameters (colon-separated)
-yampp backup_db:myapp:sql:/backups
-
-# Multiple task calls with parameters
-yampp deploy:staging backup_db:myapp:sql:/tmp
-```
-
-### Parameter Passing Between Tasks
-
-Tasks can pass parameters to their dependencies:
-
-```yamfile
-// Dependencies receive parameters from the parent task  
-full_deploy(env, tag) needs docker_build($tag) deploy($env) {
-    echo "Deployed $tag to $env environment"
-}
-
-// Mixed parameter sources (literal + variable)
-complex_task(target) needs build_image(v1.0) deploy_to($target) notify(slack) {
-    echo "Used literal 'v1.0', variable '$target', and literal 'slack'"
-}
-```
-
-### Syntax Rules
-
-**Clear distinction between literal values and variables:**
-
-```yamfile
-// task(param1, param2) needs:
-//   dep1(literal_value)    - Passes the literal string "literal_value"
-//   dep2($param1)          - Passes the value of variable param1  
-//   dep3(fixed, $param2)   - Mixed: literal "fixed" and variable param2
-
-deploy_stack(env, version) needs build_image($version) deploy_k8s($env) notify(production-alerts) {
-    echo "Deployed version $version to $env, notified production-alerts"
-}
-```
-
-### Variable Scope Rules
-
-Parameters follow scoping rules similar to C/Java:
-
-1. **Task Parameters**: Available within the task that declares them using `$variable`
-2. **Local Scope**: Each task instance has its own parameter values
-3. **Parameter Passing**: 
-   - `$variable` passes the parameter value
-   - `literal` passes the literal string
-4. **Variable Substitution**: Uses `$variable` syntax in both commands and dependencies
-
-### Parameter Validation
-
-The validator checks:
-- Parameter name format (must be valid identifiers)
-- Parameter count matching between tasks and their calls
-- Duplicate parameter names within tasks
-- Variable references (`$var`) exist as task parameters
-- Literal values don't use reserved characters
-
-## Variables and Constants
-
-Yam++ supports both global and local variable declarations with proper scoping rules similar to modern programming languages.
-
-### Global Declarations
-
-Declare variables and constants outside of tasks for project-wide usage:
-
-```yamfile
-// Global constants (immutable)
-const PROJECT_NAME = "my-awesome-app"
-const VERSION = "2.1.0"
-const DOCKER_REGISTRY = "registry.company.com"
-
-// Global variables (mutable)  
-var BUILD_ENV = "development"
-var LOG_LEVEL = "info"
-var TEMP_DIR = "/tmp/build"
-```
-
-### Local Declarations
-
-Declare variables and constants within tasks for local scope:
-
-```yamfile
-deploy(environment) {
-    const DEPLOY_TIMESTAMP = "$(date +%Y%m%d_%H%M%S)"
-    var config_file = "config/dev.json"
-    var replicas = "1"
-    
-    // Conditional variable assignment
-    if [ "$environment" = "production" ]; then
-        config_file = "config/prod.json"
-        replicas = "3"
-    fi
-    
-    echo "Deploying with config: $config_file"
-    echo "Using $replicas replicas"
-}
-```
-
-### Variable Scoping Rules
-
-Variables follow C/Java-like scoping rules:
-
-1. **Global Scope**: Variables declared outside tasks are available everywhere
-2. **Local Scope**: Variables declared inside tasks override global ones
-3. **Parameter Scope**: Task parameters have highest precedence
-4. **Constants**: Once declared, constants cannot be reassigned
-
-### Environment Variables
-
-Access system environment variables at runtime using the `env` keyword. Environment variables are evaluated when the task executes, making them perfect for CI/CD pipelines and deployment scripts.
-
-#### Global Environment Variables
-
-Declare environment variables globally for project-wide access:
-
-```yamfile
-// Global environment variables
-env HOME
-env USER
-env PATH
-env NODE_ENV
-
-const PROJECT = "yam-plus-plus"
-
-deploy(target) {
-    echo "Deploying $PROJECT to $target"
-    echo "Running as user: $USER"
-    echo "Environment: $NODE_ENV"
-}
-```
-
-#### Local Environment Variables
-
-Declare environment variables within tasks for local access:
-
-```yamfile
-deploy(environment) {
-    // Local environment variables
-    env DATABASE_URL
-    env API_SECRET_KEY
-    env REDIS_URL
-    
-    echo "Deploying to: $environment"
-    echo "Database: $DATABASE_URL"
-    echo "Redis: $REDIS_URL"
-    // API_SECRET_KEY available but not echoed for security
-}
-```
-
-#### Runtime Evaluation
-
-Environment variables are evaluated at execution time, not parse time:
-
-```bash
-# Set environment variables and run
-NODE_ENV=production DATABASE_URL=postgres://prod yampp deploy:prod
-
-# Different environment, different values
-NODE_ENV=development DATABASE_URL=sqlite://dev.db yampp deploy:dev
-```
-
-#### Precedence Order
-
-Variable resolution follows this precedence (highest to lowest):
-
-1. **Task Parameters**: `yampp task:value`
-2. **Local Environment Variables**: `env VAR` inside task
-3. **Local Variables/Constants**: `var`/`const` inside task
-4. **Global Environment Variables**: `env VAR` outside task
-5. **Global Variables/Constants**: `var`/`const` outside task
-
-### Internal Task Calls
-
-Use `__call` to invoke tasks internally instead of external dependencies:
-
-```yamfile
-full_deploy(env) {
-    const PIPELINE_ID = "$(uuidgen)"
-    var image_tag = "$VERSION-$(date +%H%M%S)"
-    
-    echo "Starting deployment pipeline: $PIPELINE_ID"
-    
-    // Call tasks internally with full control
-    __call docker_build($image_tag)
-    __call deploy_to($env)
-    __call run_health_checks($env)
-    __call send_notification("deployment-complete", $PIPELINE_ID)
-    
-    echo "Pipeline $PIPELINE_ID completed successfully"
-}
-```
-
-### Benefits of `__call` vs Dependencies
-
-- **Better Control Flow**: Execute tasks conditionally within logic
-- **Variable Passing**: Pass computed variables to called tasks
-- **Error Handling**: Handle task failures within the calling context
-- **Cleaner Syntax**: No need to pre-declare all dependencies
-
-### Internal Function System
-
-Yam++ features a powerful and extensible internal function system. Any function starting with `__` followed by a valid identifier is recognized as an internal function, with parameters parsed as tokens for maximum flexibility.
-
-#### Generic Function Syntax
-
-```yamfile
-// Generic pattern: __function_name param1 param2 param3...
-// Functions terminate automatically at line end (like bash)
-
-serial: example {
-    __input "Enter your name:" username
-    __input_password "Enter password:" pwd  
-    __input_select "Choose environment:" env "dev" "staging" "prod"
-    __call deploy($username, $env)
-    __custom_function "param1" $variable (param, list)
-    echo "Deployment completed by $username"
-}
-```
-
-#### Supported Parameter Types
-
-Internal functions accept various parameter token types:
-
-- **String literals**: `"Hello World"` → `{ type: 'string', value: 'Hello World' }`
-- **Variables**: `$name` → `{ type: 'variable', name: 'name' }`
-- **Identifiers**: `build` → `{ type: 'identifier', value: 'build' }`
-- **Parameter groups**: `($var1, $var2)` → `{ type: 'params', value: [...] }`
-
-#### Built-in Internal Functions
-
-- `__call taskname($params)` - Call tasks internally with parameters
-- `__input "prompt" variable "default"` - Interactive text input with optional defaults
-- `__input_password "prompt" variable` - Hidden password input with character masking  
-- `__input_select "prompt" variable ["opt1", "opt2"] "default"` - Multiple choice selection
-- `__input_confirm "prompt" variable "yes/no"` - Yes/no confirmation prompts
-
-#### Extensibility
-
-The parser uses a generic approach - any `__function` is captured with its parameter tokens, allowing the runner/interpreter to:
-
-1. **Validate** if the function exists
-2. **Process** parameters according to function requirements  
-3. **Execute** the function or provide helpful error messages
-4. **Extend** functionality by adding new internal functions
-
-This design makes Yam++ highly extensible while maintaining clean, readable syntax.
-
-## Interactive Input System 🎯
-
-**Revolutionary Feature**: Yam++ is the first task runner with built-in interactive prompts!
-
-### Input Functions
-
-Yam++ provides four input functions that **must be used in `serial` tasks** to prevent concurrent prompts:
-
-#### Basic Text Input
-```yamfile
-serial: setup {
-    __input "Project name:" project_name "my-app"
-    echo "Creating project: $project_name"
-}
-```
-
-#### Password Input (Hidden)
-```yamfile
-serial: secure_deploy {
-    __input_password "Database password:" db_pass
-    // Password is hidden during input
-    PGPASSWORD=$db_pass pg_dump mydb > backup.sql
-}
-```
-
-#### Yes/No Confirmation
-```yamfile
-serial: deploy {
-    __input_confirm "Deploy to production?" confirm "no"
-    if [ "$confirm" != "yes" ]; then
-        echo "Deployment cancelled"
-        exit 0
-    fi
-}
-```
-
-#### Multiple Choice Selection
-```yamfile
-serial: configure {
-    __input_select "Environment:" env ["dev", "staging", "prod"] "dev"
-    echo "Configuring for $env environment"
-}
-```
-
-### CI/CD Integration
-
-The input system is fully CI/CD compatible:
-
-1. **Automatic Default Usage**: In CI environments (detected automatically), defaults are used
-2. **CLI Overrides**: Override any input from command line:
-   ```bash
-   yampp deploy --input confirm=yes --input env=production
-   ```
-3. **Non-Interactive Mode**: Fails safely if no default provided in CI
-
-### Example: Complete Deployment Workflow
-
-```yamfile
-serial: interactive_deploy {
-    // Get deployment details
-    __input_select "Target environment:" env ["dev", "staging", "prod"] "staging"
-    __input "Docker tag:" tag "latest"
-    __input_confirm "Enable maintenance mode?" maintenance "yes"
-    
-    // Get credentials securely
-    __input_password "Admin password:" admin_pass
-    
-    // Final confirmation
-    __input_confirm "Deploy $tag to $env?" proceed "no"
-    
-    if [ "$proceed" != "yes" ]; then
-        echo "Deployment cancelled by user"
-        exit 0
-    fi
-    
-    // Execute deployment
-    if [ "$maintenance" = "yes" ]; then
-        echo "Enabling maintenance mode..."
-        ./scripts/maintenance.sh on
-    fi
-    
-    echo "Deploying $tag to $env..."
-    docker pull myapp:$tag
-    kubectl set image deployment/myapp app=myapp:$tag
-    
-    echo "Deployment complete!"
-}
-```
-
-### Usage Modes
-
-**Interactive Mode** (default):
-```bash
-yampp interactive_deploy
-# You'll be prompted for each input
-```
-
-**With CLI Overrides**:
-```bash
-yampp interactive_deploy --input env=prod --input tag=v1.2.3 --input proceed=yes
-```
-
-**Dry Run** (see what would be prompted):
-```bash
-yampp --dry-run interactive_deploy
-# Shows: → Prompt [select]: "Target environment:" → env (default: staging)
-```
-
-**CI/CD Mode** (automatic):
-```bash
-CI=true yampp interactive_deploy
-# Uses all defaults, fails if required input has no default
-```
-
-## File Watching
-
-Yam++ supports Make-style file dependency checking using the `watches` keyword. Tasks will only re-execute if watched files are newer than the cache, providing efficient incremental builds.
-
-### Basic File Watching
-
-Watch specific files or patterns:
-
-```yamfile
-// Watch a single file
-setup watches ".env" {
-    source .env
-    echo "Environment loaded"
-}
-
-// Watch multiple files
-build watches "src/main.js" "package.json" "webpack.config.js" {
-    webpack --mode production
-}
-
-// Watch with glob patterns
-compile watches "src/**/*.ts" "*.config.js" {
-    tsc --build
-}
-```
-
-### Combined Dependencies and File Watching
-
-Use both task dependencies (`needs`) and file watching (`watches`):
-
-```yamfile
-// Depends on other tasks AND watches files
-test needs build watches "src/**/*.js" "test/**/*.js" {
-    jest --coverage
-}
-
-// Deploy only if configs changed
-deploy needs build test watches "k8s/**/*.yaml" "docker/Dockerfile" {
-    docker build -t myapp .
-    kubectl apply -f k8s/
-}
-```
-
-### How File Watching Works
-
-1. **First Run**: Task executes normally and cache is created
-2. **Subsequent Runs**: 
-   - If no watched files → check cache (skip if cached)
-   - If watched files exist → compare file timestamps with cache
-   - If any file is newer than cache → re-execute task
-   - If all files are older than cache → skip (use cache)
-
-### File Patterns
-
-Supports various file pattern formats:
-
-```yamfile
-build watches "src/**/*.ts"           # Recursive TypeScript files
-      watches "*.json"                # All JSON files in current dir  
-      watches "docs/**/*.md"          # All Markdown in docs
-      watches "config/dev.yml"        # Specific file
-      watches "assets/**/*.{png,jpg}" # Multiple extensions
-{
-    echo "Building with updated files..."
-}
-```
-
-### Practical Examples
-
-```yamfile
-// TypeScript compilation
-compile_ts watches "src/**/*.ts" "tsconfig.json" {
-    tsc --project tsconfig.json
-}
-
-// CSS processing  
-process_css watches "src/**/*.scss" "postcss.config.js" {
-    postcss src/main.scss -o dist/main.css
-}
-
-// Docker builds
-docker_build needs compile_ts watches "Dockerfile" ".dockerignore" {
-    docker build -t myapp:latest .
-}
-
-// Documentation generation
-docs watches "src/**/*.ts" "docs/**/*.md" "typedoc.json" {
-    typedoc src/index.ts --out docs/api
-}
-```
-
-### Benefits of File Watching
-
-- **Incremental Builds**: Only rebuild when source files change
-- **Faster Execution**: Skip unnecessary work automatically  
-- **Make Compatibility**: Familiar semantics for developers
-- **Glob Support**: Flexible pattern matching for complex projects
-- **Cache Integration**: Works seamlessly with existing task caching
-
-## Cross-Platform Shell Execution 🌍
-
-**🚀 THE GAME CHANGER** - Yam++ is THE unique cross-platform task runner that combines native shell power with modern task orchestration. Write one Yamfile that leverages the full power of bash on Unix systems and PowerShell on Windows.
-
-### Platform Annotations
-
-Use `@platform` annotations to define platform-specific task implementations:
-
-```yamfile
-// Universal task - runs on all platforms
-setup {
-    echo "🚀 Setting up cross-platform project..."
-    __input "Project name:" name "my-app"
-    echo "Project '$name' initialized"
-}
-
-// Unix-specific implementation (Linux and macOS)
-@linux @mac {
-    build_unix {
-        echo "🔨 Building for Unix-like system..."
-        
-        # Full bash power with Yampp enhancements
-        export NODE_ENV=production
-        
-        if [ -f "package.json" ]; then
-            echo "📋 Found package.json, running build..."
-            npm run build
-            
-            # Complex bash operations work perfectly
-            for file in dist/*.js; do
-                if [ -f "$file" ]; then
-                    echo "✨ Generated: $(basename $file) ($(stat -c%s "$file") bytes)"
-                fi
-            done
-        else
-            echo "❌ No package.json found"
-            exit 1
-        fi
-        
-        echo "✅ Unix build completed"
-    }
-}
-
-// Windows-specific implementation  
-@windows {
-    build_windows {
-        Write-Host "🔨 Building for Windows system..." -ForegroundColor Green
-        
-        # Full PowerShell power with Yampp enhancements
-        $env:NODE_ENV = "production"
-        
-        if (Test-Path "package.json") {
-            Write-Host "📋 Found package.json, running build..." -ForegroundColor Yellow
-            npm run build
-            
-            # Complex PowerShell operations work perfectly
-            Get-ChildItem "dist\*.js" | ForEach-Object {
-                $size = [math]::Round($_.Length / 1KB, 2)
-                Write-Host "✨ Generated: $($_.Name) ($size KB)" -ForegroundColor Cyan
-            }
-        } else {
-            Write-Host "❌ No package.json found" -ForegroundColor Red
-            exit 1
-        }
-        
-        Write-Host "✅ Windows build completed" -ForegroundColor Green
-    }
-}
-```
-
-### Same Task Name, Different Implementations
-
-Define the same task name with different platform-specific implementations:
-
-```yamfile
-// Deploy task - different implementation per platform
-@linux @mac {
-    deploy(server) {
-        echo "🐧🍎 Unix deployment strategy"
-        
-        # Full bash power with loops and conditionals  
-        for host in $(cat servers.txt); do
-            echo "🔄 Deploying to $host..."
-            ssh $host "systemctl restart myapp"
-            __call notify_success("Deployed to $host")
-        done
-        
-        echo "✅ Unix deployment completed"
-    }
-}
-
-@windows {
-    deploy(server) {
-        Write-Host "🪟 Windows deployment strategy" -ForegroundColor Green
-        
-        # Full PowerShell power with native cmdlets
-        foreach ($host in Get-Content servers.txt) {
-            Write-Host "🔄 Deploying to $host..." -ForegroundColor Cyan
-            Invoke-Command -ComputerName $host -ScriptBlock {
-                Restart-Service "MyApp" -Force
-            }
-            __call notify_success("Deployed to $host")
-        }
-        
-        Write-Host "✅ Windows deployment completed" -ForegroundColor Green
-    }
-}
-
-// Universal wrapper that calls platform-specific implementation
-deploy_all(server) needs deploy($server) {
-    echo "🌍 Cross-platform deployment complete!"
-    __call celebrate("Multi-platform success!")
-}
-```
-
-### Cooperative Control System
-
-**Revolutionary Feature**: Yam++ provides seamless bidirectional communication between native shell and internal functions:
-
-> **✅ v0.8.2 Update**: Fixed critical variable scope issues - internal function variables now properly available to shell commands, and task parameters work correctly in all contexts including loops.
-
-```yamfile
-@linux @mac {
-    interactive_loop {
-        # Bash variables work with Yampp functions
-        echo "Starting interactive deployment process..."
-        
-        for i in {1..5}; do
-            echo "🔄 Processing batch $i..."
-            
-            # Shell variable $i is available to internal functions
-            __call process_batch($i)
-            
-            # Internal function can create variables for shell
-            __input_confirm "Continue with batch $((i+1))?" continue "yes"
-            
-            if [ "$continue" != "yes" ]; then
-                echo "Stopping at user request"
-                break
-            fi
-        done
-        
-        echo "✅ Interactive process completed"
-    }
-}
-```
-
-### Variable Interoperability
-
-Variables flow bidirectionally between shell and Yampp:
-
-- **Shell → Yampp**: Shell variables (like `$i` in loops) are available to `__call`, `__input`, etc.
-- **Yampp → Shell**: Variables created by `__input` and other internal functions are available to shell
-
-```yamfile
-@linux @mac {
-    dynamic_deployment {
-        # Get deployment config from user  
-        __input "How many servers?" count "3"
-        __input_select "Environment:" env ["dev", "staging", "prod"] "staging"
-        
-        # Use Yampp variables in bash
-        echo "Deploying to $count servers in $env environment"
-        
-        # Complex bash with Yampp variables
-        for i in $(seq 1 $count); do
-            server="server-${env}-${i}"
-            echo "Deploying to $server..."
-            
-            # Internal functions can access bash loop variable $i
-            __call deploy_to_server($server, $i, $env)
-        done
-    }
-}
-```
-
-### Benefits of Cross-Platform Shell Execution
-
-- **🌍 True Cross-Platform**: One Yamfile works optimally on Windows, Mac, and Linux
-- **💪 Native Shell Power**: Full bash/PowerShell capabilities with complex loops, conditionals, pipes
-- **🔄 Seamless Integration**: Internal functions work naturally within native shell code
-- **⚡ Variable Interoperability**: Bidirectional variable sharing between shell and Yampp
-- **🚀 Enterprise Ready**: Handles complex DevOps workflows across all platforms
-- **🎯 Market Leadership**: Unique positioning - no other tool combines these capabilities
-
-### Platform Detection
-
-Yam++ automatically detects the current platform:
-- `@linux` - Linux systems
-- `@mac` - macOS systems  
-- `@windows` - Windows systems
-
-Tasks without platform annotations run on all platforms (universal tasks).
-
-## IDE Support
-
-Yam++ has dedicated IDE extensions for enhanced development experience:
+## 🔧 IDE Support
 
 ### VS Code Extension
-
-**Repository:** [yampp-vscode-extension](https://github.com/matutetandil/yampp-vscode-extension)
-
-Full VS Code support with:
-- Complete syntax highlighting for Yamfile DSL
-- Task execution and management commands
-- Code completion and hover providers
-- Support for latest features (env variables, internal functions)
-- Integrated task provider for VS Code Tasks system
-
-Install from VS Code marketplace or manually from the repository.
+- Syntax highlighting
+- IntelliSense completion
+- Task runner integration
+- [Install from Marketplace](https://marketplace.visualstudio.com/items?itemName=yampp.yampp-vscode)
 
 ### IntelliJ Plugin
+- Full language support
+- Task execution from IDE
+- Refactoring support
+- [Install from JetBrains Marketplace](https://plugins.jetbrains.com/plugin/yampp)
 
-**Repository:** [yampp-intellij-plugin](https://github.com/matutetandil/yampp-intellij-plugin)
+## 🤖 AI-Powered Migration
 
-Professional IntelliJ IDEA plugin with:
-- Comprehensive lexer and syntax highlighting
-- Task execution and run configurations
-- Structure view and code completion
-- Tool window integration and line markers
-- Support for all Yamfile DSL features
+Automatically migrate from other task runners using [yampp-translator](https://github.com/yourusername/yampp-translator):
 
-Install from JetBrains marketplace or build from source.
-
-### AI-Powered Translation Tool
-
-**Repository:** [yampp-translator](https://github.com/matutetandil/yampp-translator)
-
-Dedicated AI-powered translation tool for migrating existing build systems to Yamfile format:
-
-#### Features
-- **9 AI Providers**: Ollama, Claude, OpenAI, Gemini, Mistral, DeepSeek, Hugging Face, Cohere, Grok
-- **Multi-format support**: Makefile, Gulpfile, npm scripts
-- **Smart conversion**: Preserves dependencies, adds modern patterns
-- **Interactive enhancements**: Suggests internal functions for user input
-
-#### AI Editor Agents
-Specialized agents for seamless integration with AI-powered editors:
-- **Claude Code** (`yampp-translation-agent.md`) - Self-contained agent
-- **Cursor AI** (`cursor-yampp-agent.md`) - System prompt integration  
-- **GitHub Copilot** (`copilot-yampp-instructions.md`) - Custom instructions
-- **JetBrains** (`junie-yampp-guidelines.md`) - AI Assistant + Junie support
-
-#### Installation & Usage
 ```bash
-npm install -g yampp-translator
-yampp-translator setup
-yampp-translator translate Makefile
-```
-
-Or use AI editor agents for conversational, educational translation directly in your preferred editor.
-
-**Ecosystem Integration**: The translator tool and AI agents work seamlessly with IDE extensions for a complete Yamfile development experience.
-
-Both IDE extensions and the translation ecosystem are actively maintained and support all latest Yam++ features including environment variables, internal function calls, and parameterized tasks.
-
-## Parallelism and Performance
-
-### Default Behavior
-- Tasks run in parallel by default
-- Maximum jobs = CPU cores
-
-### Controlling Parallelism
-```bash
-# Limit to 2 parallel jobs
-yampp -j 2
-
-# Sequential execution
-yampp -j 1
-
-# Unlimited parallelism
-yampp -j 0
-```
-
-### Task-Level Control
-```yamfile
-// This task always runs alone
-serial: database_migration {
-    npm run migrate
-}
-
-// These tasks can run in parallel
-parallel_task1 {
-    npm run task1
-}
-
-parallel_task2 {
-    npm run task2
-}
-```
-
-## Caching
-
-Tasks are cached in `.yampp/` directory. Each successful task creates a `.done` file.
-
-### Cache Behavior
-- Cached tasks are skipped on subsequent runs
-- Dependencies of cached tasks still execute if needed
-- `[always]` modifier bypasses cache
-
-### Managing Cache
-```bash
-# Clean all cache
-yampp -c
-
-# Force re-run with always modifier
-always: build {
-    npm run build
-}
-```
-
-## Advanced Features
-
-### Critical Tasks
-```yamfile
-critical: database_backup {
-    pg_dump mydb > backup.sql
-}
-```
-If a critical task fails, execution stops immediately.
-
-### Conditional Execution
-```yamfile
-production_only {
-    test "$NODE_ENV" = "production" && npm run prod-task
-}
-```
-
-### Multi-Command Tasks
-```yamfile
-complex_task {
-    echo "Starting complex task"
-    npm install
-    npm run build && npm test
-    echo "Task complete"
-}
-```
-
-## Translation Examples from Other Task Runners
-
-### 🤖 AI-Powered Translation with yampp-translator
-
-For **automated migration assistance**, use **yampp-translator** - a dedicated AI-powered tool that intelligently converts build files to Yamfile format:
-
-**Repository:** [yampp-translator](https://github.com/matutetandil/yampp-translator)
-
-#### Universal AI Editor Support
-yampp-translator provides specialized agents for all major AI-powered editors:
-
-- **🤖 Claude Code**: Self-contained translation agent (`yampp-translation-agent.md`)
-- **🎯 Cursor AI**: System prompt integration (`cursor-yampp-agent.md`) 
-- **🚀 GitHub Copilot**: Custom instructions (`copilot-yampp-instructions.md`)
-- **🧠 JetBrains IDEs**: AI Assistant + Junie guidelines (`junie-yampp-guidelines.md`)
-
-#### AI Provider Support (9 Providers)
-- **Local & Open Source**: Ollama, Hugging Face
-- **Enterprise**: OpenAI (GPT-4), Claude, Google Gemini, Cohere
-- **Specialized**: Mistral AI, DeepSeek, Grok (X AI)
-
-#### Installation & Usage
-```bash
-# Install globally
+# Install translator
 npm install -g yampp-translator
 
-# Interactive setup
-yampp-translator setup
-
-# Translate any build file
+# Translate existing files
 yampp-translator translate Makefile
-yampp-translator translate gulpfile.js  
+yampp-translator translate gulpfile.js
 yampp-translator translate package.json
 
-# Or use AI editor agents for conversational translation
+# Use with AI providers (9 supported)
+yampp-translator translate Makefile --provider openai --model gpt-4o
 ```
 
-#### Key Features
-- ✅ **Smart conversion** with dependency preservation
-- ✅ **Interactive enhancements** using internal functions (`__input`, `__call`, etc.)
-- ✅ **Educational explanations** of translation decisions
-- ✅ **Modern patterns** (file watching, parallel execution)
-- ✅ **Zero-setup** experience with AI editor agents
-
-### Manual Translation Patterns
-
-For manual migration or understanding the conversion patterns, here are common examples:
-
-### Makefile → Yamfile
-
-#### Basic Build Pattern
-**Before (Makefile):**
-```makefile
-.PHONY: clean build test install
-CC=gcc
-CFLAGS=-Wall -Wextra -std=c99
-
-all: build
-
-clean:
-	rm -rf build/
-	rm -f *.o
-
-build: clean
-	mkdir -p build/
-	$(CC) $(CFLAGS) src/*.c -o build/myapp
-
-test: build
-	./build/myapp --test
-
-install: build test
-	cp build/myapp /usr/local/bin/
-	chmod +x /usr/local/bin/myapp
-```
-
-**After (Yamfile):**
-```yamfile
-const CC = "gcc"
-const CFLAGS = "-Wall -Wextra -std=c99"
-
-all needs build {
-    echo "Build complete"
-}
-
-always: clean {
-    rm -rf build/
-    rm -f *.o
-}
-
-build needs clean {
-    mkdir -p build/
-    $CC $CFLAGS src/*.c -o build/myapp
-}
-
-test needs build {
-    ./build/myapp --test
-}
-
-install needs build test {
-    cp build/myapp /usr/local/bin/
-    chmod +x /usr/local/bin/myapp
-}
-```
-
-#### Make with File Dependencies
-**Before (Makefile):**
-```makefile
-build/myapp: src/*.c src/*.h Makefile
-	mkdir -p build/
-	gcc -Wall src/*.c -o build/myapp
-
-clean:
-	rm -rf build/
-```
-
-**After (Yamfile):**
-```yamfile
-build watches "src/*.c" "src/*.h" "Makefile" {
-    mkdir -p build/
-    gcc -Wall src/*.c -o build/myapp
-}
-
-always: clean {
-    rm -rf build/
-}
-```
-
-### Gulp → Yamfile
-
-#### Series and Parallel Tasks
-**Before (gulpfile.js):**
-```javascript
-const { src, dest, series, parallel, watch } = require('gulp');
-const sass = require('gulp-sass');
-const uglify = require('gulp-uglify');
-const clean = require('gulp-clean');
-
-function cleanTask() {
-    return src('dist/*', {read: false})
-        .pipe(clean());
-}
-
-function sassTask() {
-    return src('src/scss/**/*.scss')
-        .pipe(sass())
-        .pipe(dest('dist/css'));
-}
-
-function jsTask() {
-    return src('src/js/**/*.js')
-        .pipe(uglify())
-        .pipe(dest('dist/js'));
-}
-
-function watchTask() {
-    watch('src/scss/**/*.scss', sassTask);
-    watch('src/js/**/*.js', jsTask);
-}
-
-exports.clean = cleanTask;
-exports.build = series(cleanTask, parallel(sassTask, jsTask));
-exports.dev = series(cleanTask, parallel(sassTask, jsTask), watchTask);
-exports.default = exports.build;
-```
-
-**After (Yamfile):**
-```yamfile
-all needs build {
-    echo "Build complete"
-}
-
-always: clean {
-    rm -rf dist/
-}
-
-// These run in parallel automatically
-css needs clean watches "src/scss/**/*.scss" {
-    sass src/scss/main.scss dist/css/main.css
-}
-
-js needs clean watches "src/js/**/*.js" {
-    uglifyjs src/js/**/*.js -o dist/js/main.min.js
-}
-
-build needs clean css js {
-    echo "Assets compiled"
-}
-
-// Serial task for development workflow
-serial: dev needs build {
-    echo "Development build complete"
-    echo "Use file watching with 'watches' keyword instead of gulp.watch"
-}
-```
-
-#### Gulp Streams and Pipes
-**Before (gulpfile.js):**
-```javascript
-function buildStyles() {
-    return src('src/sass/**/*.scss')
-        .pipe(sass().on('error', sass.logError))
-        .pipe(autoprefixer())
-        .pipe(cleanCSS())
-        .pipe(dest('dist/css'));
-}
-
-function buildScripts() {
-    return src('src/js/**/*.js')
-        .pipe(babel({presets: ['@babel/preset-env']}))
-        .pipe(concat('main.js'))
-        .pipe(uglify())
-        .pipe(dest('dist/js'));
-}
-```
-
-**After (Yamfile):**
-```yamfile
-styles watches "src/sass/**/*.scss" {
-    sass src/sass/main.scss | autoprefixer | cleancss > dist/css/main.css
-}
-
-scripts watches "src/js/**/*.js" {
-    babel src/js/**/*.js --presets=@babel/preset-env | concat main.js | uglifyjs > dist/js/main.js
-    // Or use external tools:
-    // npx babel src/js --out-file dist/js/main.js --presets=@babel/preset-env
-    // npx uglifyjs dist/js/main.js -o dist/js/main.min.js
-}
-```
-
-### npm scripts → Yamfile
-
-#### Basic npm Scripts
-**Before (package.json):**
-```json
-{
-  "scripts": {
-    "clean": "rm -rf dist/",
-    "prebuild": "npm run clean",
-    "build": "webpack --mode=production",
-    "postbuild": "npm run optimize",
-    "optimize": "terser dist/*.js -o dist/main.min.js",
-    "test": "jest",
-    "pretest": "npm run lint",
-    "lint": "eslint src/",
-    "dev": "webpack serve --mode=development",
-    "start": "npm run build && npm run dev",
-    "deploy": "npm run build && npm run test && aws s3 sync dist/ s3://my-bucket"
-  }
-}
-```
-
-**After (Yamfile):**
-```yamfile
-// Pre/post hooks become explicit dependencies
-always: clean {
-    rm -rf dist/
-}
-
-lint {
-    eslint src/
-}
-
-build needs clean {
-    webpack --mode=production
-}
-
-optimize needs build {
-    terser dist/*.js -o dist/main.min.js
-}
-
-test needs lint {
-    jest
-}
-
-dev needs clean {
-    webpack serve --mode=development
-}
-
-start needs build {
-    __call dev
-}
-
-deploy needs build test {
-    aws s3 sync dist/ s3://my-bucket
-}
-```
-
-#### Complex npm Workflow with Parallelization
-**Before (package.json):**
-```json
-{
-  "scripts": {
-    "build:css": "sass src/styles:dist/css --style=compressed",
-    "build:js": "webpack --entry=./src/index.js --output-path=dist/js",
-    "build:assets": "npm-run-all --parallel build:css build:js",
-    "build": "npm-run-all clean build:assets optimize",
-    "clean": "rimraf dist",
-    "optimize": "npm-run-all --parallel optimize:*",
-    "optimize:css": "cleancss -o dist/css/main.min.css dist/css/*.css",
-    "optimize:js": "terser dist/js/*.js -o dist/js/main.min.js",
-    "test:unit": "jest",
-    "test:e2e": "playwright test",
-    "test": "npm-run-all --parallel test:*",
-    "ci": "npm-run-all lint test build"
-  }
-}
-```
-
-**After (Yamfile):**
-```yamfile
-// Parallel by default - no need for npm-run-all
-always: clean {
-    rimraf dist
-}
-
-// These run in parallel automatically
-build_css needs clean watches "src/styles/**/*.scss" {
-    sass src/styles:dist/css --style=compressed
-}
-
-build_js needs clean watches "src/**/*.js" {
-    webpack --entry=./src/index.js --output-path=dist/js
-}
-
-// Parallel dependencies
-build_assets needs build_css build_js {
-    echo "Assets built"
-}
-
-// These also run in parallel
-optimize_css needs build_css {
-    cleancss -o dist/css/main.min.css dist/css/*.css
-}
-
-optimize_js needs build_js {
-    terser dist/js/*.js -o dist/js/main.min.js
-}
-
-optimize needs optimize_css optimize_js {
-    echo "Assets optimized"
-}
-
-build needs build_assets optimize {
-    echo "Build complete"
-}
-
-// Parallel tests
-test_unit {
-    jest
-}
-
-test_e2e {
-    playwright test
-}
-
-test needs test_unit test_e2e {
-    echo "All tests passed"
-}
-
-lint {
-    eslint src/
-}
-
-ci needs lint test build {
-    echo "CI pipeline complete"
-}
-```
-
-### Advanced Migration Patterns
-
-#### Conditional Execution
-**Before (npm scripts):**
-```json
-{
-  "scripts": {
-    "deploy:dev": "cross-env NODE_ENV=development npm run deploy:base",
-    "deploy:prod": "cross-env NODE_ENV=production npm run deploy:base",
-    "deploy:base": "if [ \"$NODE_ENV\" = \"production\" ]; then npm run build:prod; else npm run build:dev; fi"
-  }
-}
-```
-
-**After (Yamfile):**
-```yamfile
-deploy(env) {
-    if [ "$env" = "production" ]; then
-        __call build_prod
-    else
-        __call build_dev
-    fi
-}
-
-build_dev {
-    NODE_ENV=development webpack --mode=development
-}
-
-build_prod {
-    NODE_ENV=production webpack --mode=production --optimize-minimize
-}
-```
-
-#### Environment-Specific Configurations
-**Before (Multiple package.json files):**
-```json
-// package.json
-{
-  "scripts": {
-    "build": "npm run build:$NODE_ENV",
-    "build:development": "webpack --config webpack.dev.js",
-    "build:staging": "webpack --config webpack.staging.js", 
-    "build:production": "webpack --config webpack.prod.js"
-  }
-}
-```
-
-**After (Yamfile):**
-```yamfile
-env NODE_ENV
-
-build(environment) {
-    const config_file = "webpack.$environment.js"
-    webpack --config $config_file
-}
-
-// Usage: yampp build:development, yampp build:production
-// Or with env var: NODE_ENV=staging yampp build:staging
-```
-
-### Key Migration Benefits
-
-1. **Explicit Dependencies**: No more guessing pre/post hook order
-2. **Built-in Parallelization**: Automatic parallel execution without npm-run-all
-3. **File Watching**: Native incremental builds without gulp.watch
-4. **Parameter Support**: Dynamic task configuration without environment variable juggling  
-5. **Better Error Handling**: Critical tasks and proper exit codes
-6. **Cross-Platform**: No need for cross-env or rimraf
-7. **IDE Support**: Syntax highlighting and task execution
-8. **Validation**: Pre-execution checking of dependencies and syntax
-
-### Migration Checklist
-
-- [ ] Identify pre/post hooks and convert to explicit dependencies
-- [ ] Replace npm-run-all parallel tasks with natural Yam++ parallelization
-- [ ] Convert gulp.watch patterns to `watches` file dependencies
-- [ ] Transform environment-specific scripts to parameterized tasks
-- [ ] Add `always` modifier to clean tasks
-- [ ] Use `serial` modifier for database migrations or deployment steps
-- [ ] Add `critical` modifier to essential deployment tasks
-- [ ] Leverage variables and constants for configuration management
-
-### Cross-Platform Deployment
-
-**Real-world example** showing the power of cross-platform shell execution with cooperative control:
-
-```yamfile
-// Universal setup task - runs on all platforms
-setup {
-    echo "🚀 Setting up cross-platform deployment environment..."
-    __input "Project name:" project_name "my-app"  
-    __input_select "Target environment:" env ["dev", "staging", "prod"] "staging"
-    echo "Project '$project_name' configured for $env environment"
-}
-
-// Unix-specific deployment (Linux and macOS)
-@linux @mac {
-    deploy_unix(server) {
-        echo "🐧🍎 Starting Unix deployment to $server..."
-        
-        # Full bash power with Yampp enhancements
-        __input_confirm "Deploy to production server $server?" confirm "no"
-        
-        if [ "$confirm" = "yes" ]; then
-            echo "📡 Starting deployment process..."
-            
-            # Complex bash operations with internal function calls
-            for host in $(cat deployment/servers-$env.txt); do
-                echo "🔄 Deploying to $host..."
-                
-                # SSH with error handling
-                if ssh -q "$host" "test -d /app"; then
-                    # Rsync with progress
-                    rsync -avz --progress dist/ "$host:/app/"
-                    
-                    # Remote service restart with confirmation
-                    ssh "$host" "sudo systemctl restart $project_name"
-                    
-                    # Use internal function with shell variables
-                    __call verify_deployment($host, $project_name)
-                else
-                    echo "⚠️  Directory /app not found on $host"
-                    __call handle_deployment_error($host, "missing_directory")
-                fi
-            done
-            
-            echo "✅ Unix deployment completed successfully"
-        else
-            echo "❌ Deployment cancelled by user"
-        fi
-    }
-    
-    verify_deployment(host, app_name) {
-        echo "✅ Verifying deployment on $host for $app_name..."
-        
-        # Complex verification with timeout
-        timeout 30 ssh "$host" "curl -f http://localhost:8080/health" || {
-            echo "❌ Health check failed for $app_name on $host"
-            __call rollback_deployment($host, $app_name)
-            exit 1
-        }
-        
-        echo "🎉 Deployment verified successfully on $host"
-    }
-}
-
-// Windows-specific deployment
-@windows {  
-    deploy_windows(server) {
-        Write-Host "🪟 Starting Windows deployment to $server..." -ForegroundColor Green
-        
-        # Full PowerShell power with Yampp enhancements
-        __input_confirm "Deploy to production server $server?" confirm "no"
-        
-        if ($confirm -eq "yes") {
-            Write-Host "📡 Starting deployment process..." -ForegroundColor Yellow
-            
-            # Complex PowerShell operations with internal function calls
-            $servers = Get-Content "deployment\servers-$env.txt"
-            
-            foreach ($host in $servers) {
-                Write-Host "🔄 Deploying to $host..." -ForegroundColor Cyan
-                
-                # Test connection with timeout
-                if (Test-Connection $host -Count 1 -Quiet) {
-                    # Copy files with progress
-                    Write-Host "📁 Copying files to $host..." -ForegroundColor Yellow
-                    Copy-Item -Path "dist\*" -Destination "\\$host\c$\app\" -Recurse -Force
-                    
-                    # Remote service restart
-                    Invoke-Command -ComputerName $host -ScriptBlock {
-                        param($appName)
-                        Restart-Service $appName -Force
-                    } -ArgumentList $project_name
-                    
-                    # Use internal function with PowerShell variables
-                    __call verify_deployment($host, $project_name)
-                } else {
-                    Write-Host "⚠️  Cannot reach $host" -ForegroundColor Yellow
-                    __call handle_deployment_error($host, "connection_failed")
-                }
-            }
-            
-            Write-Host "✅ Windows deployment completed successfully" -ForegroundColor Green
-        } else {
-            Write-Host "❌ Deployment cancelled by user" -ForegroundColor Red
-        }
-    }
-    
-    verify_deployment(host, app_name) {
-        Write-Host "✅ Verifying deployment on $host for $app_name..." -ForegroundColor Green
-        
-        # PowerShell health check with retry logic
-        $retries = 3
-        $success = $false
-        
-        for ($i = 1; $i -le $retries; $i++) {
-            try {
-                $response = Invoke-WebRequest "http://$host:8080/health" -TimeoutSec 10
-                if ($response.StatusCode -eq 200) {
-                    $success = $true
-                    break
-                }
-            } catch {
-                Write-Host "Attempt $i failed, retrying..." -ForegroundColor Yellow
-                Start-Sleep -Seconds 5
-            }
-        }
-        
-        if (-not $success) {
-            Write-Host "❌ Health check failed for $app_name on $host" -ForegroundColor Red
-            __call rollback_deployment($host, $app_name)
-            exit 1
-        }
-        
-        Write-Host "🎉 Deployment verified successfully on $host" -ForegroundColor Green
-    }
-}
-
-// Universal helper functions (work on all platforms)
-handle_deployment_error(host, error_type) {
-    echo "🚨 Deployment error on $host: $error_type"
-    __input_confirm "Continue with remaining servers?" continue "yes"
-    
-    if [ "$continue" != "yes" ]; then
-        echo "Deployment aborted by user"
-        exit 1
-    fi
-}
-
-rollback_deployment(host, app_name) {
-    echo "🔄 Rolling back deployment on $host for $app_name..."
-    # Add rollback logic here
-    echo "⚠️  Rollback completed for $host"
-}
-
-// Universal deployment wrapper
-deploy_to_all(server) needs setup {
-    echo "🌍 Starting cross-platform deployment..."
-    
-    # This automatically calls the correct platform-specific deploy function
-    __call deploy($server)
-    
-    echo "🎊 Cross-platform deployment process completed!"
-    __call send_notification("Deployment finished for $project_name in $env environment")
-}
-
-send_notification(message) {
-    echo "📢 Notification: $message"
-    # Could integrate with Slack, Teams, email, etc.
-}
-```
-
-**Usage:**
-```bash
-# On Linux/macOS - uses bash implementation
-yampp deploy_to_all:production-server-1
-
-# On Windows - uses PowerShell implementation  
-yampp deploy_to_all:production-server-1
-
-# Same command, different native shell execution!
-```
-
-This example demonstrates:
-- **🌍 Cross-Platform Compatibility**: Same logical flow, platform-native implementation
-- **🔄 Cooperative Control**: Shell variables accessible to internal functions
-- **💪 Native Shell Power**: Full bash/PowerShell capabilities with complex loops and conditionals
-- **⚡ Variable Interoperability**: User inputs flow to shell, shell variables flow to internal functions
-- **🎯 Enterprise Ready**: Real-world deployment patterns with error handling and verification
-
-## Configuration
-
-### Environment Variables
-- `YAMPP_JOBS` - Default number of parallel jobs
-- `YAMPP_NO_COLOR` - Disable colored output
-- `YAMPP_VERBOSE` - Enable verbose output
-
-## Development
+Supports:
+- 9 AI providers (OpenAI, Claude, Gemini, Mistral, DeepSeek, Hugging Face, Cohere, Grok, Ollama)
+- 4 AI editor agents (Claude Code, Cursor, GitHub Copilot, JetBrains AI)
+- Automatic pattern detection and conversion
+
+## 🏗️ Development
 
 ### Project Structure
+
 ```
 yampp/
-├── bin/
-│   └── yampp.js        # CLI entry point
-├── lib/
-│   ├── parser.js       # Peggy-based DSL parser
-│   ├── yamfile.pegjs   # Peggy grammar definition
-│   ├── task.js         # Task and DAG management
-│   ├── validator.js    # Syntax/semantic validation
-│   ├── runner.js       # Task executor
-│   ├── file-watcher.js # File watching implementation
-│   ├── output-manager.js # Advanced output handling
-│   ├── input-manager.js  # Interactive input system
-│   ├── state.js        # Cache management
-│   └── internal-functions/  # Strategy pattern for extensibility
-│       ├── registry.js      # Function registry
-│       ├── base-function.js # Abstract base class
-│       ├── input-function.js
-│       ├── input-password-function.js
-│       ├── input-select-function.js
-│       ├── input-confirm-function.js
-│       └── call-function.js
-└── examples/
-    └── Interactive-Example.yamfile
+├── bin/             # CLI entry point
+├── lib/             # Core modules
+├── grammar/         # Peggy parser grammar
+├── examples/        # Example Yamfiles
+└── docs/           # Documentation
 ```
 
-### Architecture Highlights
+### Building from Source
 
-**Strategy Pattern**: Internal functions use the Strategy pattern for maximum extensibility:
-- Each `__function` has its own class implementing `BaseInternalFunction`
-- `InternalFunctionRegistry` manages all strategies dynamically
-- Easy to add new functions without modifying core runner
-- Perfect for plugin architecture (future enhancement)
+```bash
+# Clone repository
+git clone https://github.com/yourusername/yampp.git
+cd yampp
+
+# Install dependencies
+npm install
+
+# Run tests
+npm test
+
+# Build
+npm run build
+
+# Install locally
+npm install -g .
+```
 
 ### Running Tests
+
 ```bash
-npm test
+npm test              # Run all tests
+npm run test:unit     # Unit tests only
+npm run test:e2e      # End-to-end tests
+npm run test:coverage # With coverage
 ```
 
-### Contributing
+## 🤝 Contributing
+
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/amazing-feature`)
 3. Commit your changes (`git commit -m 'Add amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## Author
+## 📄 License
 
-**Matias Denda**
-- Email: matutetandil@gmail.com
-- GitHub: [@matutetandil](https://github.com/matutetandil)
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Execution Modes
+## 🙏 Acknowledgments
 
-Yam++ offers multiple execution modes to suit different workflows and debugging needs:
+- Inspired by GNU Make, Gulp, and Just
+- Built with [Peggy](https://peggyjs.org/) parser generator
+- Uses [chalk](https://github.com/chalk/chalk) for beautiful output
+- Powered by [p-limit](https://github.com/sindresorhus/p-limit) for concurrency control
 
-### 🔍 Dry Run Mode (`--dry-run`, `-n`)
+## 📊 Comparison with Other Tools
 
-Preview exactly what commands would be executed without making any changes:
+| Feature | Yampp | Make | npm scripts | Gulp | Just |
+|---------|-------|------|-------------|------|------|
+| Cross-platform | ✅ | ❌ | ✅ | ✅ | ✅ |
+| Native shell | ✅ | ✅ | Limited | ❌ | Limited |
+| Parallel execution | ✅ | Limited | ❌ | ✅ | ❌ |
+| File watching | ✅ | Limited | ❌ | ✅ | ❌ |
+| Interactive prompts | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Professional UI | ✅ | ❌ | ❌ | ❌ | ❌ |
+| IDE support | ✅ | ✅ | ✅ | ✅ | Limited |
+| AI migration | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Zero config | ✅ | ✅ | ✅ | ❌ | ✅ |
 
-```bash
-yampp --dry-run build test
-```
+## 🔗 Links
 
-**Output:**
-```
-🔍 Dry Run Mode - No commands will be executed
+- [Documentation](docs/)
+- [Examples](examples/)
+- [Changelog](CHANGELOG.md)
+- [Roadmap](TODO.md)
+- [Issues](https://github.com/yourusername/yampp/issues)
+- [Discussions](https://github.com/yourusername/yampp/discussions)
 
-→ Would execute tasks: build, test
-→ Would execute 3 task instance(s) with max 10 parallel job(s)
+## 👤 Author
 
-[build] Would execute:
-[build] → echo "Building project..."
-[build] → npm run build
+**Your Name**
 
-[test] Would execute:
-[test] → Skipped (cached)
-```
+- GitHub: [@yourusername](https://github.com/yourusername)
+- Twitter: [@yourtwitter](https://twitter.com/yourtwitter)
 
-Perfect for:
-- Validating task execution order
-- Checking cache behavior
-- Debugging complex dependency chains
-- Ensuring commands are correct before execution
+---
 
-### 📋 Execution Plan Mode (`--plan`, `-p`)
-
-View a Terraform-style execution plan showing task dependencies and modifiers:
-
-```bash
-yampp --plan deploy
-```
-
-**Output:**
-```
-📋 Execution Plan
-
-Plan Summary:
-  Tasks to run: deploy
-  Total task instances: 4
-  Max parallel jobs: 10
-
-Execution Plan:
-  1. build ⏭ Skip (cached)
-  2. test ⚡ Run
-     Dependencies: build
-  3. package ⚡ Run
-     Dependencies: build, test
-     ⚠ Serial execution (no parallelism)
-  4. deploy ⚡ Run
-     Dependencies: package
-     🚨 Critical (failure stops all)
-     🔄 Always run (ignores cache)
-
-Use --dry-run to see the actual commands that would be executed
-```
-
-Perfect for:
-- Understanding execution flow before running
-- Analyzing task dependencies
-- Identifying performance bottlenecks
-- Planning complex deployments
-
-### 🎭 Ugly Mode (`--ugly`, `-u`)
-
-Simple mixed output with task prefixes (like `make`):
-
-```bash
-yampp --ugly build test
-```
-
-**Output:**
-```
-[build] Starting...
-[test] Starting...
-[build] Building project...
-[test] Running tests...
-[build] Build complete!
-[build] Completed (1.2s)
-[test] All tests passed!
-[test] Completed (0.8s)
-```
-
-Perfect for:
-- Debugging parallel execution issues
-- Simple CI/CD environments
-- When you want immediate output without formatting
-
-### 🎨 Claude Code Interface (Default)
-
-**Revolutionary output system inspired by Claude Code's professional interface:**
-
-```bash
-yampp build test deploy
-```
-
-**Live Execution Display:**
-```
-→ Executing tasks: build, test, deploy
-→ Executing 3 task instance(s) with max 10 parallel job(s)
-
-⠹ build [1.2s]
-  Building project...
-  Compiling sources...
-
-⠴ test [0.8s]
-  Running unit tests...
-  Running integration tests...
-
-⠦ deploy [2.1s]
-  Uploading to server...
-  Configuring services...
-```
-
-**On Task Completion:**
-```
-✅ build Completed [1.8s]
-✅ test Completed [1.2s] 
-❌ deploy Failed [2.1s]
-  Uploading to server...
-  Configuring services...
-  Error: Connection timeout
-
-Execution Summary:
-✓ 2 tasks completed successfully
-✗ 1 task failed
-  ✗ deploy: Command failed: curl -X POST ...
-Total: 3 tasks in 2.15s
-```
-
-**Key Features:**
-- **🎯 Real-time Task Blocks**: Live task visualization with animated spinners
-- **⏱️ Live Timers**: Real-time duration tracking for each task
-- **📝 Smart Output Truncation**: Maximum 6 lines per task to prevent information overload
-- **✨ Intelligent Collapse**: Successful tasks collapse to single lines, failed tasks stay expanded for debugging
-- **🎭 Multi-task Display**: Multiple task blocks shown simultaneously during parallel execution
-- **🎨 Professional Typography**: Consistent emojis, bold text, and color coding
-- **📊 Detailed Summary**: Comprehensive execution summary with specific error details
-
-### 📊 Additional Output Modes
-
-#### 🔍 Verbose Mode (`-v`, `--verbose`)
-Enhanced Claude Code interface with **no task collapsing** and unlimited output lines:
-
-```bash
-yampp --verbose build test
-```
-
-**Features:**
-- **📄 No Output Truncation**: Shows all command output (not limited to 6 lines)
-- **🔄 No Task Collapsing**: Completed tasks stay expanded for full visibility
-- **⏱️ Live Timers**: Real-time duration tracking during execution
-- **🎨 Professional Interface**: Maintains Claude Code interface with full content
-
-Perfect for:
-- Detailed debugging and troubleshooting
-- Development environments where full output is needed
-- Monitoring long-running tasks with extensive output
-
-#### 🔧 Verbose Ugly Mode (`--verbose-ugly`)
-Detailed text-based output with timestamps and process information:
-
-```bash
-yampp --verbose-ugly build test
-```
-
-**Output:**
-```
-[build] Starting task... (PID: 12345, Time: 2025-08-29T18:22:39.546Z)
-18:22:39.123 [build] Building project...
-18:22:39.456 [build] Compiling sources...
-18:22:40.789 [build] Build complete!
-[build] ✓ Completed (1.2s, PID: 12345, End: 2025-08-29T18:22:40.746Z)
-
-[test] Starting task... (PID: 12345, Time: 2025-08-29T18:22:40.750Z)
-18:22:40.234 [test] Running tests...
-18:22:41.567 [test] All tests passed!
-[test] ✓ Completed (0.8s, PID: 12345, End: 2025-08-29T18:22:41.550Z)
-```
-
-**Features:**
-- **🕒 Precise Timestamps**: HH:MM:SS.mmm for every output line
-- **🔍 Process Tracking**: Shows PID for system monitoring
-- **📊 Detailed Lifecycle**: Start/end times with full ISO timestamps  
-- **🎯 Task Prefixes**: Clear task identification for parallel execution
-
-Perfect for:
-- Production debugging and log analysis
-- Performance profiling and timing analysis
-- System administration and process monitoring
-- CI/CD environments requiring detailed audit trails
-
-#### 🤫 Quiet Mode (`-q`, `--quiet`)
-Completely silent execution - no output except errors
-
-## Comparison with Other Tools
-
-| Feature | Yam++ | Make | npm scripts | Just |
-|---------|-------|------|-------------|------|
-| Parallel execution | ✅ Default | ❌ Manual | ❌ | ❌ |
-| Custom DSL | ✅ | ✅ | ❌ | ✅ |
-| Cross-platform | ✅ | ⚠️ | ✅ | ✅ |
-| Dependency graph | ✅ | ✅ | ❌ | ✅ |
-| Syntax validation | ✅ | ❌ | ❌ | ❌ |
-| IDE support | ✅ | ⚠️ | ⚠️ | ⚠️ |
-| No binary deps | ✅ | ❌ | ✅ | ❌ |
-
-## Troubleshooting
-
-### Common Issues
-
-**yampp: command not found**
-```bash
-# Ensure global installation
-npm install -g yampp
-```
-
-**Permission denied**
-```bash
-# Fix npm permissions or use npx
-npx yampp
-```
-
-**Task not found**
-```bash
-# List available tasks
-yampp -l
-```
-
-## License
-
-MIT
-
-## Links
-
-- [GitHub Repository](https://github.com/matutetandil/yampp)
-- [npm Package](https://www.npmjs.com/package/yampp)
-- [Documentation](https://github.com/matutetandil/yampp#readme)
-- [yampp-translator](https://github.com/matutetandil/yampp-translator) - AI-powered translation tool with 9 AI providers and universal editor agents
-- [VS Code Extension](https://github.com/matutetandil/yampp-vscode-extension)
-- [IntelliJ Plugin](https://github.com/matutetandil/yampp-intellij-plugin)
+**Made with ❤️ for developers who value simplicity and power**
