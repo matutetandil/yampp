@@ -317,10 +317,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 👤 Author
 
-**Your Name**
+**Matias Denda**
 
-- GitHub: [@yourusername](https://github.com/yourusername)
-- Twitter: [@yourtwitter](https://twitter.com/yourtwitter)
+- GitHub: [@matutetandil](https://github.com/matutetandil)
+- Twitter: [@matutetandil](https://twitter.com/matutetandil)
 
 ---
 
