@@ -1,6 +1,6 @@
 # Yam++ (Yet Another Modern Task Runner)
 
-![Version](https://img.shields.io/badge/version-0.8.2-blue)
+![Version](https://img.shields.io/badge/version-0.8.4-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)
 ![npm](https://img.shields.io/badge/npm-package-red)
@@ -141,12 +141,16 @@ yampp build:prod        # Run with parameters
 # Task management
 yampp --list           # List all tasks
 yampp --graph          # Show dependency graph
+yampp --graph --graph-format dot > graph.dot  # Export to DOT format
+yampp --graph --graph-format ascii  # Beautiful ASCII art visualization
 yampp --clean          # Clean cache
 
 # Execution control
 yampp -j 2 build test  # Limit parallelism
-yampp --dry-run deploy # Preview without execution
+yampp --force build    # Ignore cache
+yampp --dry-run deploy # Enhanced analysis with time estimation
 yampp --plan deploy    # Show execution plan
+yampp --watch build    # Watch files and re-execute on changes (Ctrl+C twice to exit)
 ```
 
 ### Yamfile Syntax

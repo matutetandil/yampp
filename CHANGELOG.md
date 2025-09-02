@@ -5,6 +5,119 @@ All notable changes to Yam++ (Yet Another Modern Task Runner) will be documented
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.4] - 2025-09-02
+
+### 🏗️ Major Architecture Refactoring - SOLID Principles Applied
+
+**Transformational Update** - Complete architecture refactoring applying professional design patterns throughout the codebase, transforming Yampp from monolithic to modular, scalable architecture.
+
+#### New Features
+
+##### Watch Mode Implementation
+- **Added**: `--watch` flag for continuous file monitoring and automatic re-execution
+- **Feature**: Intelligent re-execution based on file changes matching watched patterns
+- **Safety**: Double Ctrl+C to exit (press twice within 2 seconds)
+- **Smart**: Falls back to common patterns if no specific watches defined
+- **Integration**: Leverages existing FileWatcher infrastructure for efficient monitoring
+
+##### ASCII Graph Format
+- **Added**: New `--graph-format ascii` option for beautiful ASCII art visualization
+- **Display**: Shows task dependencies with boxes and arrows in terminal
+- **Features**: Displays modifiers, supports single task focus view
+- **Example**: `yampp --graph --graph-format ascii`
+
+#### Architecture Improvements
+
+##### Command Pattern Implementation (Strategy Pattern)
+- **Refactored**: All CLI commands now use Command Pattern with Strategy
+- **Created**: `/lib/commands/` directory with modular command classes
+- **Commands**: `ExecuteCommand`, `DryRunCommand`, `PlanCommand`, `WatchCommand`, `CleanCommand`, `ListCommand`, `GraphCommand`
+- **Registry**: `CommandRegistry` with Factory pattern for command management
+- **Benefits**: Open/Closed Principle - new commands without modifying existing code
+
+##### Model Separation (Single Responsibility)
+- **Split**: `Task` and `TaskGraph` classes into separate files
+- **Created**: `/lib/models/` directory for clean model organization
+- **Files**: `task.js` (Task model only), `task-graph.js` (Graph operations only)
+- **Result**: Each class has single, well-defined responsibility
+
+##### Graph Formatter Strategy Pattern
+- **Refactored**: Graph output formats use Strategy pattern
+- **Created**: `/lib/commands/graph-formatters/` directory
+- **Formatters**: `TextGraphFormatter`, `DotGraphFormatter`, `JsonGraphFormatter`, `AsciiGraphFormatter`
+- **Registry**: `GraphFormatterRegistry` for dynamic formatter selection
+- **Extensible**: Adding new formats requires zero modification to existing code
+
+##### CLI Command Mapping Refactor
+- **Removed**: Chain of if statements for command execution
+- **Implemented**: Hashmap-based command dispatch
+- **Categories**: `flagCommands` (clean, list, graph), `taskCommands` (plan, dry-run, watch)
+- **Benefits**: O(1) command lookup, cleaner code, better scalability
+
+#### Technical Improvements
+
+##### Code Organization
+- **Before**: Runner.js with 1,196 lines (God Object anti-pattern)
+- **After**: Modular architecture with separated concerns
+- **Commands**: 9 independent command classes
+- **Formatters**: 4 pluggable graph formatters
+- **Models**: 2 focused model classes
+
+##### SOLID Principles Applied
+- **Single Responsibility**: Each class has one reason to change
+- **Open/Closed**: New features via extension, not modification
+- **Liskov Substitution**: All commands/formatters share base interfaces
+- **Interface Segregation**: Components depend only on needed interfaces
+- **Dependency Inversion**: Depend on abstractions, not concrete implementations
+
+##### Scalability Improvements
+- **Commands**: Add new CLI commands by creating class + registering
+- **Formatters**: Add new graph formats with single class file
+- **Testing**: Each component independently testable
+- **Maintenance**: Issues isolated to specific modules
+
+#### Statistics
+- **Files Created**: 20+ new files for modular architecture
+- **Lines Refactored**: ~2,000 lines reorganized
+- **Patterns Applied**: Strategy, Command, Factory, Registry
+- **Code Reduction**: Runner.js ready for further decomposition
+
+## [0.8.3] - 2025-09-02
+
+### ✨ CLI Enhancement Update
+
+#### New Features
+
+##### Force Execution Flag
+- **Added**: `--force` flag to bypass cache and force task execution
+- **Usage**: `yampp --force build` ignores cache state
+- **Implementation**: Integrated with StateManager cache checks
+
+##### Enhanced Graph Output
+- **Added**: `--graph-format` option with multiple output formats
+- **Formats**: `text` (default), `dot` (Graphviz), `json` (structured data)
+- **Usage**: `yampp --graph --graph-format dot > graph.dot`
+- **Export**: Generate graphs for external visualization tools
+
+##### Enhanced Dry Run Analysis
+- **Improved**: Comprehensive execution analysis with detailed metrics
+- **Features**: Time estimation, cache impact analysis, command count
+- **Display**: Shows which tasks would run vs cached
+- **Summary**: Execution plan with parallelism and duration estimates
+
+#### Documentation
+
+##### Modular Documentation Structure
+- **Reorganized**: Split massive README (2,231 lines) into focused documents
+- **Created**: `/docs/` directory with specialized guides
+- **Files**: 
+  - `USER_GUIDE.md` - Complete usage guide
+  - `MIGRATION_GUIDE.md` - Migration from other tools
+  - `ARCHITECTURE.md` - Technical architecture
+  - `ADVANCED_FEATURES.md` - Deep dive into features
+  - `API_REFERENCE.md` - Programmatic usage
+- **Result**: README reduced to 330 lines, better maintainability
+
 ## [0.8.2] - 2025-08-31
 
 ### 🔧 Critical Fixes - Cooperative Control System

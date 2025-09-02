@@ -1,12 +1,13 @@
 # Yam++ Roadmap & TODO Analysis
 
-## 📊 Current Status (v0.8.2)
+## 📊 Current Status (v0.8.4)
 - ✅ **Core System**: Complete with internal functions, file watching, parameters
 - ✅ **Ecosystem**: Full IDE support (VS Code, IntelliJ) + AI translator  
-- ✅ **Architecture**: Strategy pattern, extensible, production-ready
+- ✅ **Architecture**: SOLID principles applied, Command/Strategy patterns throughout
 - ✅ **Claude Code Interface**: Professional output system with real-time task blocks
 - ✅ **Cross-Platform Revolution**: Native shell execution with cooperative control
-- 🔧 **Critical Fixes**: Variable scope and parameter passing issues completely resolved (v0.8.2)
+- ✅ **Watch Mode**: Continuous monitoring with intelligent re-execution
+- 🏗️ **Refactoring Complete**: Modular architecture with separated concerns
 
 ## ✅ Completed Items (can be archived)
 - ~~Bug fixes (hanging processes)~~ → **RESOLVED** in v0.5.1 (stdio pipes fix)
@@ -23,9 +24,10 @@
 |---------|--------|--------|-------|-------|
 | ~~**🎉 Claude Code Interface Output**~~ | ~~Medium~~ | ~~Very High~~ | ~~🌟 10/10~~ | **✅ v0.7.0** |
 | ~~**🚀 Cross-Platform Shell Execution**~~ | ~~High~~ | ~~**GAME CHANGER**~~ | ~~🌟 **11/10**~~ | **✅ v0.8.0** |
-| **Force Flag (--force)** ⭐ | Very Low | High | 🔥 **9.5/10** | v0.8.3 |
-| **Continue Flag (--continue)** ⭐ | Very Low | High | 🔥 **9/10** | v0.8.3 |
-| **Watch Mode (--watch)** ⭐ | Low | Very High | 🔥 **10/10** | v0.8.3 |
+| ~~**Force Flag (--force)**~~ ⭐ | ~~Very Low~~ | ~~High~~ | ~~🔥 **9.5/10**~~ | **✅ v0.8.3** |
+| ~~**Enhanced --graph (DOT/JSON export)**~~ ⭐ | ~~Low~~ | ~~High~~ | ~~🔥 **8.5/10**~~ | **✅ v0.8.3** |
+| ~~**Enhanced --dry-run**~~ ⭐ | ~~Low~~ | ~~Medium~~ | ~~🥈 **8/10**~~ | **✅ v0.8.3** |
+| ~~**Watch Mode (--watch)**~~ ⭐ | ~~Low~~ | ~~Very High~~ | ~~🔥 **10/10**~~ | **✅ v0.8.4** |
 | **Include/Import System** | Medium | High | 🥇 9/10 | v0.8.3 |
 | **Rollback System** ⭐ | Medium | Very High | 🔥 9.5/10 | v0.9.0 |
 | **Hook System (before/after)** | Medium | High | 🥈 8.5/10 | v0.9.0 |
@@ -122,35 +124,28 @@ setup {
 ### 🔧 Foundation Extensions (v0.8.3)
 
 ### Core Functionality
-- [ ] **Force Flag (--force)** - Bypass cache and force task execution ⭐ **QUICK WIN** ⭐
-  ```bash
-  # Force task to run even if cached
-  yampp --force build
-  
-  # Force all tasks in pipeline to run
-  yampp --force build test deploy
-  ```
-  - **Very Low Effort**: Simple flag check to skip cache validation
-  - **High Impact**: Essential for debugging and CI/CD workflows
-  - **Implementation**: Check flag in StateManager.isTaskComplete()
-  - **Estimated Time**: 30 minutes
+- [x] ~~**Force Flag (--force)**~~ - ✅ **COMPLETED v0.8.3** ✅
+  - Bypass cache and force task execution
+  - Usage: `yampp --force build` ignores cache completely
+  - Implementation: Check flag in StateManager cache validation
 
-- [ ] **Continue Flag (--continue/-k)** - Continue executing other tasks on error ⭐ **QUICK WIN** ⭐
+- [x] ~~**Enhanced --graph with export formats**~~ - ✅ **COMPLETED v0.8.3** ✅
   ```bash
-  # Continue running other tasks even if one fails
-  yampp --continue test1 test2 test3
+  yampp --graph                           # Text format (default)
+  yampp --graph --graph-format dot        # DOT format for Graphviz
+  yampp --graph --graph-format json       # JSON format for tools
   ```
-  - **Very Low Effort**: Modify error handling in Runner.execute()
-  - **High Impact**: Useful for test suites and CI/CD pipelines
-  - **Implementation**: Add flag to Runner options and skip process.exit() on errors
-  - **Estimated Time**: 45 minutes
+  - DOT format: Stylized nodes based on modifiers (always=yellow, critical=red, serial=orange)
+  - JSON format: Complete metadata including modifiers, parameters, platforms
+  - Enhanced visualization with dependency relationships
 
-**Note**: `--yes` flag is NOT needed because `--input key=value` already provides superior functionality:
-```bash
-# Instead of generic --yes, use specific overrides:
-yampp deploy --input env=prod --input confirm=true
-```
-This approach is more explicit and safer than blanket auto-confirmation.
+- [x] ~~**Enhanced --dry-run**~~ - ✅ **COMPLETED v0.8.3** ✅  
+  - Comprehensive analysis with execution summary
+  - Cache impact analysis (will execute vs cached)
+  - Estimated execution time based on command count and parallelism
+  - Command-by-command preview with metadata
+
+**Note**: `--continue` flag was REMOVED as it provides no value over `|| true` syntax.
 
 - [ ] **Watch Mode (--watch)** - Continuous execution with intelligent file watching ⭐ **NEW IDEA** ⭐
   ```bash

@@ -9,6 +9,16 @@ import { parseArgs } from 'util';
 import { Runner } from '../lib/runner.js';
 import { Parser } from '../lib/parser.js';
 import { Validator } from '../lib/validator.js';
+import { 
+  CommandRegistry, 
+  CleanCommand, 
+  ListCommand, 
+  GraphCommand, 
+  DryRunCommand, 
+  PlanCommand, 
+  WatchCommand, 
+  ExecuteCommand 
+} from '../lib/commands/index.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -29,6 +39,10 @@ const options = {
     short: 'j',
     default: String(os.cpus().length)
   },
+  force: {
+    type: 'boolean',
+    default: false
+  },
   list: {
     type: 'boolean',
     short: 'l',
@@ -37,6 +51,15 @@ const options = {
   graph: {
     type: 'boolean',
     short: 'g',
+    default: false
+  },
+  'graph-format': {
+    type: 'string',
+    default: 'text'
+  },
+  watch: {
+    type: 'boolean',
+    short: 'w',
     default: false
   },
   clean: {
@@ -113,8 +136,11 @@ ${chalk.yellow('Usage:')}
 ${chalk.yellow('Options:')}
   -f, --file <path>    Path to Yamfile (default: ./Yamfile)
   -j, --jobs <n>       Number of parallel jobs (default: CPU cores)
+  --force              Force execution (ignore cache)
   -l, --list           List all available tasks
   -g, --graph          Show task dependency graph
+  --graph-format <fmt> Graph output format: text, dot, json (default: text)
+  -w, --watch          Watch for file changes and re-execute tasks (Ctrl+C twice to exit)
   -c, --clean          Clean all .done cache files
   -v, --verbose        Enable verbose output (no task collapsing)
   -q, --quiet          Suppress all output
@@ -136,6 +162,7 @@ ${chalk.yellow('Examples:')}
   yampp -u build       Run with ugly mixed output
   yampp -n test        Dry run - show what would be executed
   yampp -p build       Show execution plan
+  yampp -w build       Watch and re-run when files change
 
 ${chalk.gray('For more information, visit: https://github.com/yourusername/yampp')}
 `);
@@ -199,6 +226,7 @@ async function main() {
       maxJobs: parseInt(args.values.jobs) || undefined,
       verbose: args.values.verbose,
       quiet: args.values.quiet,
+      force: args.values.force,
       ugly: args.values.ugly,
       verboseUgly: args.values['verbose-ugly'],
       dryRun: args.values['dry-run'],
@@ -206,21 +234,54 @@ async function main() {
       inputOverrides: inputOverrides
     });
     
-    // Handle different commands
-    if (args.values.clean) {
-      await runner.clean();
-      console.log(chalk.green('✔'), 'Cache cleaned successfully');
-      process.exit(0);
-    }
+    // Setup command registry
+    const commandRegistry = new CommandRegistry();
+    commandRegistry.register('clean', CleanCommand);
+    commandRegistry.register('list', ListCommand);
+    commandRegistry.register('graph', GraphCommand);
+    commandRegistry.register('dry-run', DryRunCommand);
+    commandRegistry.register('plan', PlanCommand);
+    commandRegistry.register('watch', WatchCommand);
+    commandRegistry.register('execute', ExecuteCommand);
     
-    if (args.values.list) {
-      runner.listTasks();
-      process.exit(0);
-    }
+    // Command mapping for flag-based commands (without task arguments)
+    const flagCommands = {
+      'clean': { 
+        name: 'clean',
+        getArgs: () => null
+      },
+      'list': { 
+        name: 'list',
+        getArgs: () => null
+      },
+      'graph': { 
+        name: 'graph',
+        getArgs: () => ({
+          taskName: args.positionals[0],
+          format: args.values['graph-format']
+        })
+      }
+    };
     
-    if (args.values.graph) {
-      runner.showGraph(args.positionals[0]);
-      process.exit(0);
+    // Execute flag-based commands if present
+    for (const [flag, config] of Object.entries(flagCommands)) {
+      if (args.values[flag]) {
+        const result = await commandRegistry.execute(config.name, runner, config.getArgs());
+        
+        if (!result.success) {
+          console.error(chalk.red('✗'), result.message);
+          if (result.error) {
+            console.error(chalk.gray(result.error));
+          }
+          process.exit(1);
+        }
+        
+        if (result.message && flag === 'clean') {
+          console.log(chalk.green('✔'), result.message);
+        }
+        
+        process.exit(0);
+      }
     }
     
     // Parse tasks and their parameters
@@ -244,22 +305,52 @@ async function main() {
     // Parse task calls (task or task:param1:param2:param3)
     const taskCalls = parseTaskCalls(tasksToRun, tasks);
     
-    // Handle plan mode
-    if (args.values.plan) {
-      await runner.showPlan(taskCalls);
-      process.exit(0);
+    // Command mapping for task-based commands (require task arguments)
+    const taskCommands = {
+      'plan': { 
+        name: 'plan',
+        requiresTasks: true
+      },
+      'dry-run': { 
+        name: 'dry-run',
+        requiresTasks: true
+      },
+      'watch': { 
+        name: 'watch',
+        requiresTasks: true,
+        runsIndefinitely: true
+      }
+    };
+    
+    // Execute task-based commands if present
+    for (const [flag, config] of Object.entries(taskCommands)) {
+      if (args.values[flag]) {
+        const result = await commandRegistry.execute(config.name, runner, taskCalls);
+        
+        if (!result.success) {
+          console.error(chalk.red('✗'), result.message);
+          if (result.error) {
+            console.error(chalk.gray(result.error));
+          }
+          process.exit(1);
+        }
+        
+        if (config.runsIndefinitely) {
+          return; // Watch mode runs indefinitely
+        }
+        
+        process.exit(0);
+      }
     }
     
-    // Handle dry-run mode
-    if (args.values['dry-run']) {
-      await runner.dryRun(taskCalls);
-      process.exit(0);
-    }
-    
-    // Execute tasks
-    const result = await runner.execute(taskCalls);
+    // Default: Execute tasks
+    const result = await commandRegistry.execute('execute', runner, taskCalls);
     
     if (!result.success) {
+      console.error(chalk.red('✗'), result.message);
+      if (result.error) {
+        console.error(chalk.gray(result.error));
+      }
       process.exit(1);
     }
     
