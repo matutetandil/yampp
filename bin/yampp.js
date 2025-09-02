@@ -6,7 +6,7 @@ import { fileURLToPath } from 'url';
 import os from 'os';
 import chalk from 'chalk';
 import { parseArgs } from 'util';
-import { Runner } from '../lib/runner.js';
+import { createRunner } from '../lib/runner-factory.js';
 import { Parser } from '../lib/parser.js';
 import { Validator } from '../lib/validator.js';
 import { 
@@ -222,7 +222,7 @@ async function main() {
     }
     
     // Create runner
-    const runner = new Runner(tasks, globalVariables, globalConstants, globalEnvironmentVariables, {
+    const runner = createRunner(tasks, globalVariables, globalConstants, globalEnvironmentVariables, {
       maxJobs: parseInt(args.values.jobs) || undefined,
       verbose: args.values.verbose,
       quiet: args.values.quiet,

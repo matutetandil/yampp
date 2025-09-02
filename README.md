@@ -1,11 +1,11 @@
 # Yam++ (Yet Another Modern Task Runner)
 
-![Version](https://img.shields.io/badge/version-0.8.4-blue)
+![Version](https://img.shields.io/badge/version-0.8.5-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)
 ![npm](https://img.shields.io/badge/npm-package-red)
 
-A modern, concurrent, declarative task runner with native cross-platform shell execution. The unique task runner that combines the power of Make with cross-platform compatibility, native shell integration (bash/PowerShell/cmd), and a modern professional interface.
+A modern, concurrent, declarative task runner with enterprise-grade architecture and native cross-platform shell execution. The unique task runner that combines the power of Make with cross-platform compatibility, native shell integration (bash/PowerShell/cmd), professional interface, and SOLID design principles.
 
 ## 🚀 Quick Start
 
@@ -47,6 +47,8 @@ yampp --list        # List all tasks
 - **💬 Interactive Functions** - Built-in prompts for user input (`__input`, `__input_password`, `__input_select`, `__input_confirm`)
 - **🎯 Parameterized Tasks** - Tasks with parameters and variable substitution
 - **🔌 Complete Ecosystem** - VS Code extension, IntelliJ plugin, and AI-powered migration tools
+- **🏗️ Enterprise Architecture** - SOLID principles, dependency injection, design patterns (Strategy, Builder, Factory)
+- **⚙️ Professional Configuration** - Fluent configuration API with Builder pattern and constants management
 
 ## 📚 Documentation
 
