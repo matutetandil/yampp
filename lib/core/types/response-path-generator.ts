@@ -1,0 +1,1 @@
+export type ResponsePathGenerator = (processId: number) => string;

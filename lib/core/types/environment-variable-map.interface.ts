@@ -1,0 +1,1 @@
+export interface IEnvironmentVariableMap extends Map<string, string> {}

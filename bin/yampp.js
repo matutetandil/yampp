@@ -6,9 +6,9 @@ import { fileURLToPath } from 'url';
 import os from 'os';
 import chalk from 'chalk';
 import { parseArgs } from 'util';
-import { createRunner } from '../lib/runner-factory.js';
-import { Parser } from '../lib/parser.js';
-import { Validator } from '../lib/validator.js';
+import { createRunner } from '../dist/runner-factory.js';
+import { Parser } from '../dist/parser.js';
+import { Validator } from '../dist/validator.js';
 import { 
   CommandRegistry, 
   CleanCommand, 
@@ -18,7 +18,7 @@ import {
   PlanCommand, 
   WatchCommand, 
   ExecuteCommand 
-} from '../lib/commands/index.js';
+} from '../dist/commands/index.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -356,7 +356,15 @@ async function main() {
     
   } catch (error) {
     if (!args.values.quiet) {
-      console.error(chalk.red.bold('Fatal error:'), error.message);
+      if (error.name === 'ParseError') {
+        console.error(chalk.red.bold('Parse error:'), error.message);
+        if (error.line) {
+          console.error(chalk.yellow(`  at line ${error.line}${error.context ? ` ${error.context}` : ''}`));
+        }
+      } else {
+        console.error(chalk.red.bold('Fatal error:'), error.message);
+      }
+      
       if (args.values.verbose) {
         console.error(error.stack);
       }
@@ -382,11 +390,12 @@ function parseTaskCalls(tasksToRun, allTasks) {
     const task = allTasks.get(taskName);
     
     // Validate parameter count
-    if (params.length !== task.parameters.length) {
-      if (task.parameters.length === 0) {
+    const taskParameters = task.getParameters();
+    if (params.length !== taskParameters.length) {
+      if (taskParameters.length === 0) {
         console.error(chalk.red.bold('Error:'), `Task '${taskName}' does not accept parameters, but ${params.length} provided`);
       } else {
-        console.error(chalk.red.bold('Error:'), `Task '${taskName}' expects ${task.parameters.length} parameter(s): ${task.parameters.join(', ')}, but ${params.length} provided`);
+        console.error(chalk.red.bold('Error:'), `Task '${taskName}' expects ${taskParameters.length} parameter(s): ${taskParameters.map(p => p.name).join(', ')}, but ${params.length} provided`);
       }
       process.exit(1);
     }

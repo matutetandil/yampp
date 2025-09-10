@@ -3,14 +3,21 @@
   "version": "0.8.5",
   "description": "Yet Another Modern Task Runner - Enterprise-grade concurrent task runner with SOLID architecture and native cross-platform shell execution",
   "type": "module",
-  "main": "lib/index.js",
+  "main": "dist/index.js",
   "bin": {
     "yampp": "./bin/yampp.js"
   },
   "scripts": {
+    "build:peggy": "peggy --format es -o lib/yamfile-parser.js lib/yamfile.pegjs",
+    "build:tsc": "tsc",
+    "build": "npm run build:peggy && npm run build:tsc",
+    "clean": "rm -rf dist",
+    "rebuild": "npm run clean && npm run build",
     "test": "node --test",
     "lint": "eslint .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm run build"
   },
   "keywords": [
     "task-runner",
@@ -38,7 +45,8 @@
   "devDependencies": {
     "@types/node": "^20.11.0",
     "eslint": "^8.56.0",
-    "prettier": "^3.2.4"
+    "prettier": "^3.2.4",
+    "typescript": "^5.3.0"
   },
   "repository": {
     "type": "git",

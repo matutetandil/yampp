@@ -1,0 +1,62 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",                        // Latest stable ES features
+    "module": "ESNext",                        // Modern module system
+    "moduleResolution": "Node",                // Node.js module resolution
+    "lib": ["ES2022", "DOM"],                  // Latest standard library
+    
+    // Output Configuration
+    "outDir": "./dist",                        // Compiled output directory
+    "rootDir": "./lib",                        // Source root directory
+    "declaration": true,                       // Generate .d.ts files
+    "declarationMap": true,                    // Generate .d.ts.map files
+    "sourceMap": true,                         // Generate source maps
+    
+    // Module & Import Configuration  
+    "allowJs": true,                           // Allow JavaScript files to be compiled
+    "allowSyntheticDefaultImports": true,      // Allow default imports from modules with no default export
+    "esModuleInterop": true,                   // Enable interop between CommonJS and ES Modules
+    "forceConsistentCasingInFileNames": true,  // Ensure consistent file name casing
+    "resolveJsonModule": true,                 // Allow importing JSON files
+    
+    // Type Checking - STRICT for SOLID compliance (relaxed for build)
+    "strict": true,                            // Enable all strict type checking
+    "noImplicitAny": false,                    // Allow implied 'any' type for generated code
+    "noImplicitReturns": true,                 // Error when not all code paths return a value
+    "noFallthroughCasesInSwitch": true,        // Error on fallthrough cases in switch
+    "noUncheckedIndexedAccess": true,          // Add undefined to unverified index signatures
+    "exactOptionalPropertyTypes": true,        // Exact optional property types
+    
+    // Advanced Type Checking (relaxed for build)
+    "noUnusedLocals": false,                   // Allow unused local variables
+    "noUnusedParameters": false,               // Allow unused parameters
+    "noImplicitOverride": false,               // Allow missing override keyword
+    
+    // Modern JavaScript Features
+    "downlevelIteration": true,                // Full support for iterables in for-of, array destructuring
+    "useDefineForClassFields": true,           // Use ECMAScript-standard semantics for class fields
+    
+    // Skip type checking of declaration files
+    "skipLibCheck": true,                      // Skip type checking of all declaration files
+    
+    // Emit Configuration
+    "removeComments": false,                   // Keep comments for better debugging
+    "preserveConstEnums": true,                // Don't inline const enum values
+    "isolatedModules": false                   // Allow re-exports for easier builds
+  },
+  
+  "include": [
+    "lib/**/*"
+  ],
+  
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "**/shell-content-manager.ts",
+    "**/syntax-error.ts"
+  ],
+  
+  "compileOnSave": false
+}

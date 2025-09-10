@@ -1,0 +1,1 @@
+export interface ITaskRunningMap extends Map<string, Promise<unknown>> {}

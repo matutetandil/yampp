@@ -89,6 +89,57 @@ YAMPP_PROFILE=dev yampp test
 - ✅ **Syntax consistency**: `__profiles` matches `__input` pattern
 - ✅ **Zero conflicts**: No task name ambiguity
 
+### 🔧 Global Environment Variables Fix (v0.8.6)
+**Effort**: Very Low (10-line fix) | **Status**: Partially implemented → Complete
+
+**Issue**: Global `env` declarations outside tasks are parsed but not processed correctly.
+
+```yamfile
+// CURRENTLY BROKEN: Global env vars not available
+env NODE_ENV
+env DATABASE_URL
+env API_KEY
+
+deploy {
+    // WORKS: Local env vars function correctly
+    env DEPLOY_TOKEN
+    
+    echo "Environment: $NODE_ENV"        // ❌ Empty/undefined
+    echo "Deploy token: $DEPLOY_TOKEN"   // ✅ Works correctly
+}
+```
+
+**Fix Required**: Connect global environment variables from AST to variable system in `lib/parser.js`:
+
+```javascript
+// Current (incomplete)
+for (const envVar of ast.environmentVariables || []) {
+    // ❌ Parsed but not used
+}
+
+// Fix needed (add to global variables)
+for (const envVar of ast.environmentVariables || []) {
+    globalEnvironmentVariables.set(envVar.name, process.env[envVar.name] || '');
+}
+```
+
+**Testing**:
+```yamfile
+env NODE_ENV
+env HOME
+
+test {
+    echo "✅ Environment: $NODE_ENV"
+    echo "✅ Home: $HOME"
+}
+```
+
+**Benefits**:
+- ✅ **Feature completion**: From "partially implemented" to "fully functional"
+- ✅ **Foundation ready**: Enables profiles system that needs global env vars
+- ✅ **Zero breaking changes**: Existing code continues working
+- ✅ **Documentation consistency**: Matches existing docs in CHANGELOG.md
+
 ### 🔗 Include/Import System (v0.8.7)
 **Effort**: Low (Parser architecture ready for extension)
 **Architecture**: Self-contained with optional includes for modularity
@@ -184,6 +235,83 @@ deploy {
 - ✅ **Multi-provider**: Mix different secret sources
 - ✅ **Environment-aware**: Different providers per profile
 - ✅ **Zero external config**: No .env files needed
+
+### 🌍 POLYGLOT EXECUTION SYSTEM (v0.8.8) - REVOLUTIONARY MULTI-LANGUAGE
+**Effort**: Low (Strategy pattern established) | **Impact**: REVOLUTIONARY 🚀
+**Architecture**: Native execution in multiple programming languages within single task
+
+```yamfile
+polyglot_workflow {
+  echo "Starting polyglot deployment..."
+  
+  @python {
+    import requests
+    import json
+    
+    # Python excels at API calls and data processing
+    response = requests.post(f"{api_url}/deploy", json={"app": app_name})
+    deployment_id = response.json()["id"]
+    
+    # Variables bidirectionally shared with Yampp
+    __set_var "deployment_id" deployment_id
+  }
+  
+  @node {
+    const fs = require('fs');
+    const packageJson = JSON.parse(fs.readFileSync('package.json'));
+    const version = packageJson.version;
+    
+    __set_var "app_version" version
+  }
+  
+  @bash {
+    # Bash for system operations
+    docker build -t myapp:$app_version .
+    docker push myapp:$app_version
+  }
+  
+  @powershell {
+    # Windows-specific operations
+    Get-Service | Where-Object {$_.Name -like "*docker*"}
+  }
+  
+  echo "Deployed $app_name v$app_version with ID: $deployment_id"
+}
+```
+
+**Strategy Pattern Architecture**:
+```typescript
+interface LanguageProcessor extends ContentProcessor {
+  getLanguage(): string;
+  isAvailable(): boolean; // Check if interpreter is installed
+  processBlock(code: string, variables: Map<string, string>): ExecutionResult;
+}
+
+class PythonContentProcessor implements LanguageProcessor { ... }
+class NodeContentProcessor implements LanguageProcessor { ... }
+class RubyContentProcessor implements LanguageProcessor { ... }
+class GoContentProcessor implements LanguageProcessor { ... }
+```
+
+**REVOLUTIONARY Benefits**:
+- ✅ **Right Tool for Right Job**: Each language for what it excels at
+- ✅ **Bidirectional Variables**: Shared state across all languages
+- ✅ **Cross-platform Consistency**: `@python` works same on all OS
+- ✅ **Developer Freedom**: Use familiar languages for specific tasks
+- ✅ **Zero External Config**: Everything self-contained in Yamfile
+- ✅ **Performance Optimization**: Use compiled languages where needed
+
+**Use Cases**:
+- **@python**: ML/AI, APIs, data processing, scientific computing
+- **@node**: File manipulation, JSON processing, modern async patterns  
+- **@bash/@powershell**: System commands, file operations
+- **@ruby**: Text processing, metaprogramming, Rails deployments
+- **@php**: Web automation, legacy system integration
+- **@rust**: Performance-critical operations, system programming
+- **@go**: Concurrent operations, microservices, CLI tools
+- **@java**: Enterprise integration, Spring deployments
+
+**Market Impact**: Only task runner enabling **polyglot workflows** - unprecedented!
 
 ### 🔌 PLUGIN SYSTEM ARCHITECTURE (v0.9.0) - ECOSYSTEM GAME CHANGER
 **Effort**: Medium (Registry + DI patterns established) | **Impact**: REVOLUTIONARY
@@ -415,10 +543,11 @@ build_farm {
 
 ### 🚀 Phase 1: Developer Experience (v0.8.6) - 1 week
 1. **File I/O Internal Functions** - Enable configuration file reading
-2. **Execution Profiles** - Environment-specific configurations  
-3. **Shell Autocomplete** - Professional CLI experience
+2. **Execution Profiles** - Environment-specific configurations
+3. **Global Environment Variables Fix** - Complete partially implemented feature  
+4. **Shell Autocomplete** - Professional CLI experience
 
-**Why Phase 1**: All Very Low effort, immediate productivity boost
+**Why Phase 1**: All Very Low effort, immediate productivity boost + foundation for profiles
 
 ### 🏗️ Phase 2: Modularity (v0.8.7) - 2-3 weeks  
 4. **Include/Import System** - Large project organization

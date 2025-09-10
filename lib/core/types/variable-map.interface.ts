@@ -1,0 +1,1 @@
+export interface IVariableMap extends Map<string, string | number | boolean> {}

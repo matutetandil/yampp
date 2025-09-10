@@ -1,0 +1,1 @@
+export interface IConstantMap extends Map<string, string | number | boolean> {}

@@ -11,7 +11,7 @@ A modern, concurrent, declarative task runner with enterprise-grade architecture
 
 ```bash
 # Install globally
-npm install -g yampp
+npm install -g @yampp/yampp
 
 # Create a Yamfile in your project
 cat > Yamfile << 'EOF'
@@ -118,7 +118,7 @@ always serial critical: backup {
 ### From npm
 
 ```bash
-npm install -g yampp
+npm install -g @yampp/yampp
 ```
 
 ### From Source
@@ -219,7 +219,7 @@ Automatically migrate from other task runners using [yampp-translator](https://g
 
 ```bash
 # Install translator
-npm install -g yampp-translator
+npm install -g @yampp/translator
 
 # Translate existing files
 yampp-translator translate Makefile
