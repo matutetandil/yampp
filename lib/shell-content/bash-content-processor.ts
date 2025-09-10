@@ -25,7 +25,7 @@ export class BashContentProcessor extends BaseContentProcessor {
   protected generateTargetCode(data: any): string {
     let generatedCode = '';
     
-    // Generate variable assignments
+    // Generate variable assignments (task-level vars/consts from parser)
     for (const assignment of data.variableAssignments) {
       if (assignment.isInternalFunction) {
         // Transform internal function call to bash syntax
@@ -52,12 +52,47 @@ export class BashContentProcessor extends BaseContentProcessor {
       }
     }
     
-    // Add standalone commands
+    // Process standalone commands and transform inline variables
     if (data.standaloneCommands.length > 0) {
-      generatedCode += data.standaloneCommands.join('\n') + '\n';
+      const processedCommands = this.transformInlineVariables(data.standaloneCommands.join('\n'));
+      generatedCode += processedCommands + '\n';
     }
     
     return generatedCode;
+  }
+
+  /**
+   * Transform inline variable assignments to bash syntax
+   * Preserves control flow by transforming in-place
+   */
+  private transformInlineVariables(content: string): string {
+    // Pattern to match inline variables: var/const name = __function args
+    const inlinePattern = /^(\s*)(var|const)\s+(\w+)\s*=\s*(__\w+.*?)$/gm;
+    
+    return content.replace(inlinePattern, (match, indent, type, varName, funcCall) => {
+      // Check if this is an internal function
+      const funcMatch = funcCall.match(/^(__\w+)(.*)$/);
+      if (!funcMatch) return match;
+      
+      const [, funcName] = funcMatch;
+      const funcNameWithoutPrefix = funcName.substring(2);
+      
+      // Verify it's a registered internal function
+      const functionNames = this.internalFunctionRegistry.getRegisteredFunctions();
+      if (!functionNames.includes(funcNameWithoutPrefix)) {
+        return match; // Not an internal function, leave as-is
+      }
+      
+      // Transform to bash syntax, preserving indentation
+      // var x = __input "test" -> x=$(__input x "test")
+      const transformedCall = funcCall.replace(/^__(\w+)/, `__$1 ${varName}`);
+      
+      if (type === 'const') {
+        return `${indent}declare -r ${varName}=$(${transformedCall})`;
+      } else {
+        return `${indent}${varName}=$(${transformedCall})`;
+      }
+    });
   }
 
   /**

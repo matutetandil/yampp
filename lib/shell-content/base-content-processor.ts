@@ -92,7 +92,7 @@ export abstract class BaseContentProcessor {
     const variableAssignments: VariableAssignment[] = [];
     const standaloneCommands: string[] = [];
     
-    // Process local variables looking for internal function assignments
+    // Process local variables from parser (task-level variables)
     if (localVariables) {
       for (const variable of localVariables) {
         if (this.isInternalFunctionCall(variable.value)) {
@@ -113,7 +113,7 @@ export abstract class BaseContentProcessor {
       }
     }
     
-    // Process local constants looking for internal function assignments
+    // Process local constants from parser (task-level constants)
     if (localConstants) {
       for (const constant of localConstants) {
         if (this.isInternalFunctionCall(constant.value)) {
@@ -134,7 +134,11 @@ export abstract class BaseContentProcessor {
       }
     }
     
-    // Split content into standalone commands
+    // NOTE: We do NOT extract inline variables here anymore
+    // They need to be processed in their execution context (if/case/for)
+    // to respect control flow
+    
+    // Process content as-is - inline variables will be handled during execution
     const lines = content.split('\n').filter(line => line.trim());
     for (const line of lines) {
       standaloneCommands.push(line);
@@ -166,6 +170,57 @@ export abstract class BaseContentProcessor {
    * Transforms __func(args) syntax and injects platform-specific proxy functions
    */
   protected abstract injectProxies(content: string): ExecutionContext;
+
+  /**
+   * ADVANCED: Extract inline variable assignments anywhere in content
+   * Detects patterns like: var name = __input "prompt" "default"
+   * Returns cleaned content and extracted assignments
+   */
+  protected extractInlineVariables(content: string): { assignments: VariableAssignment[], cleanedContent: string } {
+    const assignments: VariableAssignment[] = [];
+    let cleanedContent = content;
+    
+    // Pattern to match: (var|const) identifier = __functionName args
+    // Handles multi-line and various whitespace scenarios
+    const inlineVariablePattern = /^(\s*)(var|const)\s+(\w+)\s*=\s*(__\w+.*?)$/gm;
+    
+    let match;
+    while ((match = inlineVariablePattern.exec(content)) !== null) {
+      const [fullMatch, indentation, type, variableName, functionCall] = match;
+      
+      // Parse the function call to extract function name and arguments
+      const functionMatch = functionCall.match(/^(__\w+)(.*)$/);
+      if (functionMatch) {
+        const [, funcName, argsString] = functionMatch;
+        
+        // Check if this is a registered internal function
+        const functionNames = this.internalFunctionRegistry.getRegisteredFunctions();
+        const funcNameWithoutPrefix = funcName.substring(2); // Remove __
+        
+        if (functionNames.includes(funcNameWithoutPrefix)) {
+          // This is an internal function assignment
+          assignments.push({
+            type: type as 'variable' | 'constant',
+            name: variableName,
+            value: functionCall.trim(),
+            isInternalFunction: true
+          });
+          
+          // Remove this line from the content
+          cleanedContent = cleanedContent.replace(fullMatch, '');
+        }
+      }
+    }
+    
+    // Clean up extra blank lines left by removals
+    cleanedContent = cleanedContent.replace(/\n\s*\n\s*\n/g, '\n\n');
+    cleanedContent = cleanedContent.replace(/^\s*\n/, ''); // Remove leading blank lines
+    
+    return {
+      assignments,
+      cleanedContent
+    };
+  }
 
   /**
    * Check if content needs proxy injection (has __functions)

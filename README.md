@@ -1,6 +1,6 @@
 # Yam++ (Yet Another Modern Task Runner)
 
-![Version](https://img.shields.io/badge/version-0.8.5-blue)
+![Version](https://img.shields.io/badge/version-0.8.6-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)
 ![npm](https://img.shields.io/badge/npm-package-red)
@@ -45,10 +45,15 @@ yampp --list        # List all tasks
 - **🔄 Smart Dependencies** - Automatic dependency resolution with DAG validation
 - **📦 Intelligent Caching** - Skip unchanged tasks with file watching support
 - **💬 Interactive Functions** - Built-in prompts for user input (`__input`, `__input_password`, `__input_select`, `__input_confirm`)
+- **🎛️ Inline Variables Anywhere** - Variables with internal functions work inside if/case/for blocks respecting control flow
 - **🎯 Parameterized Tasks** - Tasks with parameters and variable substitution
 - **🔌 Complete Ecosystem** - VS Code extension, IntelliJ plugin, and AI-powered migration tools
 - **🏗️ Enterprise Architecture** - SOLID principles, dependency injection, design patterns (Strategy, Builder, Factory)
 - **⚙️ Professional Configuration** - Fluent configuration API with Builder pattern and constants management
+
+## ⚠️ Known Issues
+
+- **Standard Output Hanging (v0.8.6)**: Tasks complete successfully but process hangs in standard mode. **Workaround**: Use `--ugly` flag for immediate exit after completion.
 
 ## 📚 Documentation
 
@@ -96,13 +101,19 @@ build(env = "dev") watches src/**/*.ts {
     npm run build:$env
 }
 
-// Interactive deployment
+// Interactive deployment with inline variables
 deploy needs build(production) {
-    __input_select "Deploy target:" target ["aws", "azure", "gcp"] "aws"
-    __input_confirm "Deploy to $target?" confirm "false"
+    var target = __input_select "Deploy target:" "aws" "aws,azure,gcp"
+    
+    if [ "$target" = "aws" ]; then
+        var region = __input_select "AWS region:" "us-east-1" "us-east-1,us-west-2,eu-west-1"
+        var confirm = __input_confirm "Deploy to $target ($region)?" "false"
+    else
+        var confirm = __input_confirm "Deploy to $target?" "false"
+    fi
     
     if [ "$confirm" = "true" ]; then
-        ./deploy.sh --target $target
+        ./deploy.sh --target $target --region $region
     fi
 }
 

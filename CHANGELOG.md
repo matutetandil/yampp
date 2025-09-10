@@ -5,6 +5,45 @@ All notable changes to Yam++ (Yet Another Modern Task Runner) will be documented
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.6] - 2025-09-10
+
+### 🚀 INLINE VARIABLES ANYWHERE - Ultimate Flexibility
+
+**Game-Changing Feature** - Complete implementation of inline variable assignments with internal functions anywhere in code, respecting control flow and enabling unprecedented task runner flexibility.
+
+#### ✨ Revolutionary Inline Variables System
+- **Inline Variables in Control Flow**: `var name = __input "prompt" "default"` now works inside if/case/for blocks
+- **Control Flow Respect**: Variables only execute when in active execution path (no premature evaluation)
+- **Cross-Platform Architecture**: Template Method pattern enables future PowerShell/CMD support
+- **Perfect Integration**: Works seamlessly with existing CLI `--input` overrides
+- **Zero Breaking Changes**: Complete backward compatibility maintained
+
+#### 🎯 Technical Implementation
+- **Two-Stage Processing**: Generic preprocessing + platform-specific code generation
+- **In-Place Transformation**: Variables transformed maintaining position and indentation
+- **Strategy Pattern**: BaseContentProcessor with specialized shell implementations
+- **Advanced Regex Parsing**: Detects `var`/`const` assignments with internal functions anywhere
+
+#### 🧪 Complex Scenarios Supported
+```yamfile
+test_flow {
+    var count = __input "How many?" "3"
+    for i in $(seq 1 $count); do
+        var name = __input "Name $i:" "Person$i"
+        __call greet($name)
+    done
+}
+```
+
+#### 🐛 Known Issues
+- **Standard Output Hanging**: Tasks complete successfully but process hangs in standard mode (use `--ugly` as workaround)
+
+#### 📋 Files Modified
+- `lib/shell-content/base-content-processor.ts` - Inline variable extraction and processing
+- `lib/shell-content/bash-content-processor.ts` - In-place transformation with control flow preservation
+
+---
+
 ## [0.8.5] - 2025-09-02
 
 ### 🏗️ ENTERPRISE ARCHITECTURE - Complete SOLID Transformation
