@@ -5,6 +5,32 @@ All notable changes to Yam++ (Yet Another Modern Task Runner) will be documented
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.0] - 2025-09-11
+
+### 🚀 MINOR RELEASE - Serial Task Prioritization & Enhanced UX
+
+**Feature Release** - Implements intelligent serial task execution with improved concurrent messaging and enhanced output management for better user experience.
+
+#### ✨ New Features
+- **Serial Task Prioritization**: Tasks marked as `serial` now execute first, sequentially, before concurrent tasks
+- **Improved Execution Messaging**: Clearer messaging distinguishing between serial and concurrent execution phases
+- **Enhanced Output Management**: Better spacing and cleanup in execution summary display
+
+#### 🎯 User Experience Improvements  
+- **Interactive Input Handling**: Serial tasks with interactive inputs (`__input`, `__input_password`) now execute without cursor conflicts
+- **Professional Messaging**: Changed "parallel" to "concurrent" terminology for technical accuracy
+- **NPM Organization**: Package now published under `@yampp/yampp` organization scope
+
+#### 🏗️ Technical Improvements
+- **Smart Execution Strategy**: Separates execution plan into serial and concurrent phases for optimal UX
+- **Cursor Management**: Enhanced cursor positioning after interactive operations
+- **Output Rendering**: Improved final output rendering with proper task collapse behavior
+
+#### 🔧 Architecture Changes
+- **TaskOrchestrator**: Modified execution flow to handle serial tasks before parallel tasks
+- **ClaudeOutputManager**: Enhanced finalization logic with respect for verbose mode
+- **Execution Planning**: Intelligent task separation based on `serial` modifier
+
 ## [0.8.7] - 2025-09-11
 
 ### 🐛 CRITICAL BUG FIXES - Production Stability

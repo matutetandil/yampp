@@ -83,7 +83,26 @@ export class TaskOrchestrator {
     if (!this.quiet) {
       const taskNames = (taskCalls || []).map(t => t?.taskName || 'unknown').join(', ');
       console.log(chalk.green('→'), `Executing tasks: ${taskNames}`);
-      console.log(chalk.green('→'), `Executing ${executionPlan.length} task instance(s) with max ${this.maxJobs} parallel job(s)`);
+      
+      // Count serial and parallel tasks for better messaging
+      let serialCount = 0;
+      let parallelCount = 0;
+      for (const taskInstance of executionPlan) {
+        const typedTask = taskInstance.task as Task;
+        if (typedTask && typedTask.isSerial) {
+          serialCount++;
+        } else {
+          parallelCount++;
+        }
+      }
+      
+      if (serialCount > 0 && parallelCount > 0) {
+        console.log(chalk.green('→'), `Executing ${serialCount} serial task(s) first, then ${parallelCount} concurrent task(s) with max ${this.maxJobs} job(s)`);
+      } else if (serialCount > 0) {
+        console.log(chalk.green('→'), `Executing ${serialCount} serial task(s) sequentially`);
+      } else {
+        console.log(chalk.green('→'), `Executing ${parallelCount} task instance(s) with max ${this.maxJobs} concurrent job(s)`);
+      }
       console.log();
     }
     
@@ -94,14 +113,34 @@ export class TaskOrchestrator {
     // Track task promises
     const taskPromises = new Map<string, Promise<void>>();
     
-    // Execute tasks according to plan
+    // Separate serial and parallel tasks
+    const serialTasks: TaskInstance[] = [];
+    const parallelTasks: TaskInstance[] = [];
+    
     for (const taskInstance of executionPlan) {
-      // Create promise for this task instance
+      const typedTask = taskInstance.task as Task;
+      if (typedTask && typedTask.isSerial) {
+        serialTasks.push(taskInstance);
+      } else {
+        parallelTasks.push(taskInstance);
+      }
+    }
+    
+    // Execute serial tasks first, one by one
+    for (const taskInstance of serialTasks) {
+      const taskPromise = this.executeTaskInstance(taskInstance, taskPromises, limit, serialLimit);
+      taskPromises.set(taskInstance.id, taskPromise);
+      // Wait for each serial task to complete before starting the next
+      await taskPromise;
+    }
+    
+    // Then execute parallel tasks concurrently
+    for (const taskInstance of parallelTasks) {
       const taskPromise = this.executeTaskInstance(taskInstance, taskPromises, limit, serialLimit);
       taskPromises.set(taskInstance.id, taskPromise);
     }
     
-    // Wait for all tasks to complete
+    // Wait for all parallel tasks to complete
     await Promise.all(taskPromises.values());
     
     // Clean up any pending timers in OutputManager
@@ -505,6 +544,11 @@ export class TaskOrchestrator {
    */
   private printSummary(startTime: number): void {
     if (this.quiet) return;
+    
+    // If outputManager is ClaudeOutputManager, finalize its output first
+    if (this.outputManager && typeof (this.outputManager as any).finalizeOutput === 'function') {
+      (this.outputManager as any).finalizeOutput();
+    }
     
     const endTime = Date.now();
     const duration = ((endTime - startTime) / 1000).toFixed(2);
