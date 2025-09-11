@@ -11,7 +11,7 @@ import { MoveFunction } from './move-function.js';
 import { DeleteFunction } from './delete-function.js';
 import { BaseInternalFunction } from './base-function.js';
 import { InternalFunctionExecutionContext } from './internal-function-execution-context.interface.js';
-import { FunctionMetadata } from '../core/types/function-metadata.interface.js';
+import { FunctionMetadata } from '../core/function-metadata.js';
 import { IInternalFunctionRegistry } from './internal-function-registry.interface.js';
 import { IVariableMap } from '../core/types/variable-map.interface.js';
 import { ITaskPromiseMap } from '../tasks/interfaces/task-promise-map.interface.js';
@@ -37,17 +37,50 @@ export class InternalFunctionRegistry implements IInternalFunctionRegistry {
    * Register all built-in internal functions
    */
   private registerBuiltInFunctions(): void {
-    this.registerByName('input', new InputFunction(this.runner));
-    this.registerByName('input_password', new InputPasswordFunction(this.runner));
-    this.registerByName('input_select', new InputSelectFunction(this.runner));
-    this.registerByName('input_confirm', new InputConfirmFunction(this.runner));
-    this.registerByName('call', new CallFunction(this.runner));
-    this.registerByName('read_file', new ReadFileFunction(this.runner));
-    this.registerByName('write_file', new WriteFileFunction(this.runner));
-    this.registerByName('file_exists', new FileExistsFunction(this.runner));
-    this.registerByName('copy', new CopyFunction(this.runner));
-    this.registerByName('move', new MoveFunction(this.runner));
-    this.registerByName('delete', new DeleteFunction(this.runner));
+    // All functions now use new pattern - create and set runner
+    const inputFunc = new InputFunction();
+    inputFunc.setRunner(this.runner);
+    this.registerByName('input', inputFunc);
+    
+    const inputPasswordFunc = new InputPasswordFunction();
+    inputPasswordFunc.setRunner(this.runner);
+    this.registerByName('input_password', inputPasswordFunc);
+    
+    const inputSelectFunc = new InputSelectFunction();
+    inputSelectFunc.setRunner(this.runner);
+    this.registerByName('input_select', inputSelectFunc);
+    
+    const inputConfirmFunc = new InputConfirmFunction();
+    inputConfirmFunc.setRunner(this.runner);
+    this.registerByName('input_confirm', inputConfirmFunc);
+    
+    const callFunc = new CallFunction();
+    callFunc.setRunner(this.runner);
+    this.registerByName('call', callFunc);
+    
+    const readFileFunc = new ReadFileFunction();
+    readFileFunc.setRunner(this.runner);
+    this.registerByName('read_file', readFileFunc);
+    
+    const writeFileFunc = new WriteFileFunction();
+    writeFileFunc.setRunner(this.runner);
+    this.registerByName('write_file', writeFileFunc);
+    
+    const fileExistsFunc = new FileExistsFunction();
+    fileExistsFunc.setRunner(this.runner);
+    this.registerByName('file_exists', fileExistsFunc);
+    
+    const copyFunc = new CopyFunction();
+    copyFunc.setRunner(this.runner);
+    this.registerByName('copy', copyFunc);
+    
+    const moveFunc = new MoveFunction();
+    moveFunc.setRunner(this.runner);
+    this.registerByName('move', moveFunc);
+    
+    const deleteFunc = new DeleteFunction();
+    deleteFunc.setRunner(this.runner);
+    this.registerByName('delete', deleteFunc);
   }
 
   /**

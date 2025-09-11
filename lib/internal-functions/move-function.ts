@@ -1,49 +1,39 @@
-import { renameSync } from 'fs';
-import { BaseInternalFunction } from './base-function.js';
+import { renameSync, mkdirSync } from 'fs';
+import { dirname } from 'path';
+import { ReturnValueInternalFunction } from './return-value-internal-function.js';
 import { InternalFunctionExecutionContext } from './internal-function-execution-context.interface.js';
-import { FunctionMetadata } from '../core/types/function-metadata.interface.js';
+import { ParameterIterator } from './parameter-iterator.js';
 
 /**
  * MoveFunction - Move/rename file or directory
- * Usage: __move "temp.txt" "final.txt"
+ * Usage: var result = __move "old.txt" "new.txt"
  */
-export class MoveFunction extends BaseInternalFunction {
-  public async execute(args: any[], context: InternalFunctionExecutionContext): Promise<any> {
-    this.validateArgs(args);
-    
-    const [source, destination] = args;
+export class MoveFunction extends ReturnValueInternalFunction {
+  
+  protected configure(): void {
+    this.setName('__move')
+        .setDescription('Move/rename file or directory')
+        .configureParameters(builder => 
+          builder.addStringParameter('source', true)
+                 .addStringParameter('destination', true)
+        );
+  }
+  
+  protected async executeCore(params: ParameterIterator, context: InternalFunctionExecutionContext): Promise<any> {
+    const source = params.next();
+    const destination = params.next();
     
     try {
+      // Create destination directory if it doesn't exist
+      const destDir = dirname(destination);
+      mkdirSync(destDir, { recursive: true });
+      
+      // Move/rename file
       renameSync(source, destination);
-      return `Moved: ${source} → ${destination}`;
+      
+      return `Moved: ${source} -> ${destination}`;
     } catch (error: any) {
       throw new Error(`Failed to move '${source}' to '${destination}': ${error.message}`);
     }
-  }
-
-  private validateArgs(args: any[]): void {
-    if (!args || args.length !== 2) {
-      throw new Error('__move requires exactly 2 arguments: source, destination');
-    }
-    
-    if (!args[0] || typeof args[0] !== 'string') {
-      throw new Error('__move: source must be a non-empty string');
-    }
-    
-    if (!args[1] || typeof args[1] !== 'string') {
-      throw new Error('__move: destination must be a non-empty string');
-    }
-  }
-
-  public getMetadata(): FunctionMetadata {
-    return {
-      name: '__move',
-      description: 'Move/rename file or directory',
-      returnVariable: false,
-      parameters: [
-        { name: 'source', type: 'string', description: 'Source path to move from' },
-        { name: 'destination', type: 'string', description: 'Destination path to move to' }
-      ]
-    };
   }
 }

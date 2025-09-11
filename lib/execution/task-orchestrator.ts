@@ -104,6 +104,11 @@ export class TaskOrchestrator {
     // Wait for all tasks to complete
     await Promise.all(taskPromises.values());
     
+    // Clean up any pending timers in OutputManager
+    if (this.outputManager.cleanup) {
+      this.outputManager.cleanup();
+    }
+    
     // Print summary
     this.printSummary(startTime);
     
@@ -152,9 +157,10 @@ export class TaskOrchestrator {
     processing.add(instanceId);
     
     // Process dependencies first (topological order)
-    const typedTask = task as any;
-    for (const depName of typedTask.dependencies || []) {
-      const depParams = (typedTask.dependencyParams?.[depName] || []);
+    const dependencies = task.getDependencies ? task.getDependencies() : [];
+    for (const depName of dependencies) {
+      const dependencyParams = task.getDependencyParams ? task.getDependencyParams() : {};
+      const depParams = (dependencyParams[depName] || []);
       
       // Ensure depParams is an array before mapping
       const safeDepParams = Array.isArray(depParams) ? depParams : [];
@@ -163,7 +169,8 @@ export class TaskOrchestrator {
       const resolvedParams = safeDepParams.map((param: any) => {
         if (param.type === 'variable') {
           // Variable reference: look up in task parameters
-          const paramIndex = typedTask.parameters?.indexOf(param.name) ?? -1;
+          const taskParameters = task.getParameters ? task.getParameters() : [];
+          const paramIndex = taskParameters.findIndex((p: any) => p.name === param.name);
           if (paramIndex >= 0) {
             return parameters[paramIndex];
           } else {

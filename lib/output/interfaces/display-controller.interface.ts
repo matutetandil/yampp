@@ -9,6 +9,11 @@ export interface IDisplayController {
   clear(): void;
 
   /**
+   * Clean up any pending timers or resources
+   */
+  cleanup(): void;
+
+  /**
    * Print execution summary
    */
   printSummary(completed: Set<string>, failed: Set<string>, duration: string): void;

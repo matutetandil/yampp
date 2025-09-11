@@ -341,4 +341,11 @@ export class OutputManager implements ICompleteOutputManager {
       console.error(chalk.red(message));
     }
   }
+
+  public cleanup(): void {
+    if (this.renderTimer) {
+      clearTimeout(this.renderTimer);
+      delete this.renderTimer;
+    }
+  }
 }

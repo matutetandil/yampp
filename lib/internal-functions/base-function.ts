@@ -1,4 +1,4 @@
-import { FunctionMetadata } from '../core/types/function-metadata.interface.js';
+import { FunctionMetadata } from '../core/function-metadata.js';
 import { InternalFunctionExecutionContext } from './internal-function-execution-context.interface.js';
 
 /**
@@ -9,7 +9,17 @@ export abstract class BaseInternalFunction {
   protected runner: any;
   protected inputManager: any;
 
-  constructor(runner: any) {
+  constructor(runner?: any) {
+    if (runner) {
+      this.runner = runner;
+      this.inputManager = runner.inputManager;
+    }
+  }
+  
+  /**
+   * Set the runner after construction (for late binding)
+   */
+  public setRunner(runner: any): void {
     this.runner = runner;
     this.inputManager = runner.inputManager;
   }

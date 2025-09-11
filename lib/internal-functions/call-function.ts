@@ -1,46 +1,40 @@
-import { BaseInternalFunction } from './base-function.js';
+import { VoidInternalFunction } from './void-internal-function.js';
 import { InternalFunctionExecutionContext } from './internal-function-execution-context.interface.js';
-import { FunctionMetadata } from '../core/types/function-metadata.interface.js';
+import { ParameterIterator } from './parameter-iterator.js';
 
 /**
  * Handler for __call internal function
  * Calls other tasks internally with parameters
+ * Usage: __call taskname(param1, param2)
  */
-export class CallFunction extends BaseInternalFunction {
-  public async execute(args: any[], context: InternalFunctionExecutionContext): Promise<any> {
-    // Parse parameters: __call taskname param1 param2 ...
-    if (!args || args.length < 1) {
-      throw new Error('__call requires at least the task name');
-    }
-    
-    // First arg is the task name, rest are parameters
-    const taskName = args[0];
-    const params = args.slice(1); // All params after task name
+export class CallFunction extends VoidInternalFunction {
+  
+  protected configure(): void {
+    this.setName('__call')
+        .setDescription('Call another task with parameters')
+        .configureParameters(builder => 
+          builder.addStringParameter('taskName', true)
+        );
+  }
+
+  protected async executeCore(params: ParameterIterator, context: InternalFunctionExecutionContext): Promise<void> {
+    const taskName = params.next();
+    // Get all remaining parameters as task parameters
+    const allParams = params.getAll();
+    const taskParams = allParams.slice(1); // Skip the taskName, rest are params
     
     // Convert to the format expected by executeCall
     const call = {
       taskName: taskName,
-      params: params
+      params: taskParams
     };
     
-    return await this.runner.executeCall(
+    await this.runner.executeCall(
       call, 
       context.variables, 
       context.taskPromises, 
       context.limit, 
       context.serialLimit
     );
-  }
-
-  public getMetadata(): FunctionMetadata {
-    return {
-      name: '__call',
-      description: 'Call another task with parameters',
-      returnVariable: false,
-      parameters: [
-        { name: 'taskName', type: 'string', description: 'Name of task to call' },
-        { name: 'params', type: 'any[]', description: 'Parameters to pass to the task' }
-      ]
-    };
   }
 }
