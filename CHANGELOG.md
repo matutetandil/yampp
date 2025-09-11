@@ -5,6 +5,37 @@ All notable changes to Yam++ (Yet Another Modern Task Runner) will be documented
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.7] - 2025-09-11
+
+### 🐛 CRITICAL BUG FIXES - Production Stability
+
+**Emergency Release** - Fixes critical issues that prevented proper task execution and process termination introduced during TypeScript migration.
+
+#### 🔧 Critical Bug Fixes
+- **Fixed Dependency System**: Resolved issue where `needs` dependencies were not executing due to encapsulation violations
+- **Fixed Process Hanging**: Resolved issue where yampp process would hang indefinitely after task completion  
+- **Fixed Execution Summary**: Process now properly displays execution summary and terminates cleanly
+
+#### 🏗️ Technical Fixes
+- **TaskOrchestrator**: Updated to use proper encapsulated getter methods (`getDependencies()`, `getDependencyParams()`) instead of direct property access
+- **OutputManager Cleanup**: Implemented proper cleanup of render timers to prevent process hanging
+- **Encapsulation Compliance**: Fixed all remaining violations of encapsulation introduced during TypeScript migration
+
+#### 🎯 Internal Functions Architecture  
+- **SOLID Compliance**: Complete refactoring using Template Method and Strategy patterns
+- **Proper Encapsulation**: Replaced object literal returns with class-based encapsulation
+- **Type Safety**: Added ParameterIterator for validated parameter access
+- **Fluent Interface**: Implemented fluent configuration API for internal functions
+- **Plugin Ready**: Simplified architecture for creating new internal functions
+
+#### ⚡ Performance & Reliability
+- **Zero Hanging**: Process now terminates cleanly in all execution scenarios
+- **Consistent Behavior**: Ugly mode and interactive mode now behave consistently
+- **Cache Compatibility**: Fixed issues that only occurred when cache was bypassed
+- **Memory Management**: Proper cleanup of timers and resources
+
+**Production Impact**: These fixes resolve critical production issues affecting task execution reliability and system resource management.
+
 ## [0.8.6] - 2025-09-10
 
 ### 🚀 INLINE VARIABLES ANYWHERE - Ultimate Flexibility
