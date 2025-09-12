@@ -1,11 +1,5 @@
 import { PlatformStrategy } from '../platform/platform-strategy.js';
-
-export interface StateDebugInfo {
-  sharedState: Record<string, any>;
-  shellContext: Record<string, any>;
-  internalContext: Record<string, any>;
-  pendingExports: Record<string, any>;
-}
+import { StateDebugInfo } from './interfaces/state-debug-info.interface.js';
 
 /**
  * Abstract base class for shared state management between shell and internal functions
