@@ -1,6 +1,6 @@
 # Yam++ (Yet Another Modern Task Runner)
 
-![Version](https://img.shields.io/badge/version-0.10.0-blue)
+![Version](https://img.shields.io/badge/version-0.10.1-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)
 ![npm](https://img.shields.io/badge/npm-package-red)
@@ -48,6 +48,7 @@ yampp --list        # List all tasks
 - **🎨 Professional Interface** - Real-time task blocks with animated spinners (Claude Code interface)
 - **🔄 Smart Dependencies** - Automatic dependency resolution with DAG validation
 - **📦 Intelligent Caching** - Skip unchanged tasks with file watching support
+- **🎯 Execution Profiles** - Flexible profile system with default profiles and nested platform-specific configurations (`@production`, `@development`, `@staging`)
 - **💬 Interactive Functions** - Built-in prompts for user input (`__input`, `__input_password`, `__input_select`, `__input_confirm`)
 - **🎛️ Inline Variables Anywhere** - Variables with internal functions work inside if/case/for blocks respecting control flow
 - **🎯 Parameterized Tasks** - Tasks with parameters and variable substitution
@@ -83,27 +84,48 @@ Yampp combines the best of all worlds:
 ## 🎯 Example Yamfile
 
 ```yamfile
-// Variables
+// Variables and default profile
 var PROJECT = "myapp"
 const VERSION = "1.0.0"
+default production
 
-// Cross-platform task
-@linux @mac: install {
-    ./install.sh
+// Production environment
+@production {
+    build {
+        echo "Building $PROJECT v$VERSION for production"
+        npm run build:prod
+    }
+    
+    @linux @mac {
+        deploy {
+            echo "Deploying to Unix production server"
+            ./deploy-unix.sh
+        }
+    }
+    
+    @windows {
+        deploy {
+            echo "Deploying to Windows production server"
+            powershell ./deploy-windows.ps1
+        }
+    }
 }
 
-@windows: install {
-    .\install.ps1
-}
-
-// Parameterized task with file watching
-build(env = "dev") watches src/**/*.ts {
-    echo "Building $PROJECT v$VERSION for $env"
-    npm run build:$env
+// Development environment  
+@development {
+    build(env = "dev") watches src/**/*.ts {
+        echo "Building $PROJECT for development"
+        npm run build:dev
+    }
+    
+    test {
+        echo "Running development tests"
+        npm test
+    }
 }
 
 // Interactive deployment with inline variables
-deploy needs build(production) {
+deploy needs build {
     var target = __input_select "Deploy target:" "aws" "aws,azure,gcp"
     
     if [ "$target" = "aws" ]; then
@@ -148,12 +170,17 @@ npm install -g .
 
 ```bash
 # Task execution
-yampp                   # Run default task
+yampp                   # Run default task (uses default profile if defined)
 yampp build test        # Run specific tasks
 yampp build:prod        # Run with parameters
 
-# Task management
-yampp --list           # List all tasks
+# Profile management
+yampp --profile production build    # Run tasks in specific profile
+yampp --profile dev --profile test  # Use multiple profiles
+yampp --list           # List tasks from default profile
+yampp --profile staging --list      # List tasks from specific profile
+
+# Task management  
 yampp --graph          # Show dependency graph
 yampp --graph --graph-format dot > graph.dot  # Export to DOT format
 yampp --graph --graph-format ascii  # Beautiful ASCII art visualization
@@ -170,6 +197,9 @@ yampp --watch build    # Watch files and re-execute on changes (Ctrl+C twice to 
 ### Yamfile Syntax
 
 ```yamfile
+// Default profile (optional)
+default profilename
+
 // Task definition
 taskname {
     command1
@@ -179,6 +209,25 @@ taskname {
 // Dependencies
 taskname needs dep1 dep2 {
     commands
+}
+
+// Execution profiles
+@production {
+    taskname { commands }
+}
+
+@development {
+    taskname { commands }
+}
+
+// Nested profiles and platforms
+@production {
+    @linux {
+        deploy { ./deploy-linux.sh }
+    }
+    @windows {
+        deploy { powershell ./deploy-windows.ps1 }
+    }
 }
 
 // Modifiers
@@ -194,10 +243,6 @@ const name = "value"      // Immutable
 taskname watches pattern {
     commands
 }
-
-// Platform specific
-@linux @mac: taskname { }
-@windows: taskname { }
 
 // Parameters
 taskname(param1, param2 = "default") {

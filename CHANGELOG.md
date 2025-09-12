@@ -5,6 +5,75 @@ All notable changes to Yam++ (Yet Another Modern Task Runner) will be documented
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.1] - 2025-09-12
+
+### 🚀 PATCH RELEASE - Execution Profiles System
+
+**Complete Execution Profiles Implementation** - Flexible profile system with default profiles, nested platform configurations, and intelligent filtering for organized multi-environment task management.
+
+#### ✨ New Features
+
+**Execution Profiles with Default Support:**
+- **Generic Annotation Grammar**: Flexible `@identifier {}` syntax supporting arbitrary user-defined profiles (`@production`, `@development`, `@staging`, etc.)
+- **Default Profile Declaration**: `default profilename` syntax in Yamfile for automatic profile selection when no CLI flags specified
+- **Profile Resolution Logic**: CLI `--profile` flags override default profile, fallback to no profiles if neither specified
+- **Multiple Profile Support**: `--profile prod --profile mysql` for complex environment combinations
+
+**Flexible Nested Architecture:**  
+- **Bidirectional Nesting**: Supports both `@production { @linux { task } }` and `@linux { @production { task } }` patterns
+- **Intelligent Filtering**: Platform detection (automatic) AND profile matching (manual via CLI) with both criteria required
+- **Complex Scenarios**: Unlimited nesting depth with proper context propagation and validation
+
+**CLI Integration:**
+- **New Flag**: `--profile <name>` with multiple values support
+- **Profile-Aware Commands**: `--list`, `--graph`, and execution respect active profiles
+- **Help Documentation**: Updated help text and examples demonstrating profile usage
+
+#### 🏗️ Architecture Enhancements
+
+**New Components Added:**
+- **ProfileFilter**: Recursive annotation block processor with context-aware task extraction
+- **AstAnnotationBlock**: Generic AST node for flexible annotation structure  
+- **Parser Enhancement**: Extended with profile resolution logic maintaining SOLID compliance
+- **Grammar Extension**: Peggy parser updated with `DefaultProfile` and `AnnotationBlock` rules
+
+**Maintained 99% SOLID Compliance:**
+- **Strategy Pattern**: ProfileFilter encapsulates filtering logic with platform detection strategy
+- **Single Responsibility**: Each new class handles one specific aspect of profile management
+- **Open/Closed**: Extensible for future annotation types (preparing for Polyglot Execution)
+
+#### 📋 Validation & Error Handling  
+
+**Comprehensive Validation:**
+- **Duplicate Default Detection**: Clear error for multiple `default` declarations
+- **Context Validation**: Profile context preserved in error messages for debugging
+- **Type Safety**: Full TypeScript support with discriminant unions for AST nodes
+
+**Backward Compatibility:**
+- **Zero Breaking Changes**: Existing Yamfiles continue working unchanged
+- **Progressive Enhancement**: Profiles are opt-in feature with sensible defaults
+- **Graceful Fallback**: Missing profiles result in empty task lists (no execution)
+
+#### 📚 Documentation Updates
+
+**README.md Enhancements:**
+- **Updated Example**: Comprehensive Yamfile showcasing execution profiles with nested platforms
+- **CLI Documentation**: New profile management commands with practical examples
+- **Syntax Reference**: Complete profile and nesting syntax documentation
+
+#### 🎯 Impact & Usage
+
+**Developer Experience:**
+- **Environment Organization**: Clear separation of production, development, and staging configurations  
+- **Flexible Workflows**: Support for complex deployment scenarios with platform + profile combinations
+- **Intuitive Defaults**: `yampp build` automatically uses default profile when defined
+- **Explicit Control**: `yampp --profile dev build` for precise environment targeting
+
+**Production Benefits:**
+- **Risk Reduction**: Environment-specific task isolation prevents accidental cross-environment operations
+- **Deployment Safety**: Profile-based task organization ensures correct deployment targets
+- **Team Workflows**: Standardized environment definitions across development teams
+
 ## [0.10.0] - 2025-09-12
 
 ### 🏆 MINOR RELEASE - Architectural Excellence & 99% SOLID Compliance

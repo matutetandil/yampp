@@ -6,6 +6,7 @@ import { AstInternalFunction } from './ast-internal-function.js';
  * AST node representing a task definition
  */
 export interface AstTask {
+  type: 'task';
   name: string;
   parameters: AstParameter[];
   dependencies: string[];
@@ -14,4 +15,5 @@ export interface AstTask {
   commands: AstCommand[];
   internalFunctions: AstInternalFunction[];
   watches: string[];
+  location?: any;
 }

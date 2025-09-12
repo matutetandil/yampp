@@ -96,6 +96,11 @@ const options = {
     short: 'p',
     default: false
   },
+  profile: {
+    type: 'string',
+    multiple: true,
+    default: []
+  },
   input: {
     type: 'string',
     multiple: true,
@@ -148,6 +153,7 @@ ${chalk.yellow('Options:')}
   --verbose-ugly       Enable verbose ugly mode (detailed output with prefixes)
   -n, --dry-run        Show what would be executed without running
   -p, --plan           Show execution plan (similar to Terraform)
+  --profile <name>     Run tasks within specific profile(s) (can be used multiple times)
   --input key=value    Override input prompts (can be used multiple times)
   -h, --help           Show this help message
   --version            Show version number
@@ -163,6 +169,7 @@ ${chalk.yellow('Examples:')}
   yampp -n test        Dry run - show what would be executed
   yampp -p build       Show execution plan
   yampp -w build       Watch and re-run when files change
+  yampp --profile production build  Run build task in production profile
 
 ${chalk.gray('For more information, visit: https://github.com/yourusername/yampp')}
 `);
@@ -190,7 +197,10 @@ async function main() {
     // Read and parse Yamfile
     const content = readFileSync(yamfile, 'utf-8');
     const parser = new Parser();
-    const { tasks, globalVariables, globalConstants, globalEnvironmentVariables } = parser.parse(content);
+    const parseOptions = {
+      profiles: args.values.profile || []
+    };
+    const { tasks, globalVariables, globalConstants, globalEnvironmentVariables } = parser.parse(content, parseOptions);
     
     // Validate syntax and semantics
     const validator = new Validator();
