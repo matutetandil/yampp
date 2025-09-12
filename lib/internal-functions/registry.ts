@@ -1,14 +1,3 @@
-import { InputFunction } from './input-function.js';
-import { InputPasswordFunction } from './input-password-function.js';
-import { InputSelectFunction } from './input-select-function.js';
-import { InputConfirmFunction } from './input-confirm-function.js';
-import { CallFunction } from './call-function.js';
-import { ReadFileFunction } from './read-file-function.js';
-import { WriteFileFunction } from './write-file-function.js';
-import { FileExistsFunction } from './file-exists-function.js';
-import { CopyFunction } from './copy-function.js';
-import { MoveFunction } from './move-function.js';
-import { DeleteFunction } from './delete-function.js';
 import { BaseInternalFunction } from './base-function.js';
 import { InternalFunctionExecutionContext } from './internal-function-execution-context.interface.js';
 import { FunctionMetadata } from '../core/function-metadata.js';
@@ -17,6 +6,8 @@ import { IVariableMap } from '../core/types/variable-map.interface.js';
 import { ITaskPromiseMap } from '../tasks/interfaces/task-promise-map.interface.js';
 import { ILimit } from '../core/types/limit.interface.js';
 import { IInternalFunction } from './internal-function.interface.js';
+import { IFunctionPluginRegistry } from './interfaces/function-plugin-registry.interface.js';
+import { FunctionPluginRegistry } from './function-plugin-registry.js';
 
 /**
  * Registry for internal functions
@@ -26,61 +17,25 @@ import { IInternalFunction } from './internal-function.interface.js';
 export class InternalFunctionRegistry implements IInternalFunctionRegistry {
   private readonly runner: any;
   private readonly functions: Map<string, BaseInternalFunction>;
+  private readonly pluginRegistry: IFunctionPluginRegistry;
 
-  constructor(runner: any) {
+  constructor(runner: any, pluginRegistry?: IFunctionPluginRegistry) {
     this.runner = runner;
     this.functions = new Map();
-    this.registerBuiltInFunctions();
+    this.pluginRegistry = pluginRegistry || new FunctionPluginRegistry();
+    this.initializePlugins();
   }
 
   /**
-   * Register all built-in internal functions
+   * Initialize plugins and load their functions
    */
-  private registerBuiltInFunctions(): void {
-    // All functions now use new pattern - create and set runner
-    const inputFunc = new InputFunction();
-    inputFunc.setRunner(this.runner);
-    this.registerByName('input', inputFunc);
+  private initializePlugins(): void {
+    this.pluginRegistry.initializePlugins(this.runner);
+    const pluginFunctions = this.pluginRegistry.getAllFunctions();
     
-    const inputPasswordFunc = new InputPasswordFunction();
-    inputPasswordFunc.setRunner(this.runner);
-    this.registerByName('input_password', inputPasswordFunc);
-    
-    const inputSelectFunc = new InputSelectFunction();
-    inputSelectFunc.setRunner(this.runner);
-    this.registerByName('input_select', inputSelectFunc);
-    
-    const inputConfirmFunc = new InputConfirmFunction();
-    inputConfirmFunc.setRunner(this.runner);
-    this.registerByName('input_confirm', inputConfirmFunc);
-    
-    const callFunc = new CallFunction();
-    callFunc.setRunner(this.runner);
-    this.registerByName('call', callFunc);
-    
-    const readFileFunc = new ReadFileFunction();
-    readFileFunc.setRunner(this.runner);
-    this.registerByName('read_file', readFileFunc);
-    
-    const writeFileFunc = new WriteFileFunction();
-    writeFileFunc.setRunner(this.runner);
-    this.registerByName('write_file', writeFileFunc);
-    
-    const fileExistsFunc = new FileExistsFunction();
-    fileExistsFunc.setRunner(this.runner);
-    this.registerByName('file_exists', fileExistsFunc);
-    
-    const copyFunc = new CopyFunction();
-    copyFunc.setRunner(this.runner);
-    this.registerByName('copy', copyFunc);
-    
-    const moveFunc = new MoveFunction();
-    moveFunc.setRunner(this.runner);
-    this.registerByName('move', moveFunc);
-    
-    const deleteFunc = new DeleteFunction();
-    deleteFunc.setRunner(this.runner);
-    this.registerByName('delete', deleteFunc);
+    for (const [name, func] of pluginFunctions) {
+      this.functions.set(name, func);
+    }
   }
 
   /**
@@ -182,5 +137,27 @@ export class InternalFunctionRegistry implements IInternalFunctionRegistry {
       return handler.getMetadata();
     }
     return null;
+  }
+
+  /**
+   * Register a plugin and load its functions
+   */
+  public registerPlugin(plugin: any): void {
+    this.pluginRegistry.registerPlugin(plugin);
+    
+    // Reload all functions from plugins
+    const pluginFunctions = this.pluginRegistry.getAllFunctions();
+    this.functions.clear();
+    
+    for (const [name, func] of pluginFunctions) {
+      this.functions.set(name, func);
+    }
+  }
+
+  /**
+   * Get the plugin registry for advanced plugin management
+   */
+  public getPluginRegistry(): IFunctionPluginRegistry {
+    return this.pluginRegistry;
   }
 }

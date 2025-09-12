@@ -3,16 +3,18 @@ import { Task } from './models/task.js';
 import { ValidationError } from './validation/types/validation-error.interface.js';
 import { ValidationWarning } from './validation/types/validation-warning.interface.js';
 import { ValidationResult } from './validation/types/validation-result.interface.js';
+import { IModifierRegistry } from './modifiers/interfaces/modifier-registry.interface.js';
+import { ModifierRegistry } from './modifiers/modifier-registry.js';
 
 export class Validator {
-  private readonly validModifiers: Set<string>;
+  private readonly modifierRegistry: IModifierRegistry;
   private errors: ValidationError[];
   private warnings: ValidationWarning[];
   private globalVariables: Map<string, any>;
   private globalConstants: Map<string, any>;
 
-  constructor() {
-    this.validModifiers = new Set(['always', 'serial', 'critical']);
+  constructor(modifierRegistry?: IModifierRegistry) {
+    this.modifierRegistry = modifierRegistry || new ModifierRegistry();
     this.errors = [];
     this.warnings = [];
     this.globalVariables = new Map();
@@ -174,9 +176,9 @@ export class Validator {
     const modifiers = task.getModifiers();
     
     for (const modifier of modifiers) {
-      if (!this.validModifiers.has(modifier)) {
+      if (!this.modifierRegistry.isValidModifier(modifier)) {
         this.addError(
-          `Unknown modifier '${modifier}' in task '${task.getName()}'. Valid modifiers are: ${Array.from(this.validModifiers).join(', ')}`,
+          `Unknown modifier '${modifier}' in task '${task.getName()}'. Valid modifiers are: ${this.modifierRegistry.getRegisteredModifiers().join(', ')}`,
           task.getLineNumber(),
           task.getName()
         );

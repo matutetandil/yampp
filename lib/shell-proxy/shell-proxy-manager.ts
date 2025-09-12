@@ -1,9 +1,9 @@
-import { BashProxyStrategy } from './bash-proxy-strategy.js';
-import { PowerShellProxyStrategy } from './powershell-proxy-strategy.js';
 import { ShellProxyStrategy } from './shell-proxy-strategy.js';
 import { PlatformStrategy } from '../platform/platform-strategy.js';
 import { InternalFunctionRegistry } from '../internal-functions/registry.js';
 import { SharedStateManager } from '../state-sync/shared-state-manager.js';
+import { IShellStrategyRegistry } from './interfaces/shell-strategy-registry.interface.js';
+import { ShellStrategyRegistry } from './shell-strategy-registry.js';
 
 /**
  * Shell Proxy Manager - Orchestrates cooperative control between shell and Yampp
@@ -13,16 +13,19 @@ export class ShellProxyManager {
   private readonly platformStrategy: PlatformStrategy;
   private readonly internalFunctionRegistry: InternalFunctionRegistry;
   private readonly stateManager: SharedStateManager;
+  private readonly shellStrategyRegistry: IShellStrategyRegistry;
   private readonly proxyStrategy: ShellProxyStrategy;
 
   constructor(
     platformStrategy: PlatformStrategy, 
     internalFunctionRegistry: InternalFunctionRegistry, 
-    stateManager: SharedStateManager
+    stateManager: SharedStateManager,
+    shellStrategyRegistry?: IShellStrategyRegistry
   ) {
     this.platformStrategy = platformStrategy;
     this.internalFunctionRegistry = internalFunctionRegistry;
     this.stateManager = stateManager;
+    this.shellStrategyRegistry = shellStrategyRegistry || new ShellStrategyRegistry();
     this.proxyStrategy = this.createProxyStrategy();
   }
 
@@ -32,19 +35,13 @@ export class ShellProxyManager {
    */
   private createProxyStrategy(): ShellProxyStrategy {
     const platform = this.platformStrategy.name;
+    const strategy = this.shellStrategyRegistry.getStrategy(platform);
     
-    switch (platform) {
-      case 'linux':
-      case 'mac':
-        return new BashProxyStrategy();
-      
-      case 'windows':
-        return new PowerShellProxyStrategy();
-      
-      default:
-        // Fallback to bash-like behavior
-        return new BashProxyStrategy();
+    if (!strategy) {
+      throw new Error(`No shell strategy available for platform: ${platform}`);
     }
+    
+    return strategy;
   }
 
   /**
