@@ -1,4 +1,5 @@
 import { IModifierRegistry } from './interfaces/modifier-registry.interface.js';
+import { TaskModifiers } from '../core/constants/modifiers.constants.js';
 
 export class ModifierRegistry implements IModifierRegistry {
   private readonly modifiers = new Map<string, string | undefined>();
@@ -29,8 +30,8 @@ export class ModifierRegistry implements IModifierRegistry {
   }
 
   private registerDefaultModifiers(): void {
-    this.registerModifier('always', 'Always execute this task, ignoring cache');
-    this.registerModifier('serial', 'Execute this task serially, not in parallel');
-    this.registerModifier('critical', 'If this task fails, stop all execution');
+    this.registerModifier(TaskModifiers.ALWAYS, 'Always execute this task, ignoring cache');
+    this.registerModifier(TaskModifiers.SERIAL, 'Execute this task serially, not in parallel');
+    this.registerModifier(TaskModifiers.CRITICAL, 'If this task fails, stop all execution');
   }
 }

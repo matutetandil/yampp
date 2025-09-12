@@ -3,6 +3,7 @@ import { LinuxStrategy } from './linux-strategy.js';
 import { MacStrategy } from './mac-strategy.js';
 import { WindowsStrategy } from './windows-strategy.js';
 import { UnknownStrategy } from './unknown-strategy.js';
+import { Platforms } from '../core/constants/platforms.constants.js';
 
 /**
  * Platform Detector Factory
@@ -99,7 +100,7 @@ export class PlatformDetectorFactory {
   private shouldIncludePlatform(targetPlatform: string, currentPlatform: string): boolean {
     // Special case: 'unix' includes both linux and mac
     if (targetPlatform === 'unix') {
-      return currentPlatform === 'linux' || currentPlatform === 'mac';
+      return currentPlatform === Platforms.LINUX || currentPlatform === Platforms.MAC;
     }
     
     return targetPlatform === currentPlatform;

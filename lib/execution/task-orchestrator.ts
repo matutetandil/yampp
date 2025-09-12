@@ -16,6 +16,7 @@ import { Task } from '../models/task.js';
 import { ShellContentManager } from '../shell/types/shell-content-manager.js';
 import { ExecuteInternalFunctionCallback } from '../internal-functions/execute-internal-function-callback.js';
 import { VariableSubstitutionStatic } from '../core/types/variable-substitution.js';
+import { TaskModifiers } from '../core/constants/modifiers.constants.js';
 
 /**
  * TaskOrchestrator handles task execution coordination and dependency management
@@ -89,7 +90,7 @@ export class TaskOrchestrator {
       let parallelCount = 0;
       for (const taskInstance of executionPlan) {
         const typedTask = taskInstance.task as Task;
-        if (typedTask && typedTask.isSerial) {
+        if (typedTask && typedTask.hasModifier(TaskModifiers.SERIAL)) {
           serialCount++;
         } else {
           parallelCount++;
@@ -119,7 +120,7 @@ export class TaskOrchestrator {
     
     for (const taskInstance of executionPlan) {
       const typedTask = taskInstance.task as Task;
-      if (typedTask && typedTask.isSerial) {
+      if (typedTask && typedTask.hasModifier('serial')) {
         serialTasks.push(taskInstance);
       } else {
         parallelTasks.push(taskInstance);
@@ -287,7 +288,7 @@ export class TaskOrchestrator {
     }
     
     // Check cache and file dependencies (use signature for cache key)
-    if (!typedTask.isAlways && !this.force && await this.state.isTaskDone(taskInstance.id)) {
+    if (!typedTask.hasModifier(TaskModifiers.ALWAYS) && !this.force && await this.state.isTaskDone(taskInstance.id)) {
       // Check if task has watched files that are newer than cache
       if (typedTask.hasWatchedFiles()) {
         const cacheTimestamp = await this.state.getTaskTimestamp(taskInstance.id);
@@ -314,7 +315,7 @@ export class TaskOrchestrator {
     }
     
     // Choose limiter based on serial modifier
-    const limiter = typedTask.isSerial ? serialLimit : limit;
+    const limiter = typedTask.hasModifier(TaskModifiers.SERIAL) ? serialLimit : limit;
     
     // Execute task with concurrency control
     return limiter(async () => {

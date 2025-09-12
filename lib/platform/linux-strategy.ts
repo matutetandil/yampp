@@ -5,6 +5,7 @@ import { UnixStateManager } from '../state-sync/unix-state-manager.js';
 import { ShellProxyManager } from '../shell-proxy/shell-proxy-manager.js';
 import { SharedStateManager } from '../state-sync/shared-state-manager.js';
 import { InternalFunctionRegistry } from '../internal-functions/registry.js';
+import { Platforms } from '../core/constants/platforms.constants.js';
 
 /**
  * Linux platform detection strategy
@@ -12,7 +13,7 @@ import { InternalFunctionRegistry } from '../internal-functions/registry.js';
  */
 export class LinuxStrategy extends PlatformStrategy {
   constructor() {
-    super('linux', ['unix', 'gnu', 'gnu/linux']);
+    super(Platforms.LINUX, ['unix', 'gnu', 'gnu/linux']);
   }
 
   public isCurrentPlatform(): boolean {

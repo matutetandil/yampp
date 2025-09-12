@@ -2,6 +2,7 @@ import { IShellStrategyRegistry } from './interfaces/shell-strategy-registry.int
 import { ShellProxyStrategy } from './shell-proxy-strategy.js';
 import { BashProxyStrategy } from './bash-proxy-strategy.js';
 import { PowerShellProxyStrategy } from './powershell-proxy-strategy.js';
+import { Platforms } from '../core/constants/platforms.constants.js';
 
 export class ShellStrategyRegistry implements IShellStrategyRegistry {
   private readonly strategies = new Map<string, () => ShellProxyStrategy>();
@@ -43,8 +44,8 @@ export class ShellStrategyRegistry implements IShellStrategyRegistry {
   }
 
   private registerDefaultStrategies(): void {
-    this.registerStrategy('linux', () => new BashProxyStrategy());
-    this.registerStrategy('mac', () => new BashProxyStrategy());
-    this.registerStrategy('windows', () => new PowerShellProxyStrategy());
+    this.registerStrategy(Platforms.LINUX, () => new BashProxyStrategy());
+    this.registerStrategy(Platforms.MAC, () => new BashProxyStrategy());
+    this.registerStrategy(Platforms.WINDOWS, () => new PowerShellProxyStrategy());
   }
 }

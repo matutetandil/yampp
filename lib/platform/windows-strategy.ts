@@ -5,6 +5,7 @@ import { WindowsStateManager } from '../state-sync/windows-state-manager.js';
 import { ShellProxyManager } from '../shell-proxy/shell-proxy-manager.js';
 import { SharedStateManager } from '../state-sync/shared-state-manager.js';
 import { InternalFunctionRegistry } from '../internal-functions/registry.js';
+import { Platforms } from '../core/constants/platforms.constants.js';
 
 /**
  * Windows platform detection strategy
@@ -12,7 +13,7 @@ import { InternalFunctionRegistry } from '../internal-functions/registry.js';
  */
 export class WindowsStrategy extends PlatformStrategy {
   constructor() {
-    super('windows', ['win', 'win32', 'win64']);
+    super(Platforms.WINDOWS, ['win', 'win32', 'win64']);
   }
 
   public isCurrentPlatform(): boolean {

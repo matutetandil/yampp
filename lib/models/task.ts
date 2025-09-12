@@ -139,21 +139,9 @@ export class Task {
     return this._modifiers.has(modifier);
   }
   
-  public get isAlways(): boolean {
-    return this.hasModifier('always');
-  }
-  
-  public get isSerial(): boolean {
-    return this.hasModifier('serial');
-  }
-  
-  public get isCritical(): boolean {
-    return this.hasModifier('critical');
-  }
-  
-  public get isParallel(): boolean {
-    return !this.isSerial;
-  }
+  // Note: Removed hardcoded modifier getters (isAlways, isSerial, isCritical, isParallel)
+  // to follow Open/Closed Principle and Interface Segregation Principle.
+  // Use hasModifier() method instead for extensibility with custom modifiers.
   
   public setVariable(name: string, value: string): void {
     this._variables.set(name, value);

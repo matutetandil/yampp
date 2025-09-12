@@ -7,6 +7,7 @@ import { ITaskMap } from '../tasks/interfaces/task-map.interface.js';
 import { ITaskGraph } from '../tasks/interfaces/task-graph.interface.js';
 import { ITaskColorMap } from '../tasks/interfaces/task-color-map.interface.js';
 import { ITaskExecutionService } from '../tasks/interfaces/task-execution-service.interface.js';
+import { TaskModifiers } from '../core/constants/modifiers.constants.js';
 
 export class TaskDisplayService implements ITaskDisplayService {
   constructor(
@@ -285,15 +286,15 @@ export class TaskDisplayService implements ITaskDisplayService {
         console.log(`     ${chalk.gray(`Dependencies: ${deps.join(', ')}`)}`);
       }
       
-      if (this._hasModifier(taskInstance.task, 'serial')) {
+      if (this._hasModifier(taskInstance.task, TaskModifiers.SERIAL)) {
         console.log(`     ${chalk.yellow('⚠ Serial execution (no parallelism)')}`);
       }
       
-      if (this._hasModifier(taskInstance.task, 'always')) {
+      if (this._hasModifier(taskInstance.task, TaskModifiers.ALWAYS)) {
         console.log(`     ${chalk.blue('🔄 Always run (ignores cache)')}`);
       }
       
-      if (this._hasModifier(taskInstance.task, 'critical')) {
+      if (this._hasModifier(taskInstance.task, TaskModifiers.CRITICAL)) {
         console.log(`     ${chalk.red('🚨 Critical (failure stops all)')}`);
       }
       
