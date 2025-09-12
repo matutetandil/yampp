@@ -46,6 +46,54 @@ export class Validator {
       warnings: this.warnings
     };
   }
+
+  /**
+   * Context-aware quote validation that considers quotes inside other quotes
+   * For example: "What's your name?" should be valid (single quote inside double quotes)
+   */
+  private validateQuoteBalance(command: string): { singleQuotesBalanced: boolean, doubleQuotesBalanced: boolean } {
+    let inSingleQuote = false;
+    let inDoubleQuote = false;
+    let unbalancedSingle = 0;
+    let unbalancedDouble = 0;
+    
+    for (let i = 0; i < command.length; i++) {
+      const char = command[i];
+      const prevChar = i > 0 ? command[i - 1] : null;
+      
+      // Handle escaped quotes
+      if (prevChar === '\\') {
+        continue; // Skip escaped quotes
+      }
+      
+      if (char === '"' && !inSingleQuote) {
+        // Double quote outside single quotes
+        if (inDoubleQuote) {
+          inDoubleQuote = false;
+          unbalancedDouble--;
+        } else {
+          inDoubleQuote = true;
+          unbalancedDouble++;
+        }
+      } else if (char === "'" && !inDoubleQuote) {
+        // Single quote outside double quotes
+        if (inSingleQuote) {
+          inSingleQuote = false;
+          unbalancedSingle--;
+        } else {
+          inSingleQuote = true;
+          unbalancedSingle++;
+        }
+      }
+      // If we're inside quotes of one type, ignore the other type
+      // This handles cases like "What's your name?" correctly
+    }
+    
+    return {
+      singleQuotesBalanced: unbalancedSingle === 0,
+      doubleQuotesBalanced: unbalancedDouble === 0
+    };
+  }
   
   private validateGlobalDeclarations(): void {
     // Check for conflicts between variables and constants
@@ -222,11 +270,10 @@ export class Validator {
   }
   
   private validateCommandSyntax(command: string, taskName: string, taskLine: number | null, commandIndex: number): void {
-    // Check for unmatched quotes
-    const singleQuoteCount = (command.match(/'/g) || []).length;
-    const doubleQuoteCount = (command.match(/"/g) || []).length;
+    // Check for unmatched quotes using context-aware parsing
+    const quoteValidation = this.validateQuoteBalance(command);
     
-    if (singleQuoteCount % 2 !== 0) {
+    if (!quoteValidation.singleQuotesBalanced) {
       this.addError(
         `Unmatched single quote in command ${commandIndex} of task '${taskName}'`,
         taskLine,
@@ -234,7 +281,7 @@ export class Validator {
       );
     }
     
-    if (doubleQuoteCount % 2 !== 0) {
+    if (!quoteValidation.doubleQuotesBalanced) {
       this.addError(
         `Unmatched double quote in command ${commandIndex} of task '${taskName}'`,
         taskLine,

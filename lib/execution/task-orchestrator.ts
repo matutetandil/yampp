@@ -656,7 +656,19 @@ export class TaskOrchestrator {
       throw new Error(`Task '${call.taskName}' not found for __call`);
     }
     
-    const callId = `${call.taskName}(${resolvedParams.join(',')})`;
+    // Apply default parameter values if parameters are missing
+    const taskParams = calledTask.getParameters();
+    const finalParams = [...resolvedParams]; // Start with provided parameters
+    
+    // Fill in missing parameters with default values
+    for (let i = finalParams.length; i < taskParams.length; i++) {
+      const taskParam = taskParams[i];
+      if (taskParam.defaultValue !== undefined) {
+        finalParams.push(taskParam.defaultValue);
+      }
+    }
+    
+    const callId = `${call.taskName}(${finalParams.join(',')})`;
     
     // Check if this call is already running
     if (taskPromises.has(callId)) {
@@ -669,8 +681,8 @@ export class TaskOrchestrator {
       id: callId,
       taskName: call.taskName,
       task: calledTask,
-      parameters: resolvedParams,
-      signature: resolvedParams.length > 0 ? `${call.taskName}(${resolvedParams.join(', ')})` : call.taskName
+      parameters: finalParams,
+      signature: finalParams.length > 0 ? `${call.taskName}(${finalParams.join(', ')})` : call.taskName
     };
     
     const callPromise = this.executeTaskInstance(taskInstance, taskPromises, limit, serialLimit);

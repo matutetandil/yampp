@@ -4,6 +4,8 @@ import { AstToTaskConverter } from './parser/ast-to-task-converter.js';
 import { ParseError } from './parser/parse-error.js';
 import type { ParseResult } from './ast/types/parse-result.js';
 import type { AstNode } from './ast/types/ast-node.js';
+import { AstTaskAdapter } from './ast/adapters/ast-task-adapter.js';
+import type { IAstTaskAdapter } from './ast/interfaces/ast-task-adapter.interface.js';
 import { parse as peggyParse } from './yamfile-parser.js';
 
 export class Parser {
@@ -96,25 +98,28 @@ export class Parser {
   }
 
   /**
-   * Adapt AstTask to TaskAstNode interface
+   * Adapt AstTask to TaskAstNode interface using SOLID principles
    * Converts the Peggy parser output to our internal AST format
+   * Uses AstTaskAdapter to encapsulate AST access
    */
   private adaptAstTaskToTaskAstNode(astTask: any): import('./ast/nodes/task-ast-node.js').TaskAstNode {
+    const adapter: IAstTaskAdapter = new AstTaskAdapter(astTask);
+    
     return {
-      name: astTask.name,
-      dependencies: astTask.dependencies || [],
-      dependencyParams: astTask.dependencyParams || {},
-      modifiers: astTask.modifiers || [],
-      commands: astTask.commands?.map((cmd: any) => typeof cmd === 'string' ? cmd : cmd.text) || [],
-      parameters: astTask.parameters || [],
-      watchedFiles: astTask.watches || [],
-      internalFunctions: astTask.internalFunctions || [], // FIX: Map internalFunctions from parser result
-      calls: astTask.calls || [], // Also map calls for completeness
-      inputs: astTask.inputs || [], // And inputs
-      localVariables: astTask.localVariables || [], // FIX: Map localVariables from parser result
-      localConstants: astTask.localConstants || [], // FIX: Map localConstants from parser result  
-      localEnvironmentVariables: astTask.localEnvironmentVariables || [], // FIX: Map localEnvironmentVariables from parser result
-      location: (astTask as any).location
+      name: adapter.getName(),
+      dependencies: adapter.getDependencies(),
+      dependencyParams: adapter.getDependencyParams(),
+      modifiers: adapter.getModifiers(),
+      commands: adapter.getCommands(),
+      parameters: adapter.getParameters(),
+      watchedFiles: adapter.getWatchedFiles(),
+      internalFunctions: adapter.getInternalFunctions(),
+      calls: adapter.getCalls(),
+      inputs: adapter.getInputs(),
+      localVariables: adapter.getLocalVariables(),
+      localConstants: adapter.getLocalConstants(),
+      localEnvironmentVariables: adapter.getLocalEnvironmentVariables(),
+      location: adapter.getLocation()
     };
   }
   
