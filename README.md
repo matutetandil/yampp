@@ -251,7 +251,7 @@ taskname(param1, param2 = "default") {
 
 // Internal functions
 taskname {
-    __input "Prompt:" varname "default"
+    var varname = __input "Prompt:" "default"
     __call other_task($varname)
 }
 ```
