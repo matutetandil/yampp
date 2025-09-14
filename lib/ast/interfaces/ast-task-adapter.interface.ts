@@ -1,90 +1,24 @@
-import type { Parameter } from '../../core/types/parameter.js';
+import { IAstTaskBasicInfo } from './ast-task-basic-info.interface.js';
+import { IAstTaskDependencies } from './ast-task-dependencies.interface.js';
+import { IAstTaskContent } from './ast-task-content.interface.js';
+import { IAstTaskVariables } from './ast-task-variables.interface.js';
+import { IAstTaskFiles } from './ast-task-files.interface.js';
+import { IAstTaskExtensibility } from './ast-task-extensibility.interface.js';
 
 /**
- * AST Task Adapter Interface
- * Defines the contract for accessing AST task data
+ * Complete AST Task Adapter Interface
+ * Composed of segregated, focused interfaces following ISP
  * 
- * Interface Segregation Principle: Clean, focused interface
+ * Interface Segregation Principle: Clients depend only on methods they use
  * Dependency Inversion Principle: Depend on abstraction, not concretion
  */
-export interface IAstTaskAdapter {
-  /**
-   * Get task name
-   */
-  getName(): string;
-
-  /**
-   * Get task dependencies
-   */
-  getDependencies(): string[];
-
-  /**
-   * Get dependency parameters
-   */
-  getDependencyParams(): Record<string, any>;
-
-  /**
-   * Get task modifiers
-   */
-  getModifiers(): string[];
-
-  /**
-   * Get task commands
-   */
-  getCommands(): string[];
-
-  /**
-   * Get task parameters
-   */
-  getParameters(): Parameter[];
-
-  /**
-   * Get watched files
-   */
-  getWatchedFiles(): string[];
-
-  /**
-   * Get internal functions
-   */
-  getInternalFunctions(): any[];
-
-  /**
-   * Get task calls
-   */
-  getCalls(): any[];
-
-  /**
-   * Get inputs
-   */
-  getInputs(): any[];
-
-  /**
-   * Get local variables
-   */
-  getLocalVariables(): any[];
-
-  /**
-   * Get local constants
-   */
-  getLocalConstants(): any[];
-
-  /**
-   * Get local environment variables
-   */
-  getLocalEnvironmentVariables(): any[];
-
-  /**
-   * Get task location information
-   */
-  getLocation(): any;
-
-  /**
-   * Check if task has specific property
-   */
-  hasProperty(propertyName: string): boolean;
-
-  /**
-   * Get raw property value (escape hatch for extensibility)
-   */
-  getRawProperty(propertyName: string): any;
+export interface IAstTaskAdapter 
+  extends IAstTaskBasicInfo,
+          IAstTaskDependencies, 
+          IAstTaskContent,
+          IAstTaskVariables,
+          IAstTaskFiles,
+          IAstTaskExtensibility {
+  // Complete interface through composition
+  // Clients can now depend on only the specific aspects they need
 }

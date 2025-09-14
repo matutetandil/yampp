@@ -198,7 +198,8 @@ async function main() {
     const content = readFileSync(yamfile, 'utf-8');
     const parser = new Parser();
     const parseOptions = {
-      profiles: args.values.profile || []
+      profiles: args.values.profile || [],
+      filePath: yamfile
     };
     const { tasks, globalVariables, globalConstants, globalEnvironmentVariables } = parser.parse(content, parseOptions);
     

@@ -1,10 +1,8 @@
 import type { AstAnnotationBlock } from '../ast/types/ast-annotation-block.js';
 import type { AstTask } from '../ast/types/ast-task.js';
+import type { ProfileFilterOptions } from './types/profile-filter-options.js';
 import { platformDetector } from '../platform/index.js';
-
-export interface ProfileFilterOptions {
-  profiles: string[];
-}
+import { Platforms } from '../core/constants/platforms.constants.js';
 
 /**
  * Filters tasks from annotation blocks based on profiles and platform detection
@@ -109,8 +107,10 @@ export class ProfileFilter {
 
   /**
    * Check if an annotation represents a platform (linux, mac, windows)
+   * Uses centralized platform constants following Open-Closed Principle
    */
   private isPlatformAnnotation(annotation: string): boolean {
-    return ['linux', 'mac', 'windows'].includes(annotation.toLowerCase());
+    const supportedPlatforms = Object.values(Platforms) as string[];
+    return supportedPlatforms.includes(annotation.toLowerCase());
   }
 }
