@@ -60,18 +60,157 @@ export abstract class BaseContentProcessor {
   /**
    * UNIVERSAL: Remove Yampp DSL comments - REQUIRED for all processors
    * Filters single-line and multi-line style comments from Yamfile DSL
+   * Respects string contexts to avoid filtering comments inside strings
    */
   protected cleanYamppComments(content: string): string {
-    // Remove single-line comments: // comment
-    content = content.replace(/\/\/.*$/gm, '');
+    const lines = content.split('\n');
+    const processedLines: string[] = [];
     
-    // Remove multi-line comments: /* comment */
-    content = content.replace(/\/\*[\s\S]*?\*\//g, '');
+    for (let line of lines) {
+      // Process multi-line comments first (can span across strings)
+      line = this.removeMultilineComments(line);
+      
+      // Process single-line comments (respecting strings)
+      line = this.removeSingleLineComments(line);
+      
+      processedLines.push(line);
+    }
     
-    // Clean up extra whitespace left by comment removal
-    content = content.replace(/\n\s*\n/g, '\n');
+    // Join lines and clean up extra whitespace
+    let result = processedLines.join('\n');
+    result = result.replace(/\n\s*\n\s*\n/g, '\n\n');
     
-    return content;
+    return result;
+  }
+  
+  /**
+   * Remove single-line comments while respecting string contexts
+   */
+  private removeSingleLineComments(line: string): string {
+    let inSingleQuote = false;
+    let inDoubleQuote = false;
+    let escaped = false;
+    let result = '';
+    
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      const nextChar = line[i + 1];
+      
+      // Handle escape sequences
+      if (escaped) {
+        result += char;
+        escaped = false;
+        continue;
+      }
+      
+      if (char === '\\') {
+        escaped = true;
+        result += char;
+        continue;
+      }
+      
+      // Toggle quote states
+      if (char === '"' && !inSingleQuote) {
+        inDoubleQuote = !inDoubleQuote;
+        result += char;
+        continue;
+      }
+      
+      if (char === "'" && !inDoubleQuote) {
+        inSingleQuote = !inSingleQuote;
+        result += char;
+        continue;
+      }
+      
+      // Check for comments only outside of strings
+      if (!inSingleQuote && !inDoubleQuote) {
+        // Check for // comment
+        if (char === '/' && nextChar === '/') {
+          // Rest of line is a comment
+          break;
+        }
+        
+        // Check for # comment at start of line or after whitespace
+        if (char === '#') {
+          if (i === 0 || (i > 0 && line.charAt(i - 1).match(/\s/))) {
+            // Rest of line is a comment
+            break;
+          }
+        }
+      }
+      
+      result += char;
+    }
+    
+    return result.trimEnd();
+  }
+  
+  /**
+   * Remove multi-line comments while respecting string contexts
+   */
+  private removeMultilineComments(line: string): string {
+    let inSingleQuote = false;
+    let inDoubleQuote = false;
+    let inComment = false;
+    let escaped = false;
+    let result = '';
+    
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      const nextChar = line[i + 1];
+      
+      // Handle escape sequences
+      if (escaped) {
+        if (!inComment) result += char;
+        escaped = false;
+        continue;
+      }
+      
+      if (char === '\\') {
+        escaped = true;
+        if (!inComment) result += char;
+        continue;
+      }
+      
+      // Toggle quote states (only outside comments)
+      if (!inComment) {
+        if (char === '"' && !inSingleQuote) {
+          inDoubleQuote = !inDoubleQuote;
+          result += char;
+          continue;
+        }
+        
+        if (char === "'" && !inDoubleQuote) {
+          inSingleQuote = !inSingleQuote;
+          result += char;
+          continue;
+        }
+      }
+      
+      // Check for comment markers only outside of strings
+      if (!inSingleQuote && !inDoubleQuote) {
+        // Start of multi-line comment
+        if (!inComment && char === '/' && nextChar === '*') {
+          inComment = true;
+          i++; // Skip the *
+          continue;
+        }
+        
+        // End of multi-line comment
+        if (inComment && char === '*' && nextChar === '/') {
+          inComment = false;
+          i++; // Skip the /
+          continue;
+        }
+      }
+      
+      // Only add characters if not in a comment
+      if (!inComment) {
+        result += char;
+      }
+    }
+    
+    return result;
   }
 
   /**
