@@ -277,10 +277,11 @@ export abstract class BaseContentProcessor {
     // They need to be processed in their execution context (if/case/for)
     // to respect control flow
     
-    // Process content as-is - inline variables will be handled during execution
+    // Process content and transform inline variable assignments to proxies
     const lines = content.split('\n').filter(line => line.trim());
     for (const line of lines) {
-      standaloneCommands.push(line);
+      const transformedLine = this.transformAssignmentsToProxies(line);
+      standaloneCommands.push(transformedLine);
     }
     
     return {
@@ -374,5 +375,32 @@ export abstract class BaseContentProcessor {
     }
     
     return false;
+  }
+
+  /**
+   * Transform variable assignments to proxy function calls
+   * var x = "value" → __assign var x "value"
+   * var x = __input "prompt" → keep as is (handled by existing system)
+   */
+  protected transformAssignmentsToProxies(line: string): string {
+    // Pattern to match variable assignments: (var|const) name = value
+    const assignmentPattern = /^(\s*)(var|const)\s+(\w+)\s*=\s*(.+?)$/;
+    const match = line.match(assignmentPattern);
+    
+    if (match) {
+      const [, indentation, type, varName, value] = match;
+      
+      // Check if the value is an internal function call (starts with __)
+      if (value && this.isInternalFunctionCall(value.trim())) {
+        // Don't transform - let the existing system handle internal functions
+        return line;
+      }
+      
+      // Transform simple assignments to proxy function call
+      // Pass the value as-is to the platform-specific processor
+      return `${indentation}__assign ${type} ${varName} ${value}`;
+    }
+    
+    return line;
   }
 }

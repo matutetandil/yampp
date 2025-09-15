@@ -11,6 +11,7 @@ import { FileExistsFunction } from '../file-exists-function.js';
 import { CopyFunction } from '../copy-function.js';
 import { MoveFunction } from '../move-function.js';
 import { DeleteFunction } from '../delete-function.js';
+import { AssignFunction } from '../assign-function.js';
 
 export class CoreFunctionsPlugin implements IFunctionPlugin {
   private functions = new Map<string, BaseInternalFunction>();
@@ -51,6 +52,9 @@ export class CoreFunctionsPlugin implements IFunctionPlugin {
     
     // Task management
     this.addFunction('call', new CallFunction());
+    
+    // Variable assignment
+    this.addFunction('assign', new AssignFunction());
     
     // File I/O functions
     this.addFunction('read_file', new ReadFileFunction());

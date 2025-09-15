@@ -346,6 +346,16 @@ export class TaskOrchestrator {
             }
           }
           
+          // Extract local variables and constants for command processing
+          const localVariables = Array.from(taskCopy.getLocalVariables().entries()).map(([name, value]) => ({
+            name,
+            value
+          }));
+          const localConstants = Array.from(taskCopy.getLocalConstants().entries()).map(([name, value]) => ({
+            name,
+            value
+          }));
+
           // Execute task content commands
           for (const command of taskCopy.getCommands()) {
             if (this.isAssignmentCommand(command)) {
@@ -353,7 +363,7 @@ export class TaskOrchestrator {
             } else {
               // Regular command with variable substitution
               const substitutedCommand = this.substituteVariables(command, taskCopy.variables!);
-              const success = await this.commandExecutor.executeCommand(substitutedCommand, signature, taskInstance.id, taskCopy.variables);
+              const success = await this.commandExecutor.executeCommand(substitutedCommand, signature, taskInstance.id, taskCopy.variables, localVariables, localConstants);
               
               if (!success) {
                 throw new Error(`Command failed: ${substitutedCommand}`);

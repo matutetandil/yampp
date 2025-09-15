@@ -68,6 +68,11 @@ export class ShellContentManager implements IShellContentManager {
       return true;
     }
     
+    // Check for variable assignments that need proxy transformation
+    if (content.match(/^\s*(var|const)\s+\w+\s*=/m)) {
+      return true;
+    }
+    
     return false;
   }
 

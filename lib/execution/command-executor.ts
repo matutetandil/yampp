@@ -47,7 +47,9 @@ export class CommandExecutor {
     command: string, 
     taskName: string, 
     taskId: string, 
-    variables: Map<string, string> = new Map()
+    variables: Map<string, string> = new Map(),
+    localVariables?: any[],
+    localConstants?: any[]
   ): Promise<boolean> {
     return new Promise(async (resolve) => {
       // Get state manager and proxy manager (still needed for intercept processing)
@@ -59,8 +61,8 @@ export class CommandExecutor {
       let executionContext: ExecutionContext;
       if (this.shellContentManager.needsProcessing(command)) {
         // Use ShellContentManager for comprehensive processing
-        // Note: Individual command execution doesn't have local variables
-        executionContext = this.shellContentManager.process(command) as any;
+        // Pass local variables for proper variable processing
+        executionContext = this.shellContentManager.process(command, localVariables, localConstants) as any;
       } else {
         // Use traditional execution without processing
         const shellCommand = platformDetector.getCurrentPlatformStrategy().prepareShellCommand(command);

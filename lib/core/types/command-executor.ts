@@ -12,6 +12,8 @@ export interface CommandExecutor {
     taskName: string,
     taskId: string,
     variables?: Map<string, string>,
+    localVariables?: any[],
+    localConstants?: any[]
   ): Promise<boolean>;
 
   /**

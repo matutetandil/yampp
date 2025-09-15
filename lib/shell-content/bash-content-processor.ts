@@ -102,8 +102,15 @@ export class BashContentProcessor extends BaseContentProcessor {
     const functionsUsed = this.findInternalFunctionsUsed(content);
     const functionDefinitions = this.generateBashFunctions(functionsUsed);
     
+    // Transform __assign calls to properly quote the value argument
+    let transformedContent = content.replace(/^(\s*)__assign\s+(var|const)\s+(\w+)\s+(.+)$/gm, (match, indent, type, varName, value) => {
+      // Wrap the value in single quotes to ensure it's treated as a single argument
+      const quotedValue = `'${value.trim()}'`;
+      return `${indent}__assign ${type} ${varName} ${quotedValue}`;
+    });
+    
     // Transform __func calls that are NOT variable assignments (like __call)
-    let transformedContent = content.replace(/__(\w+)((?:\s+\w+)?)\s*\(([^)]*)\)/g, (match, funcName, taskNameWithSpaces, args) => {
+    transformedContent = transformedContent.replace(/__(\w+)((?:\s+\w+)?)\s*\(([^)]*)\)/g, (match, funcName, taskNameWithSpaces, args) => {
       // Skip if this is already processed as a variable assignment (contains $(...))
       if (match.includes('$(')) {
         return match;
@@ -168,7 +175,29 @@ export class BashContentProcessor extends BaseContentProcessor {
     const functions: string[] = [];
 
     for (const funcName of functionNames) {
-      functions.push(`
+      if (funcName === 'assign') {
+        // Special handling for __assign - generate native bash assignment
+        functions.push(`
+__assign() {
+  local type="$1"
+  local name="$2"
+  local value="$3"
+  
+  # Ensure proper quoting by escaping any embedded quotes in the value
+  local escaped_value=$(printf '%s' "$value" | sed 's/"/\\"/g')
+  
+  if [ "$type" = "const" ]; then
+    # const assignment - use eval for dynamic variable name with readonly
+    eval "$name=\"$escaped_value\""
+    eval "readonly $name"
+  else
+    # regular variable assignment - use eval for dynamic variable name
+    eval "$name=\"$escaped_value\""
+  fi
+}`);
+      } else {
+        // Standard proxy function for other internal functions
+        functions.push(`
 __${funcName}() {
   # Join arguments with ||| separator for proper parsing
   local args=""
@@ -208,6 +237,7 @@ __${funcName}() {
   rm "$yampp_response_file" 2>/dev/null
   return $exit_code
 }`);
+      }
     }
 
     return functions.join('\n');
