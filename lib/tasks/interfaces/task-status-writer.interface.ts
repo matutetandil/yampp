@@ -19,6 +19,11 @@ export interface ITaskStatusWriter {
   failTask(taskId: string, error?: string): void;
 
   /**
+   * Mark task as failed but ignored
+   */
+  ignoreTask(taskId: string, error?: string): void;
+
+  /**
    * Clear all status tracking (useful for testing)
    */
   reset(): void;

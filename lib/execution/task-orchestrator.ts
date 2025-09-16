@@ -72,7 +72,8 @@ export class TaskOrchestrator {
    */
   public async execute(
     executionPlan: TaskInstance[], 
-    taskCalls: TaskCall[]
+    taskCalls: TaskCall[],
+    isNestedCall: boolean = false
   ): Promise<{ success: boolean; completed: number; failed: number }> {
     const startTime = Date.now();
     
@@ -81,7 +82,8 @@ export class TaskOrchestrator {
       return { success: true, completed: 0, failed: 0 };
     }
     
-    if (!this.quiet) {
+    // Only print execution headers for top-level calls, not nested calls
+    if (!this.quiet && !isNestedCall) {
       const taskNames = (taskCalls || []).map(t => t?.taskName || 'unknown').join(', ');
       console.log(chalk.green('→'), `Executing tasks: ${taskNames}`);
       
@@ -149,8 +151,10 @@ export class TaskOrchestrator {
       this.outputManager.cleanup();
     }
     
-    // Print summary
-    this.printSummary(startTime);
+    // Print summary only for top-level calls, not nested calls
+    if (!isNestedCall) {
+      this.printSummary(startTime);
+    }
     
     return this.statusManager.getExecutionSummary();
   }
@@ -337,8 +341,11 @@ export class TaskOrchestrator {
       if (depPromise) {
         await depPromise;
         
-        // Optional dependencies can fail - just log but don't block execution
+        // Optional dependencies can fail - move from failed to ignored and don't block execution
         if (this.statusManager.isTaskFailed(depId)) {
+          // Move the task from failed to ignored since it's an optional dependency
+          this.statusManager.ignoreTask(depId, `Optional dependency failed`);
+          
           if (!this.quiet) {
             this.logTask(signature, `Optional dependency '${depId}' failed (continuing)`, chalk.yellow);
           }
@@ -635,11 +642,22 @@ export class TaskOrchestrator {
       console.log(chalk.green('✓'), `${summary.completed} task${summary.completed === 1 ? '' : 's'} completed successfully`);
     }
     
+    if (summary.ignored > 0) {
+      console.log(chalk.yellow('⚠'), `${summary.ignored} task${summary.ignored === 1 ? '' : 's'} failed but ignored`);
+    }
+    
     if (summary.failed > 0) {
       console.log(chalk.red('✗'), `${summary.failed} task${summary.failed === 1 ? '' : 's'} failed`);
     }
     
-    console.log(`Total: ${summary.completed + summary.failed} tasks in ${duration}s`);
+    // Show overall result
+    if (summary.success) {
+      console.log(chalk.green('✅'), 'Overall result: SUCCESS');
+    } else {
+      console.log(chalk.red('❌'), 'Overall result: FAILED');
+    }
+    
+    console.log(`Total: ${summary.completed + summary.failed + summary.ignored} tasks in ${duration}s`);
   }
 
   /**
@@ -706,7 +724,7 @@ export class TaskOrchestrator {
    * @param limit - General execution limit
    * @param serialLimit - Serial execution limit
    */
-  public async executeCall(call: any, variables: Map<string, any>, taskPromises: Map<string, Promise<any>>, limit: any, serialLimit: any): Promise<void> {
+  public async executeCall(call: any, variables: Map<string, any>, taskPromises: Map<string, Promise<any>>, limit: any, serialLimit: any, shouldIgnoreFailures: boolean = false): Promise<void> {
     // Resolve parameters for the call using the same logic as the original
     const resolvedParams = call.params.map((param: any) => {
       if (param && param.type === 'variable') {
@@ -765,7 +783,23 @@ export class TaskOrchestrator {
     const originalTaskPromises = new Map(taskPromises);
     
     // Execute using the normal flow which handles dependencies correctly
-    await this.execute(executionPlan, [taskCall]);
+    // Use isNestedCall=true to suppress summary printing for internal calls
+    const result = await this.execute(executionPlan, [taskCall], true);
+    
+    // Get the actual task instance ID from the execution plan
+    const actualTaskInstance = executionPlan.find(ti => ti.taskName === call.taskName);
+    const actualTaskId = actualTaskInstance ? actualTaskInstance.id : callId;
+    
+    // Check if the specific called task failed (not the global execution summary)
+    // The global summary includes all dependencies, but we only care about the main task
+    if (this.statusManager.isTaskFailed(actualTaskId)) {
+      if (shouldIgnoreFailures) {
+        // Move the task from failed to ignored for __call_ignore
+        this.statusManager.ignoreTask(actualTaskId, `Task failed but called with __call_ignore`);
+      } else {
+        throw new Error(`Task '${call.taskName}' failed during __call execution`);
+      }
+    }
     
     // Mark this call as completed in the original taskPromises map
     taskPromises.set(callId, Promise.resolve());
@@ -823,13 +857,15 @@ export class TaskOrchestrator {
           // Generate a unique temporary task name
           const tempTaskName = `__async_block_${asyncBlockCounter++}_${Date.now()}`;
           
-          // Create the temporary task with all async tasks as dependencies
-          const dependencies = asyncBlock.map(b => b.task);
+          // Separate regular and optional dependencies based on ignoreFailure
+          const regularDependencies = asyncBlock.filter(b => !b.ignoreFailure).map(b => b.task);
+          const optionalDependencies = asyncBlock.filter(b => b.ignoreFailure).map(b => b.task);
           
-          // Create a simple task structure that has dependencies
+          // Create a simple task structure that has both regular and optional dependencies
           const tempTask = {
             name: tempTaskName,
-            getDependencies: () => dependencies,
+            getDependencies: () => regularDependencies,
+            getOptionalDependencies: () => optionalDependencies,
             getDependencyParams: () => ({}),
             getParameters: () => [],
             getLocalVariables: () => new Map(),
@@ -841,7 +877,7 @@ export class TaskOrchestrator {
             getWatchedFiles: () => [],
             getFilePatterns: () => [],
             getCalls: () => [],
-            getNeeds: () => dependencies,
+            getNeeds: () => [...regularDependencies, ...optionalDependencies], // Combined for compatibility
             getRawCommands: () => []
           };
           
@@ -849,19 +885,9 @@ export class TaskOrchestrator {
           this.tasks.set(tempTaskName, tempTask as any);
           
           // Replace the async block with a single __call to the temp task
-          // If ANY task in the block has ignoreFailure=false, the call should fail on error
-          const shouldFailOnError = asyncBlock.some(b => !b.ignoreFailure);
-          
-          if (shouldFailOnError) {
-            // Regular __call that will fail if any dependency fails
-            transformedCommands.push(`__call ${tempTaskName}`);
-          } else {
-            // For now, if all are ignore, we still use __call but mark the temp task differently
-            // TODO: Implement proper ignore handling
-            transformedCommands.push(`__call ${tempTaskName}`);
-          }
-          
-          // TODO: Set $async_failed variable based on results
+          // The temp task now has proper regular/optional dependency separation
+          // so we always use __call and let the ! dependency system handle failures
+          transformedCommands.push(`__call ${tempTaskName}`);
         }
       } else {
         // Regular command, keep as-is

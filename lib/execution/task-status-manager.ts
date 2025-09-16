@@ -10,11 +10,13 @@ import { ITaskStatusManager } from '../tasks/interfaces/task-status-manager.inte
 export class TaskStatusManager implements ITaskStatusManager {
   private readonly completed: Set<string>;
   private readonly failed: Set<string | { taskId: string; error: string }>;
+  private readonly ignored: Set<string | { taskId: string; error: string }>;
   private readonly running: Map<string, number>;
 
   constructor() {
     this.completed = new Set();
     this.failed = new Set();
+    this.ignored = new Set();
     this.running = new Map();
   }
 
@@ -50,14 +52,41 @@ export class TaskStatusManager implements ITaskStatusManager {
   }
 
   /**
+   * Mark task as failed but ignored 
+   * Used for: __call_ignore calls AND optional dependencies (!taskname in needs)
+   * @param taskId - Task instance ID
+   * @param error - Error message (optional)
+   */
+  public ignoreTask(taskId: string, error?: string): void {
+    this.running.delete(taskId);
+    
+    // Remove from failed if it's already there (for moving failed->ignored)
+    for (const item of this.failed) {
+      if ((typeof item === 'string' && item === taskId) || 
+          (typeof item === 'object' && item.taskId === taskId)) {
+        this.failed.delete(item);
+        break;
+      }
+    }
+    
+    // Add to ignored
+    if (error) {
+      this.ignored.add({ taskId, error });
+    } else {
+      this.ignored.add(taskId);
+    }
+  }
+
+  /**
    * Get current status of a task
    * @param taskId - Task instance ID
-   * @returns Task status: 'pending', 'running', 'completed', 'failed'
+   * @returns Task status: 'pending', 'running', 'completed', 'failed', 'ignored'
    */
-  public getTaskStatus(taskId: string): 'pending' | 'running' | 'completed' | 'failed' {
+  public getTaskStatus(taskId: string): 'pending' | 'running' | 'completed' | 'failed' | 'ignored' {
     if (this.running.has(taskId)) return 'running';
     if (this.completed.has(taskId)) return 'completed';
     if (this.isTaskFailed(taskId)) return 'failed';
+    if (this.isTaskIgnored(taskId)) return 'ignored';
     return 'pending';
   }
 
@@ -87,6 +116,23 @@ export class TaskStatusManager implements ITaskStatusManager {
   public isTaskFailed(taskId: string): boolean {
     // Handle both simple taskId strings and error objects
     for (const item of this.failed) {
+      if (typeof item === 'string' && item === taskId) {
+        return true;
+      } else if (typeof item === 'object' && item.taskId === taskId) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Check if task failed but was ignored
+   * @param taskId - Task instance ID
+   * @returns True if task failed but was ignored
+   */
+  public isTaskIgnored(taskId: string): boolean {
+    // Handle both simple taskId strings and error objects
+    for (const item of this.ignored) {
       if (typeof item === 'string' && item === taskId) {
         return true;
       } else if (typeof item === 'object' && item.taskId === taskId) {
@@ -131,6 +177,14 @@ export class TaskStatusManager implements ITaskStatusManager {
   }
 
   /**
+   * Get all ignored tasks (failed but ignored)
+   * @returns Array of ignored task IDs or error objects
+   */
+  public getIgnoredTasks(): (string | { taskId: string; error: string })[] {
+    return Array.from(this.ignored);
+  }
+
+  /**
    * Get execution summary statistics
    * @returns Summary with success status and counts
    */
@@ -138,15 +192,17 @@ export class TaskStatusManager implements ITaskStatusManager {
     success: boolean;
     completed: number;
     failed: number;
+    ignored: number;
     running: number;
     total: number;
   } {
     return {
-      success: this.failed.size === 0,
+      success: this.failed.size === 0, // Only real failures count, ignored failures don't affect success
       completed: this.completed.size,
       failed: this.failed.size,
+      ignored: this.ignored.size,
       running: this.running.size,
-      total: this.completed.size + this.failed.size + this.running.size
+      total: this.completed.size + this.failed.size + this.ignored.size + this.running.size
     };
   }
 
@@ -183,11 +239,13 @@ export class TaskStatusManager implements ITaskStatusManager {
     success: boolean;
     completed: number;
     failed: number;
+    ignored: number;
     running: number;
     total: number;
     runningTasks: Array<{ taskId: string; runtime: number | null }>;
     completedTasks: string[];
     failedTasks: (string | { taskId: string; error: string })[];
+    ignoredTasks: (string | { taskId: string; error: string })[];
   } {
     const summary = this.getExecutionSummary();
     
@@ -198,7 +256,8 @@ export class TaskStatusManager implements ITaskStatusManager {
         runtime: this.getTaskRuntime(taskId)
       })),
       completedTasks: this.getCompletedTasks(),
-      failedTasks: this.getFailedTasks()
+      failedTasks: this.getFailedTasks(),
+      ignoredTasks: this.getIgnoredTasks()
     };
   }
 

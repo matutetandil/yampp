@@ -47,10 +47,11 @@ export class TaskExecutionService implements ITaskExecutionService {
     variables: IVariableMap,
     taskPromises: ITaskPromiseMap,
     limit: ILimit,
-    serialLimit: ILimit
+    serialLimit: ILimit,
+    shouldIgnoreFailures?: boolean
   ): Promise<void> {
     // Delegate to TaskOrchestrator
-    return (this._taskOrchestrator as any).executeCall(call, variables, taskPromises, limit, serialLimit);
+    return (this._taskOrchestrator as any).executeCall(call, variables, taskPromises, limit, serialLimit, shouldIgnoreFailures);
   }
 
   public async executeUnifiedTaskBlock(

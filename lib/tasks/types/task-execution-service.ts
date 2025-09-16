@@ -25,7 +25,7 @@ export interface TaskExecutionService {
   /**
    * Execute internal function call
    */
-  executeCall(call: any, variables: Map<string, any>, taskPromises: Map<string, Promise<any>>, limit: any, serialLimit: any): Promise<void>;
+  executeCall(call: any, variables: Map<string, any>, taskPromises: Map<string, Promise<any>>, limit: any, serialLimit: any, shouldIgnoreFailures?: boolean): Promise<void>;
   
   /**
    * Check if task needs unified processing

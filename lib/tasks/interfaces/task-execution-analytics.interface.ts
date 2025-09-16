@@ -10,6 +10,7 @@ export interface ITaskExecutionAnalytics {
     success: boolean;
     completed: number;
     failed: number;
+    ignored: number;
     running: number;
     total: number;
   };
@@ -31,10 +32,12 @@ export interface ITaskExecutionAnalytics {
     success: boolean;
     completed: number;
     failed: number;
+    ignored: number;
     running: number;
     total: number;
     runningTasks: Array<{ taskId: string; runtime: number | null }>;
     completedTasks: string[];
     failedTasks: (string | { taskId: string; error: string })[];
+    ignoredTasks: (string | { taskId: string; error: string })[];
   };
 }

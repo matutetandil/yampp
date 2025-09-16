@@ -18,6 +18,11 @@ export interface TaskStatusManager {
   failTask(taskId: string, errorMessage?: string): void;
   
   /**
+   * Mark task as failed but ignored
+   */
+  ignoreTask(taskId: string, errorMessage?: string): void;
+  
+  /**
    * Complete a task successfully
    */
   completeTask(taskId: string): void;
@@ -25,7 +30,7 @@ export interface TaskStatusManager {
   /**
    * Get current status of a task
    */
-  getTaskStatus(taskId: string): 'pending' | 'running' | 'completed' | 'failed';
+  getTaskStatus(taskId: string): 'pending' | 'running' | 'completed' | 'failed' | 'ignored';
   
   /**
    * Check if task is currently running
@@ -36,6 +41,11 @@ export interface TaskStatusManager {
    * Check if task completed successfully
    */
   isTaskCompleted(taskId: string): boolean;
+  
+  /**
+   * Check if task failed but was ignored
+   */
+  isTaskIgnored(taskId: string): boolean;
   
   /**
    * Get task runtime in milliseconds
@@ -58,9 +68,14 @@ export interface TaskStatusManager {
   getFailedTasks(): (string | { taskId: string; error: string })[];
   
   /**
+   * Get all ignored tasks (failed but ignored)
+   */
+  getIgnoredTasks(): (string | { taskId: string; error: string })[];
+  
+  /**
    * Get execution summary
    */
-  getExecutionSummary(): { success: boolean; completed: number; failed: number; running: number; total: number };
+  getExecutionSummary(): { success: boolean; completed: number; failed: number; ignored: number; running: number; total: number };
   
   /**
    * Check if all tasks have finished

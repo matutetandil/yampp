@@ -294,10 +294,11 @@ export class Runner implements IRunnerConfigurator {
     variables: Map<string, any>, 
     taskPromises: Map<string, Promise<any>>, 
     limit: any, 
-    serialLimit: any
+    serialLimit: any,
+    shouldIgnoreFailures?: boolean
   ): Promise<void> {
     // Delegate to TaskOrchestrator which handles the actual task execution
-    return await this.taskOrchestrator.executeCall(call, variables, taskPromises, limit, serialLimit);
+    return await this.taskOrchestrator.executeCall(call, variables, taskPromises, limit, serialLimit, shouldIgnoreFailures);
   }
 
   // Private helper methods

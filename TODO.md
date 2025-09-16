@@ -1,6 +1,6 @@
 # Yam++ Roadmap & TODO Analysis
 
-## 📊 Current Status (v0.11.0)
+## 📊 Current Status (v0.12.0)
 - ✅ **Core System**: Complete with internal functions, file watching, parameters, File I/O functions
 - ✅ **Ecosystem**: Full IDE support (VS Code, IntelliJ) + AI translator with 9 AI providers  
 - ✅ **Claude Code Interface**: Professional output system with real-time task blocks
@@ -9,6 +9,10 @@
 - ✅ **Serial Task Execution**: Smart task prioritization for interactive inputs
 - ✅ **Execution Profiles**: Flexible profile system with default profiles and nested configurations
 - ✅ **Include/Import System**: Smart modular Yamfile composition with circular dependency protection
+- ✅ **Advanced Error Handling**: 3-category status system (completed/failed/ignored) with `__call_ignore`
+- ✅ **Optional Dependencies**: Graceful failure handling with `!prefix` syntax for resilient task graphs
+- ✅ **Parallel Task Execution**: `__call_async` and `__call_async_ignore` for efficient concurrent processing
+- ✅ **Enhanced Task Control**: Comprehensive task execution with proper dependency resolution
 - ✅ **Production Ready**: Enhanced output management and concurrent execution
 - ✅ **Quality Assurance**: All critical bugs resolved, comprehensive testing
 - ✅ **Extensible Design**: Plugin architecture, registry patterns, constants management
@@ -26,17 +30,51 @@
 | ~~**Constants Management**~~ | ~~Very Low~~ | ~~Medium~~ | ~~8/10~~ | ~~v0.10.0~~ | ✅ **COMPLETED** |
 | ~~**Execution Profiles**~~ | ~~Very Low~~ | ~~High~~ | ~~🔥 9/10~~ | ~~v0.10.1~~ | ✅ **COMPLETED** |
 | ~~**Include/Import System**~~ | ~~Low~~ | ~~High~~ | ~~🔥 9.5/10~~ | ~~v0.11.0~~ | ✅ **COMPLETED** |
-| **🌍 Polyglot Execution** | **Medium** | **REVOLUTIONARY** | 🌟 **11/10** | v0.12.0 | **FUTURE** |
-| **🔌 Plugin System** | **Medium** | **ECOSYSTEM CHANGER** | 🌟 **11/10** | v0.12.0 | **FUTURE** |
+| ~~**Advanced Error Handling**~~ | ~~Low~~ | ~~High~~ | ~~🔥 9/10~~ | ~~v0.12.0~~ | ✅ **COMPLETED** |
+| ~~**Optional Dependencies**~~ | ~~Low~~ | ~~High~~ | ~~🔥 8.5/10~~ | ~~v0.12.0~~ | ✅ **COMPLETED** |
+| ~~**Parallel Task Execution**~~ | ~~Medium~~ | ~~High~~ | ~~🔥 9/10~~ | ~~v0.12.0~~ | ✅ **COMPLETED** |
+| ~~**Enhanced Task Control**~~ | ~~Medium~~ | ~~High~~ | ~~🔥 9.5/10~~ | ~~v0.12.0~~ | ✅ **COMPLETED** |
+| **🌍 Polyglot Execution** | **Medium** | **REVOLUTIONARY** | 🌟 **11/10** | v0.13.0 | **FUTURE** |
+| **🔌 Plugin System** | **Medium** | **ECOSYSTEM CHANGER** | 🌟 **11/10** | v0.13.0 | **FUTURE** |
 | **Hook System (before/after)** | **Low** | High | 🔥 **9/10** | v0.11.1 | **FUTURE** |
 | ~~**File I/O Functions**~~ | ~~Very Low~~ | ~~Medium~~ | ~~8.5/10~~ | ~~v0.8.6~~ | ✅ **COMPLETED** |
 | ~~**Serial Task Execution**~~ | ~~Low~~ | ~~High~~ | ~~9/10~~ | ~~v0.9.0~~ | ✅ **COMPLETED** |
 
+## 🔴 Critical Bugs Identified (Post-v0.12.0)
+
+**Discovered during v0.12.0 development** - These bugs exist in the cooperative system and need immediate attention:
+
+| Bug | Priority | Impact | Effort | Target |
+|-----|----------|--------|--------|--------|
+| **🔴 Parser Bug: "critical" keyword conflict** | **CRITICAL** | **BLOCKS USAGE** | Very Low | v0.12.1 |
+| **🟡 Comment Bug: // sent to bash** | **HIGH** | **BREAKS EXECUTION** | Low | v0.12.1 |
+| **🟡 Loop Bug: __call in loops only first iteration** | **MEDIUM** | **LIMITS FUNCTIONALITY** | Medium | v0.12.2 |
+| **🟡 Parameter Bug: undefined parameters in loops** | **MEDIUM** | **LIMITS FUNCTIONALITY** | Medium | v0.12.2 |
+
+### 🔴 **Parser Bug: Critical Keyword Conflict**
+- **Issue**: Tasks named `critical` conflict with `critical` modifier
+- **Impact**: Cannot create tasks named "critical" 
+- **Cause**: Parser treats task name as modifier
+- **Fix**: Update parser to handle keyword conflicts properly
+
+### 🟡 **Comment Bug: Bash Interpretation**
+- **Issue**: Comments `//` are sent to bash causing "is a directory" errors
+- **Impact**: Fatal execution errors when using comments
+- **Cause**: Comment filtering not applied before shell execution
+- **Fix**: Enhanced comment filtering in shell content generation
+
+### 🟡 **Loop Execution Bugs**
+- **Issue 1**: `for i in 1 2 3; do __call task($i); done` only executes first iteration
+- **Issue 2**: Parameters arrive as `undefined` in called tasks
+- **Impact**: Prevents effective use of loops with dynamic task calls
+- **Cause**: Cooperative system intercept/response mechanism limitations
+- **Fix**: Enhanced parameter mapping and loop iteration handling
+
 ## 🚀 Feature Specifications
 
-### 🎯 **NEXT MILESTONE: v0.12.0 - Revolutionary Features Era**
+### 🎯 **NEXT MILESTONE: v0.13.0 - Revolutionary Features Era**
 
-**Current Status**: Include/Import System ✅ **ACHIEVED** → **Next Target**: Revolutionary capabilities that differentiate YAMPP
+**Current Status**: Advanced Task Control ✅ **ACHIEVED** → **Next Target**: Revolutionary capabilities that differentiate YAMPP
 **Primary Focus**: Polyglot Execution + Plugin System to establish YAMPP as most powerful task runner
 
 #### 🌍 **Polyglot Execution System (Priority 1)**
@@ -128,7 +166,7 @@ yampp plugin install yampp-aws
 
 ---
 
-## 🏆 Achievement Summary (v0.11.0)
+## 🏆 Achievement Summary (v0.12.0)
 
 ### ✅ **Architecture Excellence Achieved**
 - **98% SOLID Compliance** - Near-perfect architectural quality
@@ -137,6 +175,10 @@ yampp plugin install yampp-aws
 - **Plugin Foundation**: Extensible design ready for ecosystem growth
 
 ### ✅ **Production Features Completed**
+- **Advanced Error Handling**: 3-category status system (completed/failed/ignored) with `__call_ignore` for graceful failure management
+- **Optional Dependencies**: `!prefix` syntax for resilient task graphs that continue despite individual dependency failures
+- **Parallel Task Execution**: `__call_async` and `__call_async_ignore` for efficient concurrent processing within task blocks
+- **Enhanced Task Control**: Comprehensive task execution with proper dependency resolution and intelligent error propagation
 - **Include/Import System**: Smart modular Yamfile composition with circular dependency protection and profile-aware merging
 - **Cross-Platform Shell Execution**: Native bash/PowerShell/cmd with cooperative variable control
 - **Execution Profiles**: Flexible profile system with default profiles and nested platform configurations
@@ -149,6 +191,10 @@ yampp plugin install yampp-aws
 - **Enterprise IDE Support**: VS Code + IntelliJ extensions with syntax highlighting
 
 ### ✅ **Critical Bug Resolutions**
+- **__call_ignore Status Management**: Fixed interface consistency to properly move failed tasks to ignored status
+- **Task ID Resolution**: Resolved mismatch between execution planning and status tracking for proper error handling
+- **Dependency Execution**: Fixed critical bug where `__call` didn't execute task dependencies before target execution
+- **Interface Parameter Passing**: Complete interface updates to support `shouldIgnoreFailures` across all execution layers
 - **Variable Assignment with Spaces**: Fixed proxy assignment system for quoted strings containing spaces
 - **Comment Filtering**: Resolved critical shell execution errors from unfiltered comments
 - **String Context Awareness**: Proper handling of comment-like text inside quoted strings
@@ -158,4 +204,4 @@ YAMPP now has enterprise-grade architecture foundation. The perfect SOLID compli
 
 ---
 
-**📈 Journey Progress**: Foundation (v0.1-0.6) → Enterprise Architecture (v0.7-0.10.1) → **Include/Import System (v0.11.0)** → **Revolutionary Features (v0.12.0+)**
+**📈 Journey Progress**: Foundation (v0.1-0.6) → Enterprise Architecture (v0.7-0.10.1) → Include/Import System (v0.11.0) → **Advanced Task Control (v0.12.0)** → **Revolutionary Features (v0.13.0+)**

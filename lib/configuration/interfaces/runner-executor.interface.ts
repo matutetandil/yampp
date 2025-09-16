@@ -20,6 +20,7 @@ export interface IRunnerExecutor {
     taskPromises: ITaskPromiseMap,
     limit: ILimit,
     serialLimit: ILimit,
+    shouldIgnoreFailures?: boolean
   ): Promise<void>;
 
   shouldTaskRun(taskInstance: TaskInstance): Promise<boolean>;

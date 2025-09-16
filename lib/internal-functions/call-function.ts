@@ -34,7 +34,8 @@ export class CallFunction extends VoidInternalFunction {
       context.variables, 
       context.taskPromises, 
       context.limit, 
-      context.serialLimit
+      context.serialLimit,
+      false // shouldIgnoreFailures = false for regular __call
     );
   }
 }

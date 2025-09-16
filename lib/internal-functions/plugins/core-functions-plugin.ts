@@ -5,6 +5,7 @@ import { InputPasswordFunction } from '../input-password-function.js';
 import { InputSelectFunction } from '../input-select-function.js';
 import { InputConfirmFunction } from '../input-confirm-function.js';
 import { CallFunction } from '../call-function.js';
+import { CallIgnoreFunction } from '../call-ignore-function.js';
 import { ReadFileFunction } from '../read-file-function.js';
 import { WriteFileFunction } from '../write-file-function.js';
 import { FileExistsFunction } from '../file-exists-function.js';
@@ -54,6 +55,7 @@ export class CoreFunctionsPlugin implements IFunctionPlugin {
     
     // Task management
     this.addFunction('call', new CallFunction());
+    this.addFunction('call_ignore', new CallIgnoreFunction());
     this.addFunction('call_async', new CallAsyncFunction());
     this.addFunction('call_async_ignore', new CallAsyncIgnoreFunction());
     

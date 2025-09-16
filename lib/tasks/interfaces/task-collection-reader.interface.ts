@@ -17,4 +17,9 @@ export interface ITaskCollectionReader {
    * Get all failed tasks
    */
   getFailedTasks(): (string | { taskId: string; error: string })[];
+
+  /**
+   * Get all ignored tasks (failed but ignored)
+   */
+  getIgnoredTasks(): (string | { taskId: string; error: string })[];
 }

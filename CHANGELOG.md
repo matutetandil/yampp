@@ -5,6 +5,78 @@ All notable changes to Yam++ (Yet Another Modern Task Runner) will be documented
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.12.0] - 2025-09-16
+
+### 🚀 MINOR RELEASE - Advanced Task Control & Error Handling
+
+**Strategic task execution milestone** with comprehensive error handling, dependency resolution improvements, and advanced task control mechanisms that dramatically enhance workflow flexibility and reliability.
+
+#### ✨ New Features
+
+**Advanced Task Error Handling:**
+- **__call_ignore Function**: New internal function that calls tasks while gracefully ignoring failures
+- **3-Category Status System**: Tasks now classified as completed, failed, or ignored for precise execution control
+- **Intelligent Error Propagation**: Failed tasks called with `__call_ignore` are moved from failed to ignored status
+- **Smart Result Calculation**: Overall execution success considers only real failures, ignored failures don't affect result
+
+**Enhanced Dependency Management:**
+- **Optional Dependencies**: Use `!taskname` prefix in `needs` to mark dependencies as optional
+- **Graceful Failure Handling**: Optional dependencies that fail don't prevent dependent tasks from running
+- **Robust Dependency Resolution**: Improved dependency execution with proper error isolation
+
+**Parallel Task Execution:**
+- **__call_async Function**: Execute multiple tasks in parallel within a single task block
+- **__call_async_ignore Function**: Parallel execution with failure tolerance
+- **Async Block Detection**: Automatic grouping of consecutive async calls for optimal performance
+- **Dependency-Aware Async**: Async tasks properly resolve their dependencies before parallel execution
+
+**Critical Task Execution Fixes:**
+- **Proper __call Dependency Resolution**: Fixed critical bug where `__call` didn't execute task dependencies
+- **Enhanced Task Instance Management**: Improved task ID resolution and status tracking
+- **Interface Consistency**: Complete interface updates for parameter passing across all execution layers
+
+#### 🐛 Critical Bug Fixes
+
+**Task Execution System:**
+- **Fixed __call Dependency Bug**: `__call` now properly executes all task dependencies before executing the target task
+- **Fixed Status Propagation**: `__call_ignore` correctly moves failed tasks to ignored status instead of leaving them as failed
+- **Fixed Interface Consistency**: All task execution interfaces now properly support `shouldIgnoreFailures` parameter
+- **Fixed Task ID Resolution**: Resolved task instance ID mismatch between execution planning and status tracking
+
+**Variable Assignment:**
+- **Fixed Quoted String Variables**: Resolved critical bug where quoted strings containing spaces weren't properly assigned to variables
+- **Enhanced Variable Parsing**: Improved variable assignment parsing to handle complex string values correctly
+
+#### 🏗️ Architecture Improvements
+
+**Status Management Enhancement:**
+- **TaskStatusManager Extension**: Added comprehensive ignored task tracking with proper state transitions
+- **Interface Segregation**: Extended all status management interfaces to support 3-category system
+- **Execution Analytics**: Enhanced execution summary to include ignored task metrics
+
+**Execution Flow Optimization:**
+- **Smart Error Recovery**: Improved error handling that allows workflows to continue despite individual task failures
+- **Enhanced Task Orchestration**: Better coordination between regular calls, ignored calls, and async executions
+- **Robust State Management**: Consistent task state tracking across all execution modes
+
+#### 📊 Impact & Benefits
+
+**Developer Experience:**
+- **Graceful Failure Handling**: Tasks can now handle expected failures without stopping entire workflows
+- **Flexible Dependency Management**: Optional dependencies enable more resilient build pipelines
+- **Enhanced Parallel Execution**: Async task support enables efficient parallel processing within tasks
+- **Clear Execution Feedback**: 3-category status system provides precise insight into task execution results
+
+**Production Reliability:**
+- **Fault Tolerance**: `__call_ignore` enables fault-tolerant workflows that continue despite individual failures
+- **Dependency Resilience**: Optional dependencies prevent single points of failure in complex task graphs
+- **Accurate Success Metrics**: Execution results now accurately reflect real failures vs expected failures
+
+**Architectural Quality:**
+- **SOLID Compliance**: All new features maintain existing SOLID architecture principles
+- **Interface Consistency**: Complete interface coverage ensures type safety across all execution paths
+- **Zero Breaking Changes**: All enhancements maintain full backward compatibility
+
 ## [0.11.0] - 2025-09-15
 
 ### 🚀 MINOR RELEASE - Include/Import System & Critical Bug Fixes

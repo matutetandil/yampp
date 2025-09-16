@@ -14,7 +14,8 @@ export interface ITaskExecutionService {
     variables: IVariableMap,
     taskPromises: ITaskPromiseMap,
     limit: ILimit,
-    serialLimit: ILimit
+    serialLimit: ILimit,
+    shouldIgnoreFailures?: boolean
   ): Promise<void>;
   executeUnifiedTaskBlock(
     task: unknown,
