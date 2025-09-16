@@ -1,6 +1,6 @@
 {
   "name": "@yampp/yampp",
-  "version": "0.12.0",
+  "version": "0.12.1",
   "description": "Yet Another Modern Task Runner - Enterprise-grade concurrent task runner with SOLID architecture and native cross-platform shell execution",
   "type": "module",
   "main": "dist/index.js",

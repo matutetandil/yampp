@@ -63,21 +63,21 @@ export abstract class BaseContentProcessor {
    * Respects string contexts to avoid filtering comments inside strings
    */
   protected cleanYamppComments(content: string): string {
-    const lines = content.split('\n');
+    // Process multi-line comments first (they can span multiple lines)
+    let result = this.removeMultilineComments(content);
+    
+    // Then process single-line comments line by line
+    const lines = result.split('\n');
     const processedLines: string[] = [];
     
     for (let line of lines) {
-      // Process multi-line comments first (can span across strings)
-      line = this.removeMultilineComments(line);
-      
       // Process single-line comments (respecting strings)
       line = this.removeSingleLineComments(line);
-      
       processedLines.push(line);
     }
     
     // Join lines and clean up extra whitespace
-    let result = processedLines.join('\n');
+    result = processedLines.join('\n');
     result = result.replace(/\n\s*\n\s*\n/g, '\n\n');
     
     return result;
@@ -147,17 +147,18 @@ export abstract class BaseContentProcessor {
   
   /**
    * Remove multi-line comments while respecting string contexts
+   * Processes entire content at once to handle comments spanning multiple lines
    */
-  private removeMultilineComments(line: string): string {
+  private removeMultilineComments(content: string): string {
     let inSingleQuote = false;
     let inDoubleQuote = false;
     let inComment = false;
     let escaped = false;
     let result = '';
     
-    for (let i = 0; i < line.length; i++) {
-      const char = line[i];
-      const nextChar = line[i + 1];
+    for (let i = 0; i < content.length; i++) {
+      const char = content[i];
+      const nextChar = content[i + 1];
       
       // Handle escape sequences
       if (escaped) {

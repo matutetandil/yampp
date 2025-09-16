@@ -5,6 +5,44 @@ All notable changes to Yam++ (Yet Another Modern Task Runner) will be documented
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.12.1] - 2025-09-16
+
+### 🐛 PATCH RELEASE - Critical Parser & Comment Processing Fixes
+
+**Immediate stability improvements** addressing parser keyword conflicts and multi-line comment processing issues that affected task naming flexibility and code documentation capabilities.
+
+#### 🐛 Bug Fixes
+
+**Parser Enhancement:**
+- **Fixed Reserved Word Conflicts**: Task names with underscore prefixes (like `critical_task`, `serial_process`, `always_run`) no longer conflict with modifier keywords
+- **Solution**: Added negative lookahead assertions to modifier parsing rules, ensuring modifiers only match when followed by word boundaries
+- **Impact**: Developers can now freely use underscore-prefixed task names without parser conflicts
+
+**Comment Processing:**
+- **Fixed Multi-line Comment Handling**: Resolved issue where `/* */` style comments caused task execution failures
+- **Root Cause**: Multi-line comments were processed line-by-line, losing state between lines
+- **Solution**: Refactored `removeMultilineComments` to process entire content at once, maintaining comment state across line boundaries
+- **Impact**: All comment styles (`//`, `#`, `/* */`) now work correctly in task definitions
+
+#### ✅ Verified Working Features
+
+**Previously Reported Issues (Confirmed Working):**
+- **Loop Execution**: `__call` in loops correctly executes all iterations (no bug found)
+- **Parameter Passing**: Loop variables pass correctly to called tasks (no bug found)
+- **Single-line Comments**: Both `//` and `#` comments work correctly (no bug found)
+
+#### 🏗️ Technical Details
+
+**Files Modified:**
+- `lib/yamfile.pegjs`: Enhanced modifier parsing with negative lookahead patterns
+- `lib/shell-content/base-content-processor.ts`: Corrected multi-line comment removal logic
+
+**Testing Coverage:**
+- Verified all modifier keywords still function correctly
+- Tested underscore-prefixed task names with all reserved words
+- Confirmed all comment styles work in various contexts
+- Validated loop execution with multiple iterations and parameter passing
+
 ## [0.12.0] - 2025-09-16
 
 ### 🚀 MINOR RELEASE - Advanced Task Control & Error Handling

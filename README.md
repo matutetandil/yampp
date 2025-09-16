@@ -1,6 +1,6 @@
 # Yam++ (Yet Another Modern Task Runner)
 
-![Version](https://img.shields.io/badge/version-0.12.0-blue)
+![Version](https://img.shields.io/badge/version-0.12.1-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)
 ![npm](https://img.shields.io/badge/npm-package-red)
@@ -9,7 +9,7 @@
 
 A modern, concurrent, declarative task runner with enterprise-grade architecture and native cross-platform shell execution. The unique task runner that combines the power of Make with cross-platform compatibility, native shell integration (bash/PowerShell/cmd), professional interface, and **perfect SOLID design principles**.
 
-> **🚀 v0.12.0 Advanced Task Control** - Comprehensive error handling with `__call_ignore`, optional dependencies with `!prefix`, parallel task execution with `__call_async`, and 3-category status system (completed/failed/ignored) for precise execution control.
+> **🐛 v0.12.1 Parser & Comment Fixes** - Enhanced parser to properly handle underscore-prefixed task names (like `critical_task`), fixed multi-line comment processing (`/* */`), and verified loop execution with `__call` works correctly across all scenarios.
 
 ## 🚀 Quick Start
 
