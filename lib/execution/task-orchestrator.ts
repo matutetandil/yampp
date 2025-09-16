@@ -329,10 +329,13 @@ export class TaskOrchestrator {
         // Pre-export task parameters to shell for cooperative control system (v0.8.2)
         const preExportCommands = this.buildPreExportCommands(typedTask, parameters);
         
+        // Transform __call_async blocks into temporary tasks with dependencies
+        const transformedCommands = await this.transformAsyncBlocks(taskCopy.getCommands(), taskCopy);
+        
         // Execute commands
-        if (this.hasInternalFunctions(taskCopy.getCommands()) || this.hasInternalFunctionsInVariables(taskCopy)) {
+        if (this.hasInternalFunctions(transformedCommands) || this.hasInternalFunctionsInVariables(taskCopy)) {
           // Unified processing for tasks with internal functions
-          const success = await this.executeUnifiedTaskContent(taskCopy, signature, taskInstance.id, preExportCommands);
+          const success = await this.executeUnifiedTaskContent(taskCopy, signature, taskInstance.id, preExportCommands, transformedCommands);
           
           if (!success) {
             throw new Error(`Task failed: ${signature}`);
@@ -356,8 +359,8 @@ export class TaskOrchestrator {
             value
           }));
 
-          // Execute task content commands
-          for (const command of taskCopy.getCommands()) {
+          // Execute task content commands (use transformed commands)
+          for (const command of transformedCommands) {
             if (this.isAssignmentCommand(command)) {
               await this.handleAssignment(command, taskCopy.variables!);
             } else {
@@ -429,7 +432,8 @@ export class TaskOrchestrator {
     taskCopy: Task & { variables: Map<string, string> }, 
     signature: string, 
     taskId: string, 
-    preExportCommands: string[]
+    preExportCommands: string[],
+    transformedCommands?: string[]
   ): Promise<boolean> {
     if (!this.shellContentManager) {
       throw new Error('ShellContentManager not set');
@@ -438,7 +442,7 @@ export class TaskOrchestrator {
     // Combine pre-exports with task content into single execution block
     const fullContent = [
       ...preExportCommands,
-      ...taskCopy.getCommands()
+      ...(transformedCommands || taskCopy.getCommands())
     ].join('\n');
     
     // Convert Maps to arrays for the processor
@@ -706,5 +710,112 @@ export class TaskOrchestrator {
     
     // Mark this call as completed in the original taskPromises map
     taskPromises.set(callId, Promise.resolve());
+  }
+
+  /**
+   * Transform __call_async blocks into temporary tasks with dependencies
+   * Detects consecutive __call_async calls and replaces them with a single __call 
+   * to a temporary task that has all the async tasks as dependencies
+   * @param commands - Original commands from the task
+   * @param taskCopy - The task being executed (for context)
+   * @returns Transformed commands with async blocks replaced
+   */
+  private async transformAsyncBlocks(commands: string[], taskCopy: any): Promise<string[]> {
+    // First, split multi-line commands into individual lines
+    const allLines: string[] = [];
+    for (const cmd of commands) {
+      const lines = cmd.split('\n');
+      allLines.push(...lines);
+    }
+    
+    const transformedCommands: string[] = [];
+    let asyncBlockCounter = 1;
+    let i = 0;
+    
+    while (i < allLines.length) {
+      const command = allLines[i]?.trim() || '';
+      
+      // Check if this is the start of an async block
+      if (command && command.match(/^\s*__call_async(?:_ignore)?\s+/)) {
+        const asyncBlock: { task: string; ignoreFailure: boolean }[] = [];
+        
+        // Collect all consecutive __call_async calls
+        while (i < allLines.length) {
+          const currentCommand = allLines[i]?.trim() || '';
+          const asyncMatch = currentCommand.match(/^\s*(__call_async(?:_ignore)?)\s+(.+?)(?:\(.*?\))?$/);
+          
+          if (asyncMatch) {
+            const [, funcName, taskName] = asyncMatch;
+            if (funcName && taskName) {
+              const ignoreFailure = funcName.includes('ignore');
+              asyncBlock.push({ task: taskName.trim(), ignoreFailure });
+            }
+            i++;
+          } else if (currentCommand === '' || currentCommand.startsWith('//') || currentCommand.startsWith('#')) {
+            // Skip empty lines and comments within the block
+            i++;
+          } else {
+            // Non-async command found, end of block
+            break;
+          }
+        }
+        
+        if (asyncBlock.length > 0) {
+          // Generate a unique temporary task name
+          const tempTaskName = `__async_block_${asyncBlockCounter++}_${Date.now()}`;
+          
+          // Create the temporary task with all async tasks as dependencies
+          const dependencies = asyncBlock.map(b => b.task);
+          
+          // Create a simple task structure that has dependencies
+          const tempTask = {
+            name: tempTaskName,
+            getDependencies: () => dependencies,
+            getDependencyParams: () => ({}),
+            getParameters: () => [],
+            getLocalVariables: () => new Map(),
+            getLocalConstants: () => new Map(),
+            getLocalEnvironmentVariables: () => new Map(),
+            getCommands: () => [],
+            hasModifier: () => false,
+            hasWatchedFiles: () => false,
+            getWatchedFiles: () => [],
+            getFilePatterns: () => [],
+            getCalls: () => [],
+            getNeeds: () => dependencies,
+            getRawCommands: () => []
+          };
+          
+          // Register the temporary task
+          this.tasks.set(tempTaskName, tempTask as any);
+          
+          // Replace the async block with a single __call to the temp task
+          // If ANY task in the block has ignoreFailure=false, the call should fail on error
+          const shouldFailOnError = asyncBlock.some(b => !b.ignoreFailure);
+          
+          if (shouldFailOnError) {
+            // Regular __call that will fail if any dependency fails
+            transformedCommands.push(`__call ${tempTaskName}`);
+          } else {
+            // For now, if all are ignore, we still use __call but mark the temp task differently
+            // TODO: Implement proper ignore handling
+            transformedCommands.push(`__call ${tempTaskName}`);
+          }
+          
+          // TODO: Set $async_failed variable based on results
+        }
+      } else {
+        // Regular command, keep as-is
+        const currentCmd = allLines[i];
+        if (currentCmd !== undefined) {
+          transformedCommands.push(currentCmd);
+        }
+        i++;
+      }
+    }
+    
+    // Combine the transformed lines back into a single command string
+    // This matches the original format of the commands array
+    return [transformedCommands.join('\n')];
   }
 }

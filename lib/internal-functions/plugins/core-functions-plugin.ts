@@ -12,6 +12,8 @@ import { CopyFunction } from '../copy-function.js';
 import { MoveFunction } from '../move-function.js';
 import { DeleteFunction } from '../delete-function.js';
 import { AssignFunction } from '../assign-function.js';
+import { CallAsyncFunction } from '../call-async-function.js';
+import { CallAsyncIgnoreFunction } from '../call-async-ignore-function.js';
 
 export class CoreFunctionsPlugin implements IFunctionPlugin {
   private functions = new Map<string, BaseInternalFunction>();
@@ -52,6 +54,8 @@ export class CoreFunctionsPlugin implements IFunctionPlugin {
     
     // Task management
     this.addFunction('call', new CallFunction());
+    this.addFunction('call_async', new CallAsyncFunction());
+    this.addFunction('call_async_ignore', new CallAsyncIgnoreFunction());
     
     // Variable assignment
     this.addFunction('assign', new AssignFunction());
