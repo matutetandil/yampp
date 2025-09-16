@@ -196,9 +196,38 @@ export class TaskOrchestrator {
     
     processing.add(instanceId);
     
-    // Process dependencies first (topological order)
+    // Process dependencies first (topological order) - regular dependencies
     const dependencies = task.getDependencies ? task.getDependencies() : [];
     for (const depName of dependencies) {
+      const dependencyParams = task.getDependencyParams ? task.getDependencyParams() : {};
+      const depParams = (dependencyParams[depName] || []);
+      
+      // Ensure depParams is an array before mapping
+      const safeDepParams = Array.isArray(depParams) ? depParams : [];
+      
+      // Resolve parameter references 
+      const resolvedParams = safeDepParams.map((param: any) => {
+        if (param.type === 'variable') {
+          // Variable reference: look up in task parameters
+          const taskParameters = task.getParameters ? task.getParameters() : [];
+          const paramIndex = taskParameters.findIndex((p: any) => p.name === param.name);
+          if (paramIndex >= 0) {
+            return parameters[paramIndex];
+          } else {
+            throw new Error(`Parameter '${param.name}' referenced in dependency '${depName}' is not defined in task '${taskName}'`);
+          }
+        } else {
+          // Literal value
+          return param.value;
+        }
+      });
+      
+      await this.collectTaskInstances(depName, resolvedParams, plan, visited, processing);
+    }
+    
+    // Process optional dependencies - they are collected but their failures won't block execution
+    const optionalDependencies = task.getOptionalDependencies ? task.getOptionalDependencies() : [];
+    for (const depName of optionalDependencies) {
       const dependencyParams = task.getDependencyParams ? task.getDependencyParams() : {};
       const depParams = (dependencyParams[depName] || []);
       
@@ -256,7 +285,7 @@ export class TaskOrchestrator {
     const { task, parameters, signature } = taskInstance;
     const typedTask = task as Task;
     
-    // Wait for dependencies
+    // Wait for regular dependencies (these must succeed)
     for (const depName of typedTask.getDependencies()) {
       const depParams = typedTask.getDependencyParams()[depName] || [];
       const resolvedParams = depParams.map((param: any) => {
@@ -283,6 +312,36 @@ export class TaskOrchestrator {
           }
           this.statusManager.failTask(taskInstance.id);
           return;
+        }
+      }
+    }
+    
+    // Wait for optional dependencies (these can fail without blocking execution)
+    const optionalDependencies = typedTask.getOptionalDependencies ? typedTask.getOptionalDependencies() : [];
+    for (const depName of optionalDependencies) {
+      const depParams = typedTask.getDependencyParams()[depName] || [];
+      const resolvedParams = depParams.map((param: any) => {
+        const typedParam = param as { type: string; name?: string; value?: string };
+        if (typedParam.type === 'variable') {
+          const taskParams = typedTask.getParameters();
+          const paramIndex = taskParams.findIndex((p: any) => p.name === typedParam.name!);
+          return paramIndex >= 0 ? parameters[paramIndex] : typedParam.name;
+        } else {
+          return typedParam.value;
+        }
+      });
+      
+      const depId = `${depName}(${resolvedParams.join(',')})`;
+      const depPromise = taskPromises.get(depId);
+      
+      if (depPromise) {
+        await depPromise;
+        
+        // Optional dependencies can fail - just log but don't block execution
+        if (this.statusManager.isTaskFailed(depId)) {
+          if (!this.quiet) {
+            this.logTask(signature, `Optional dependency '${depId}' failed (continuing)`, chalk.yellow);
+          }
         }
       }
     }

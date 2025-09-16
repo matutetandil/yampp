@@ -28,6 +28,13 @@ export class AstTaskAdapter implements IAstTaskAdapter {
   }
 
   /**
+   * Get optional task dependencies (can fail without blocking execution)
+   */
+  public getOptionalDependencies(): string[] {
+    return this.astTask.optionalDependencies || [];
+  }
+
+  /**
    * Get dependency parameters
    */
   public getDependencyParams(): Record<string, any> {

@@ -8,6 +8,7 @@ export class Task {
   private readonly _name: string;
   private readonly _modifiers: Set<string>;
   private readonly _dependencies: string[];
+  private readonly _optionalDependencies: string[];
   private readonly _commands: string[];
   private readonly _lineNumber: number | null;
   private readonly _parameters: Parameter[];
@@ -29,6 +30,7 @@ export class Task {
       name,
       modifiers = [],
       dependencies = [],
+      optionalDependencies = [],
       commands = [],
       lineNumber = null,
       parameters = [],
@@ -45,6 +47,7 @@ export class Task {
     this._name = name;
     this._modifiers = new Set(modifiers);
     this._dependencies = dependencies;
+    this._optionalDependencies = optionalDependencies;
     this._commands = commands;
     this._lineNumber = lineNumber;
     this._status = 'pending';
@@ -72,6 +75,10 @@ export class Task {
 
   public getDependencies(): string[] {
     return this._dependencies;
+  }
+
+  public getOptionalDependencies(): string[] {
+    return this._optionalDependencies;
   }
 
   public getCommands(): string[] {
@@ -197,6 +204,7 @@ export class Task {
     name: string;
     modifiers: string[];
     dependencies: string[];
+    optionalDependencies: string[];
     commands: string[];
     parameters: Parameter[];
     dependencyParams: Record<string, Parameter[]>;
@@ -206,6 +214,7 @@ export class Task {
       name: this._name,
       modifiers: Array.from(this._modifiers),
       dependencies: this._dependencies,
+      optionalDependencies: this._optionalDependencies,
       commands: this._commands,
       parameters: this._parameters,
       dependencyParams: this._dependencyParams,

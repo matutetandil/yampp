@@ -13,6 +13,9 @@ export interface TaskConstructorOptions {
   /** Task dependencies */
   dependencies?: string[];
   
+  /** Optional task dependencies (can fail without blocking execution) */
+  optionalDependencies?: string[];
+  
   /** Task commands */
   commands?: string[];
   
