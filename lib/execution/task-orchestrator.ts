@@ -687,18 +687,24 @@ export class TaskOrchestrator {
       return;
     }
     
-    // Create and execute the called task instance
-    const taskInstance: TaskInstance = {
-      id: callId,
+    // Create a TaskCall and use the same execution flow as normal task execution
+    // This ensures dependencies are properly resolved and executed
+    const taskCall: TaskCall = {
+      type: 'call',
       taskName: call.taskName,
-      task: calledTask,
-      parameters: finalParams,
-      signature: finalParams.length > 0 ? `${call.taskName}(${finalParams.join(', ')})` : call.taskName
+      parameters: finalParams
     };
     
-    const callPromise = this.executeTaskInstance(taskInstance, taskPromises, limit, serialLimit);
-    taskPromises.set(callId, callPromise);
+    // Use the same dependency resolution system as normal execution
+    const executionPlan = await this.buildExecutionPlan([taskCall]);
     
-    await callPromise;
+    // Save current state to restore later
+    const originalTaskPromises = new Map(taskPromises);
+    
+    // Execute using the normal flow which handles dependencies correctly
+    await this.execute(executionPlan, [taskCall]);
+    
+    // Mark this call as completed in the original taskPromises map
+    taskPromises.set(callId, Promise.resolve());
   }
 }
