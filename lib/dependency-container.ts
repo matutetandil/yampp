@@ -5,6 +5,7 @@ import { TaskGraph, Task } from './models/index.js';
 import { StateManager } from './state.js';
 import { FileWatcher } from './file-watcher.js';
 import { ClaudeOutputManager } from './claude-output-manager.js';
+import { OutputManager } from './output/types/output-manager.js';
 import { InputManager } from './input-manager.js';
 import { InternalFunctionRegistry } from './internal-functions/registry.js';
 import { ShellContentManager } from './shell-content/shell-content-manager.js';
@@ -165,7 +166,7 @@ export class EnhancedDependencyContainer {
     this.factories.set('stateManager', () => this._createStateManager());
     this.factories.set('fileWatcher', () => this._createFileWatcher());
     this.factories.set('outputManager', (options: IRunnerOptions) => this._createOutputManager(options));
-    this.factories.set('inputManager', (options: IRunnerOptions, outputManager: ClaudeOutputManager) => this._createInputManager(options, outputManager));
+    this.factories.set('inputManager', (options: IRunnerOptions, outputManager: OutputManager) => this._createInputManager(options, outputManager));
     this.factories.set('taskGraph', (tasks: ITaskMap) => this._createTaskGraph(tasks));
     this.factories.set('taskColors', (tasks: ITaskMap) => this._createTaskColors(tasks));
     this.factories.set('internalFunctionRegistry', (runner: any) => this._createInternalFunctionRegistry(runner));
@@ -186,7 +187,7 @@ export class EnhancedDependencyContainer {
     return new FileWatcher();
   }
 
-  private _createOutputManager(options: IRunnerOptions): ClaudeOutputManager {
+  private _createOutputManager(options: IRunnerOptions): OutputManager {
     return new ClaudeOutputManager({
       quiet: options.quiet || false,
       verbose: options.verbose || false,
@@ -195,7 +196,7 @@ export class EnhancedDependencyContainer {
     });
   }
 
-  private _createInputManager(options: IRunnerOptions, outputManager: ClaudeOutputManager): InputManager {
+  private _createInputManager(options: IRunnerOptions, outputManager: OutputManager): InputManager {
     return new InputManager({
       overrides: (options as any).inputOverrides || new Map(),
       dryRun: Boolean(options.dryRun),

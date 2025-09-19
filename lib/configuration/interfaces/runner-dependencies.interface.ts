@@ -11,7 +11,7 @@ import { IInternalFunctionRegistry } from '../../internal-functions/internal-fun
 
 // Infrastructure imports
 import { FileWatcher } from '../../file-watcher.js';
-import { ClaudeOutputManager } from '../../claude-output-manager.js';
+import { OutputManager } from '../../output/types/output-manager.js';
 import { InputManager } from '../../input-manager.js';
 import { ShellContentManager } from '../../shell-content/shell-content-manager.js';
 import { CommandExecutor } from '../../execution/command-executor.js';
@@ -34,7 +34,7 @@ export interface IRunnerDependencies {
   taskGraph: ITaskGraph;
   stateManager: IStateManager;
   fileWatcher: FileWatcher;
-  outputManager: ClaudeOutputManager;
+  outputManager: OutputManager;
   inputManager: InputManager;
   taskColors: ITaskColorMap;
 

@@ -28,7 +28,7 @@ import { IRunnerConfigurator } from './configuration/interfaces/runner-configura
 
 // Infrastructure imports
 import { FileWatcher } from './file-watcher.js';
-import { ClaudeOutputManager } from './claude-output-manager.js';
+import { OutputManager } from './output/types/output-manager.js';
 import { InputManager } from './input-manager.js';
 import { RunnerConfig } from './config/runner-config.js';
 
@@ -53,7 +53,7 @@ export class Runner implements IRunnerConfigurator {
   private readonly graph: ITaskGraph;
   private readonly state: IStateManager;
   private readonly fileWatcher: FileWatcher;
-  private readonly outputManager: ClaudeOutputManager;
+  private readonly outputManager: OutputManager;
   private readonly inputManager: InputManager;
   
   // Components created through factory pattern (circular dependencies)

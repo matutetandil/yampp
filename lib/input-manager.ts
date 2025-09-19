@@ -3,7 +3,7 @@ import chalk from 'chalk';
 import { promisify } from 'util';
 import { InputManager as IInputManager } from './core/types/input-manager.js';
 import { InputManagerOptions } from './core/types/input-manager-options.js';
-import { ClaudeOutputManager } from './claude-output-manager.js';
+import { OutputManager } from './output/types/output-manager.js';
 
 export class InputManager implements IInputManager {
   private readonly overrides: Map<string, string>;
@@ -11,7 +11,7 @@ export class InputManager implements IInputManager {
   private readonly nonInteractive: boolean;
   private readonly dryRun: boolean;
   private readonly plan: boolean;
-  private readonly outputManager?: ClaudeOutputManager | undefined;
+  private readonly outputManager?: OutputManager | undefined;
 
   constructor(options: InputManagerOptions = {}) {
     this.overrides = options.overrides || new Map();
