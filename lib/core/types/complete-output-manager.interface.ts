@@ -13,8 +13,3 @@ export interface ICompleteOutputManager extends ITaskLifecycleManager,
   IOutputLogger,
   IDisplayController {
 }
-
-// Re-export segregated interfaces for direct client usage
-export { ITaskLifecycleManager } from '../../tasks/interfaces/task-lifecycle-manager.interface.js';
-export { IOutputLogger } from '../../output/interfaces/output-logger.interface.js';
-export { IDisplayController } from '../../output/interfaces/display-controller.interface.js';

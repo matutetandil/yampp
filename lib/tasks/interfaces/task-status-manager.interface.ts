@@ -6,18 +6,12 @@ import { ITaskExecutionAnalytics } from './task-execution-analytics.interface.js
 /**
  * Complete TaskStatusManager interface
  * Composed of segregated interfaces following Interface Segregation Principle
- * 
+ *
  * Clients can depend on specific sub-interfaces instead of this complete interface
  * to follow ISP more strictly
  */
-export interface ITaskStatusManager extends 
+export interface ITaskStatusManager extends
   ITaskStatusWriter,
   ITaskStatusReader,
   ITaskCollectionReader,
   ITaskExecutionAnalytics {}
-
-// Re-export segregated interfaces for direct client usage
-export { ITaskStatusWriter } from './task-status-writer.interface.js';
-export { ITaskStatusReader } from './task-status-reader.interface.js';  
-export { ITaskCollectionReader } from './task-collection-reader.interface.js';
-export { ITaskExecutionAnalytics } from './task-execution-analytics.interface.js';

@@ -14,11 +14,7 @@ import type { AstNode } from './ast/types/ast-node.js';
 import { AstTaskAdapter } from './ast/adapters/ast-task-adapter.js';
 import type { IAstTaskAdapter } from './ast/interfaces/ast-task-adapter.interface.js';
 import { parse as peggyParse } from './yamfile-parser.js';
-
-export interface ParseOptions {
-  profiles?: string[];
-  filePath?: string;
-}
+import type { ParseOptions } from './parser/types/parse-options.interface.js';
 
 export class Parser {
   private readonly astConverter: AstToTaskConverter;
