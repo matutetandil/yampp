@@ -1,6 +1,6 @@
 # Yam++ (Yet Another Modern Task Runner)
 
-![Version](https://img.shields.io/badge/version-0.12.2-blue)
+![Version](https://img.shields.io/badge/version-0.12.3-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)
 ![npm](https://img.shields.io/badge/npm-package-red)
@@ -9,7 +9,7 @@
 
 A modern, concurrent, declarative task runner with enterprise-grade architecture and native cross-platform shell execution. The unique task runner that combines the power of Make with cross-platform compatibility, native shell integration (bash/PowerShell/cmd), professional interface, and **perfect SOLID design principles**.
 
-> **🏗️ v0.12.2 Enterprise Architecture** - Achieved 97.8% SOLID compliance (Grade A) with enhanced SRP (99%), improved DIP (95%), and new infrastructure interfaces. Added IFileWatcher, ICommandExecutor, ITaskOrchestrator, and IPlatformDetector for world-class architectural quality.
+> **🪝 v0.12.3 Hook System** - Complete lifecycle hook implementation with automatic execution. Task naming convention: `before_X`, `after_X`, `finally_X` automatically execute around task `X`. Global `before_all`/`after_all` hooks. Robust validation prevents orphaned hooks. Perfect integration with DAG and concurrent execution.
 
 ## 🚀 Quick Start
 
@@ -43,6 +43,7 @@ yampp --list        # List all tasks
 
 ## 🌟 Key Features
 
+- **🪝 Lifecycle Hook System** - Automatic `before_X`, `after_X`, `finally_X` execution around tasks. Global `before_all`/`after_all` hooks run once per session
 - **🌍 Cross-Platform Native Shell** - Full bash/PowerShell/cmd execution with platform annotations (`@linux @mac @windows`)
 - **⚡ Concurrent by Default** - Parallel task execution using worker threads
 - **🎨 Professional Interface** - Real-time task blocks with animated spinners (Claude Code interface)
@@ -255,6 +256,85 @@ taskname {
     var varname = __input "Prompt:" "default"
     __call other_task($varname)
 }
+```
+
+## 🪝 Hook System
+
+The Hook System enables automatic lifecycle management for tasks using simple naming conventions. Hooks execute automatically when their target tasks run, providing clean setup, teardown, and error handling.
+
+### Hook Types
+
+#### Task-Specific Hooks
+```yamfile
+# Hooks for 'setup' task
+before_setup {
+    echo "Preparing for setup..."
+    mkdir -p dist tmp
+}
+
+setup {
+    echo "Running setup..."
+    npm install
+}
+
+after_setup {
+    echo "Setup completed successfully!"
+}
+
+finally_setup {
+    echo "Cleanup after setup (always runs)"
+    rm -rf tmp
+}
+```
+
+#### Global Hooks
+```yamfile
+# Run once before any task execution
+before_all {
+    echo "🚀 Starting build process..."
+    export BUILD_ID=$(date +%s)
+}
+
+# Run once after all tasks complete
+after_all {
+    echo "✅ Build process completed!"
+    echo "Final Build ID: $BUILD_ID"
+}
+```
+
+### Automatic Execution
+
+When you run a task, its hooks execute automatically:
+
+```bash
+yampp setup
+# Executes: before_all → before_setup → setup → after_setup → finally_setup → after_all
+
+yampp build  # (if build needs setup)
+# Executes: before_all → before_setup → setup → after_setup → finally_setup →
+#           before_build → build → after_build → after_all
+```
+
+### Hook Features
+
+- **🔄 Automatic Integration**: No configuration needed - hooks auto-detect based on task names
+- **🎯 Dependency Aware**: Hooks respect task dependencies and execute in correct order
+- **🛡️ Validation**: Orphaned hooks (e.g., `before_missing` without `missing` task) are detected and prevented
+- **⚡ Concurrent Safe**: Hooks work with parallel execution and respect serial modifiers
+- **🏷️ Modifier Support**: Hooks can use modifiers like `always: before_build`
+- **🌍 Global Scope**: `before_all`/`after_all` execute once per session, not per task
+
+### Hook Execution Order
+
+For complex dependency chains:
+```
+before_all → before_X → X → after_X → finally_X → ... → after_all
+```
+
+Global hooks run only once even with multiple tasks:
+```bash
+yampp task1 task2 task3
+# before_all runs once, after_all runs once at the end
 ```
 
 ## 🔧 IDE Support

@@ -5,6 +5,7 @@ import { ValidationWarning } from './validation/types/validation-warning.interfa
 import { ValidationResult } from './validation/types/validation-result.interface.js';
 import { IModifierRegistry } from './modifiers/interfaces/modifier-registry.interface.js';
 import { ModifierRegistry } from './modifiers/modifier-registry.js';
+import { HookValidator } from './hooks/simple/hook-validator.js';
 
 export class Validator {
   private readonly modifierRegistry: IModifierRegistry;
@@ -41,7 +42,13 @@ export class Validator {
     } catch (error) {
       this.addError((error as Error).message, null, null);
     }
-    
+
+    // Validate hook relationships
+    const hookErrors = HookValidator.validateHooks(tasks);
+    for (const hookError of hookErrors) {
+      this.addError(hookError, null, null);
+    }
+
     return {
       valid: this.errors.length === 0,
       errors: this.errors,

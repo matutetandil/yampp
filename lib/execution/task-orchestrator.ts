@@ -17,6 +17,8 @@ import { ShellContentManager } from '../shell/types/shell-content-manager.js';
 import { ExecuteInternalFunctionCallback } from '../internal-functions/execute-internal-function-callback.js';
 import { VariableSubstitutionStatic } from '../core/types/variable-substitution.js';
 import { TaskModifiers } from '../core/constants/modifiers.constants.js';
+import { HookDetector } from '../hooks/simple/hook-detector.js';
+import { HookValidator } from '../hooks/simple/hook-validator.js';
 
 /**
  * TaskOrchestrator handles task execution coordination and dependency management
@@ -161,17 +163,29 @@ export class TaskOrchestrator {
 
   /**
    * Build execution plan from task calls
-   * Creates topologically sorted list of task instances 
+   * Creates topologically sorted list of task instances
    */
   public async buildExecutionPlan(taskCalls: TaskCall[]): Promise<TaskInstance[]> {
     const plan: TaskInstance[] = [];
     const visited = new Set<string>();
     const processing = new Set<string>();
-    
+
+    // AUTO-INJECT GLOBAL HOOKS: Add before_all if it exists
+    const globalHooks = HookValidator.getGlobalHooks(this.tasks);
+    if (globalHooks.before_all) {
+      await this.collectTaskInstances(globalHooks.before_all, [], plan, visited, processing);
+    }
+
+    // Process all user-requested tasks
     for (const taskCall of taskCalls) {
       await this.collectTaskInstances(taskCall.taskName, taskCall.parameters || [], plan, visited, processing);
     }
-    
+
+    // AUTO-INJECT GLOBAL HOOKS: Add after_all if it exists
+    if (globalHooks.after_all) {
+      await this.collectTaskInstances(globalHooks.after_all, [], plan, visited, processing);
+    }
+
     return plan;
   }
 
@@ -179,37 +193,37 @@ export class TaskOrchestrator {
    * Recursively collect task instances with dependency resolution
    */
   private async collectTaskInstances(
-    taskName: string, 
-    parameters: any[], 
-    plan: TaskInstance[], 
-    visited: Set<string>, 
+    taskName: string,
+    parameters: any[],
+    plan: TaskInstance[],
+    visited: Set<string>,
     processing: Set<string>
   ): Promise<void> {
     const task = this.tasks.get(taskName);
     if (!task) return;
-    
+
     const instanceId = `${taskName}(${parameters.join(',')})`;
-    
+
     if (processing.has(instanceId)) {
       throw new Error(`Circular dependency detected involving ${instanceId}`);
     }
-    
+
     if (visited.has(instanceId)) {
       return;
     }
-    
+
     processing.add(instanceId);
-    
+
     // Process dependencies first (topological order) - regular dependencies
     const dependencies = task.getDependencies ? task.getDependencies() : [];
     for (const depName of dependencies) {
       const dependencyParams = task.getDependencyParams ? task.getDependencyParams() : {};
       const depParams = (dependencyParams[depName] || []);
-      
+
       // Ensure depParams is an array before mapping
       const safeDepParams = Array.isArray(depParams) ? depParams : [];
-      
-      // Resolve parameter references 
+
+      // Resolve parameter references
       const resolvedParams = safeDepParams.map((param: any) => {
         if (param.type === 'variable') {
           // Variable reference: look up in task parameters
@@ -225,20 +239,20 @@ export class TaskOrchestrator {
           return param.value;
         }
       });
-      
+
       await this.collectTaskInstances(depName, resolvedParams, plan, visited, processing);
     }
-    
+
     // Process optional dependencies - they are collected but their failures won't block execution
     const optionalDependencies = task.getOptionalDependencies ? task.getOptionalDependencies() : [];
     for (const depName of optionalDependencies) {
       const dependencyParams = task.getDependencyParams ? task.getDependencyParams() : {};
       const depParams = (dependencyParams[depName] || []);
-      
+
       // Ensure depParams is an array before mapping
       const safeDepParams = Array.isArray(depParams) ? depParams : [];
-      
-      // Resolve parameter references 
+
+      // Resolve parameter references
       const resolvedParams = safeDepParams.map((param: any) => {
         if (param.type === 'variable') {
           // Variable reference: look up in task parameters
@@ -254,10 +268,17 @@ export class TaskOrchestrator {
           return param.value;
         }
       });
-      
+
       await this.collectTaskInstances(depName, resolvedParams, plan, visited, processing);
     }
-    
+
+    // AUTO-INJECT HOOKS: Add before hooks for this task
+    const hooks = HookValidator.getHooksForTask(taskName, this.tasks);
+
+    if (hooks.before) {
+      await this.collectTaskInstances(hooks.before, [], plan, visited, processing);
+    }
+
     // Add this task instance with properly prepared task (variables processed)
     const preparedTask = this.prepareTaskVariables(task, parameters);
     const taskInstance: TaskInstance = {
@@ -267,10 +288,19 @@ export class TaskOrchestrator {
       parameters: parameters,
       signature: parameters.length > 0 ? `${taskName}(${parameters.join(', ')})` : taskName
     };
-    
+
     plan.push(taskInstance);
     visited.add(instanceId);
     processing.delete(instanceId);
+
+    // AUTO-INJECT HOOKS: Add after and finally hooks for this task
+    if (hooks.after) {
+      await this.collectTaskInstances(hooks.after, [], plan, visited, processing);
+    }
+
+    if (hooks.finally) {
+      await this.collectTaskInstances(hooks.finally, [], plan, visited, processing);
+    }
   }
 
   /**
