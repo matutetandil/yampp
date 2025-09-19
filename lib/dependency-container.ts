@@ -4,6 +4,7 @@ import chalk from 'chalk';
 import { TaskGraph, Task } from './models/index.js';
 import { StateManager } from './state.js';
 import { FileWatcher } from './file-watcher.js';
+import { IFileWatcher } from './core/types/file-watcher.interface.js';
 import { ClaudeOutputManager } from './claude-output-manager.js';
 import { OutputManager } from './output/types/output-manager.js';
 import { InputManager } from './input-manager.js';
@@ -11,7 +12,9 @@ import { InternalFunctionRegistry } from './internal-functions/registry.js';
 import { ShellContentManager } from './shell-content/shell-content-manager.js';
 import { platformDetector } from './platform/index.js';
 import { CommandExecutor } from './execution/command-executor.js';
+import { ICommandExecutor } from './execution/interfaces/command-executor.interface.js';
 import { TaskOrchestrator } from './execution/task-orchestrator.js';
+import { ITaskOrchestrator } from './execution/interfaces/task-orchestrator.interface.js';
 import { ExecuteInternalFunctionCallback } from './internal-functions/execute-internal-function-callback.js';
 
 // Service implementations
@@ -134,10 +137,10 @@ export class EnhancedDependencyContainer {
           stateManager,
           fileWatcher,
           tasks,
-          { 
-            maxJobs: options.maxJobs || 10, 
-            quiet: options.quiet || false, 
-            force: options.force || false 
+          {
+            maxJobs: options.maxJobs || 10,
+            quiet: options.quiet || false,
+            force: options.force || false
           }
         );
         return taskOrchestrator;

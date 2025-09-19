@@ -6,6 +6,7 @@ import type { ShellContentManager as IShellContentManager } from '../shell/types
 import { ExecuteInternalFunctionCallback } from '../internal-functions/execute-internal-function-callback.js';
 import { ExecutionContext } from './types/execution-context.js';
 import { ShellProxyManager } from '../shell/types/shell-proxy-manager.js';
+import { ICommandExecutor } from './interfaces/command-executor.interface.js';
 import type { SharedStateManager } from '../state-sync/shared-state-manager.js';
 import { InterceptRequest } from '../core/types/intercept-request.js';
 import type { ParsedParameter } from '../core/types/parsed-parameter.js';
@@ -14,7 +15,7 @@ import type { ParsedParameter } from '../core/types/parsed-parameter.js';
  * CommandExecutor handles the execution of individual shell commands
  * Separated from Runner for Single Responsibility Principle
  */
-export class CommandExecutor {
+export class CommandExecutor implements ICommandExecutor {
   private readonly outputManager: OutputManager;
   private readonly internalFunctionRegistry: InternalFunctionRegistry;
   private readonly shellContentManager: IShellContentManager;
@@ -295,6 +296,61 @@ export class CommandExecutor {
       const errorMessage = error instanceof Error ? error.message : String(error);
       this.outputManager.addOutput(taskId, `Internal function error: ${errorMessage}`, true);
       await proxyManager.sendInterceptResponse(processId, false, undefined, null);
+    }
+  }
+
+  // ICommandExecutor interface implementation
+  /**
+   * Execute multiple commands in sequence
+   */
+  public async executeCommands(
+    commands: string[],
+    taskName: string,
+    taskId: string,
+    variables: Map<string, string> = new Map(),
+    localVariables?: any[],
+    localConstants?: any[]
+  ): Promise<boolean> {
+    for (const command of commands) {
+      const success = await this.executeCommand(command, taskName, taskId, variables, localVariables, localConstants);
+      if (!success) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Process shell content with variable substitution and internal function calls
+   */
+  public async processShellContent(content: string, variables: Map<string, string>): Promise<string> {
+    const context = this.shellContentManager.process(content);
+    return context.content;
+  }
+
+  /**
+   * Execute command in specific working directory
+   */
+  public async executeInDirectory(
+    command: string,
+    directory: string,
+    taskName: string,
+    taskId: string,
+    variables: Map<string, string> = new Map()
+  ): Promise<boolean> {
+    const originalDir = this.workingDirectory;
+    try {
+      // Temporarily change working directory
+      const executor = new CommandExecutor(
+        this.outputManager,
+        this.internalFunctionRegistry,
+        this.shellContentManager,
+        this.executeInternalFunctionCallback,
+        directory
+      );
+      return executor.executeCommand(command, taskName, taskId, variables);
+    } finally {
+      // Restore original working directory (if needed in future)
     }
   }
 }

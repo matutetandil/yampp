@@ -3,8 +3,9 @@ import { glob } from 'glob';
 import { resolve } from 'path';
 import { FileCacheEntry } from './cache/types/file-cache-entry.js';
 import { FileExistenceResult } from './core/types/file-existence-result.js';
+import { IFileWatcher } from './core/types/file-watcher.interface.js';
 
-export class FileWatcher {
+export class FileWatcher implements IFileWatcher {
   private readonly fileCache: Map<string, FileCacheEntry>;
 
   constructor() {
@@ -172,5 +173,30 @@ export class FileWatcher {
    */
   public clearCache(): void {
     this.fileCache.clear();
+  }
+
+  // IFileWatcher interface implementation
+  /**
+   * Expand glob patterns to actual file paths
+   */
+  public async expandGlobs(patterns: string[]): Promise<string[]> {
+    const allFiles: string[] = [];
+    for (const pattern of patterns) {
+      try {
+        const expandedFiles = await this.expandPattern(pattern);
+        allFiles.push(...expandedFiles);
+      } catch (error) {
+        // Skip invalid patterns
+        console.warn(`Warning: Could not expand pattern ${pattern}`);
+      }
+    }
+    return [...new Set(allFiles)]; // Remove duplicates
+  }
+
+  /**
+   * Check existence of multiple files (alias for checkFilesExist)
+   */
+  public async checkFileExistence(filePaths: string[]): Promise<FileExistenceResult> {
+    return this.checkFilesExist(filePaths);
   }
 }
