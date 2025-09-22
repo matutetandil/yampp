@@ -1,6 +1,6 @@
 # Yam++ (Yet Another Modern Task Runner)
 
-![Version](https://img.shields.io/badge/version-0.12.4-blue)
+![Version](https://img.shields.io/badge/version-0.12.5-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)
 ![npm](https://img.shields.io/badge/npm-package-red)
@@ -377,13 +377,25 @@ Supports:
 
 ### Project Structure
 
+This is a pnpm workspace containing multiple packages:
+
 ```
 yampp/
-├── bin/             # CLI entry point
-├── lib/             # Core modules
-├── grammar/         # Peggy parser grammar
-├── examples/        # Example Yamfiles
-└── docs/           # Documentation
+├── packages/
+│   ├── yampp/           # Core yampp task runner
+│   │   ├── bin/         # CLI entry point
+│   │   ├── lib/         # Core modules
+│   │   ├── examples/    # Example Yamfiles
+│   │   └── docs/        # Documentation
+│   └── plugin-types/    # SOLID-compliant TypeScript types for plugins
+│       └── src/
+│           ├── core/           # Core plugin interfaces
+│           ├── capabilities/   # Plugin capability interfaces
+│           ├── abstractions/   # Service abstractions
+│           ├── dto/           # Data transfer objects
+│           └── factories/     # Factory interfaces
+├── pnpm-workspace.yaml  # Workspace configuration
+└── package.json         # Root workspace package.json
 ```
 
 ### Building from Source
@@ -393,17 +405,47 @@ yampp/
 git clone https://github.com/yourusername/yampp.git
 cd yampp
 
-# Install dependencies
+# Install dependencies (installs all workspace packages)
 pnpm install
+
+# Build all packages
+pnpm run build
 
 # Run tests
 pnpm test
 
-# Build
-pnpm run build
+# Install yampp globally from workspace
+cd packages/yampp && pnpm link --global
+```
 
-# Install locally
-pnpm link --global
+### Plugin Development
+
+For creating yampp plugins, install the lightweight types package:
+
+```bash
+# Install plugin types (lightweight, ~5KB)
+pnpm add -D @yampp/plugin-types
+
+# Create your plugin
+import type { YamppPlugin } from '@yampp/plugin-types';
+
+const myPlugin: YamppPlugin = {
+  name: 'my-plugin',
+  version: '1.0.0',
+  async initialize(context) {
+    // Plugin initialization
+  },
+  getFunctions() {
+    return {
+      myFunction: async (args, context) => {
+        // Function implementation
+        return 'result';
+      }
+    };
+  }
+};
+
+export default myPlugin;
 ```
 
 ### Running Tests

@@ -1,59 +1,19 @@
 {
-  "name": "@yampp/yampp",
-  "version": "0.12.4",
-  "description": "Yet Another Modern Task Runner - Enterprise-grade concurrent task runner with SOLID architecture and native cross-platform shell execution",
-  "type": "module",
-  "main": "dist/index.js",
-  "bin": {
-    "yampp": "./bin/yampp.js"
-  },
+  "name": "yampp-monorepo",
+  "private": true,
+  "version": "0.12.5",
+  "description": "Yampp monorepo containing core and plugin types",
   "scripts": {
-    "build:peggy": "peggy --format es -o lib/yamfile-parser.js lib/yamfile.pegjs",
-    "build:tsc": "tsc",
-    "build": "pnpm run build:peggy && pnpm run build:tsc",
-    "clean": "rm -rf dist",
-    "rebuild": "pnpm run clean && pnpm run build",
-    "test": "node --test",
-    "lint": "eslint .",
-    "format": "prettier --write .",
-    "prepare": "pnpm run build",
-    "prepublishOnly": "pnpm run build"
-  },
-  "keywords": [
-    "task-runner",
-    "build-tool",
-    "concurrent",
-    "dsl",
-    "make",
-    "just",
-    "parallel"
-  ],
-  "author": "Matias Denda <matutetandil@gmail.com>",
-  "license": "MIT",
-  "engines": {
-    "node": ">=18.0.0"
-  },
-  "dependencies": {
-    "chalk": "^5.3.0",
-    "commander": "^12.0.0",
-    "glob": "^10.3.10",
-    "js-yaml": "^4.1.0",
-    "p-limit": "^5.0.0",
-    "peggy": "^5.0.6",
-    "strip-ansi": "^7.1.0"
+    "build": "pnpm -r run build",
+    "test": "pnpm -r run test",
+    "lint": "pnpm -r run lint",
+    "format": "pnpm -r run format"
   },
   "devDependencies": {
-    "@types/node": "^20.11.0",
-    "eslint": "^8.56.0",
-    "prettier": "^3.2.4",
     "typescript": "^5.3.0"
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/matutetandil/yampp.git"
-  },
-  "bugs": {
-    "url": "https://github.com/matutetandil/yampp/issues"
-  },
-  "homepage": "https://github.com/matutetandil/yampp#readme"
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=9.0.0"
+  }
 }

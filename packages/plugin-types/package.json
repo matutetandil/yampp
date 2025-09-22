@@ -1,0 +1,47 @@
+{
+  "name": "@yampp/plugin-types",
+  "version": "0.1.0",
+  "description": "TypeScript type definitions for Yampp plugins",
+  "type": "module",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "files": [
+    "index.d.ts",
+    "index.js"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist"
+  },
+  "keywords": [
+    "yampp",
+    "plugin",
+    "types",
+    "typescript"
+  ],
+  "author": "Matias Denda <matutetandil@gmail.com>",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.0"
+  },
+  "peerDependencies": {
+    "typescript": ">=4.0.0"
+  },
+  "peerDependenciesMeta": {
+    "typescript": {
+      "optional": true
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/matutetandil/yampp.git",
+    "directory": "packages/plugin-types"
+  },
+  "bugs": {
+    "url": "https://github.com/matutetandil/yampp/issues"
+  },
+  "homepage": "https://github.com/matutetandil/yampp#readme"
+}

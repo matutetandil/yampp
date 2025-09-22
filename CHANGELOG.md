@@ -5,6 +5,61 @@ All notable changes to Yam++ (Yet Another Modern Task Runner) will be documented
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.12.5] - 2025-09-22
+
+### 🏗️ MINOR RELEASE - Workspace Architecture & Plugin Types Foundation
+
+**Architectural transformation** - Converted to pnpm monorepo workspace and created SOLID-compliant plugin type definitions, laying the foundation for the upcoming plugin system.
+
+#### ✨ New Features
+
+**Workspace Architecture:**
+- **pnpm Workspace**: Restructured project as monorepo with multiple packages
+- **@yampp/plugin-types**: New lightweight package (~5KB) with SOLID-compliant type definitions
+- **Separated Concerns**: Core yampp and plugin types are now separate packages
+
+**Plugin Types Foundation:**
+- **SOLID Architecture**: Each interface follows Single Responsibility Principle
+- **Interface Segregation**: Plugin capabilities are separate interfaces (IFunctionProvider, IRuntimeProvider, etc.)
+- **Dependency Inversion**: Plugins depend on abstractions (ILogger, IFileSystem, etc.)
+- **Extensible Design**: Ready for plugin system implementation
+
+#### 🏗️ Technical Implementation
+
+**Package Structure:**
+```
+packages/
+├── yampp/           # Core task runner
+└── plugin-types/    # SOLID plugin type definitions
+    └── src/
+        ├── core/           # Core plugin interfaces
+        ├── capabilities/   # Plugin capability interfaces
+        ├── abstractions/   # Service abstractions
+        ├── dto/           # Data transfer objects
+        └── factories/     # Factory interfaces
+```
+
+**Plugin Developer Experience:**
+- Install only types: `pnpm add -D @yampp/plugin-types`
+- Full TypeScript support with IntelliSense
+- Zero runtime dependencies
+
+#### 📚 Documentation
+- Updated README.md with workspace information and plugin development guide
+- Added building from source instructions for workspace
+- Plugin development example with type usage
+
+#### 🔧 Changed
+- Converted from single package to pnpm workspace
+- Moved core yampp to `packages/yampp/`
+- Created `packages/plugin-types/` for plugin development
+
+#### 🏗️ Technical Details
+- pnpm workspace configuration
+- TypeScript with strict type checking
+- SOLID principles compliance in all interfaces
+- Preparation for plugin system implementation
+
 ## [0.12.4] - 2025-09-22
 
 ### 📦 PATCH RELEASE - Migration to pnpm Package Manager
