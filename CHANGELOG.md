@@ -5,6 +5,36 @@ All notable changes to Yam++ (Yet Another Modern Task Runner) will be documented
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.12.4] - 2025-09-22
+
+### 📦 PATCH RELEASE - Migration to pnpm Package Manager
+
+**Development infrastructure upgrade** - Migrated from npm to pnpm for better performance, disk efficiency, and preparation for upcoming plugin system architecture.
+
+#### 🔧 Changed
+
+**Package Management:**
+- **Migrated to pnpm**: Replaced npm with pnpm as the package manager
+- **Updated scripts**: All npm scripts in `package.json` now use pnpm
+- **Lock file**: Replaced `package-lock.json` with `pnpm-lock.yaml`
+- **Documentation**: Updated all installation and development instructions
+
+**Benefits:**
+- **⚡ Faster installations**: Parallel package installation
+- **💾 Disk efficiency**: Hard links prevent duplicate packages
+- **🔒 Stricter dependencies**: No phantom dependencies allowed
+- **🔌 Plugin ready**: pnpm's store ideal for future plugin system
+
+#### 📚 Documentation
+- Updated README.md installation instructions to use pnpm
+- Updated CLAUDE.md development workflow for pnpm
+- Updated all build and test commands
+
+#### 🏗️ Technical Details
+- pnpm version: 9.7.1+
+- No breaking changes for end users
+- Fully backward compatible
+
 ## [0.12.3] - 2025-09-19
 
 ### 🪝 MINOR RELEASE - Complete Hook System Implementation

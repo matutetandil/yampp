@@ -1,6 +1,6 @@
 # Yam++ (Yet Another Modern Task Runner)
 
-![Version](https://img.shields.io/badge/version-0.12.3-blue)
+![Version](https://img.shields.io/badge/version-0.12.4-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)
 ![npm](https://img.shields.io/badge/npm-package-red)
@@ -15,7 +15,7 @@ A modern, concurrent, declarative task runner with enterprise-grade architecture
 
 ```bash
 # Install globally
-npm install -g @yampp/yampp
+pnpm add -g @yampp/yampp
 
 # Create a Yamfile in your project
 cat > Yamfile << 'EOF'
@@ -151,10 +151,10 @@ always serial critical: backup {
 
 ## 🛠️ Installation
 
-### From npm
+### From npm registry
 
 ```bash
-npm install -g @yampp/yampp
+pnpm add -g @yampp/yampp
 ```
 
 ### From Source
@@ -162,8 +162,8 @@ npm install -g @yampp/yampp
 ```bash
 git clone https://github.com/yourusername/yampp.git
 cd yampp
-npm install
-npm install -g .
+pnpm install
+pnpm link --global
 ```
 
 ## 📖 Basic Usage
@@ -357,7 +357,7 @@ Automatically migrate from other task runners using [yampp-translator](https://g
 
 ```bash
 # Install translator
-npm install -g @yampp/translator
+pnpm add -g @yampp/translator
 
 # Translate existing files
 yampp-translator translate Makefile
@@ -394,25 +394,25 @@ git clone https://github.com/yourusername/yampp.git
 cd yampp
 
 # Install dependencies
-npm install
+pnpm install
 
 # Run tests
-npm test
+pnpm test
 
 # Build
-npm run build
+pnpm run build
 
 # Install locally
-npm install -g .
+pnpm link --global
 ```
 
 ### Running Tests
 
 ```bash
-npm test              # Run all tests
-npm run test:unit     # Unit tests only
-npm run test:e2e      # End-to-end tests
-npm run test:coverage # With coverage
+pnpm test              # Run all tests
+pnpm run test:unit     # Unit tests only
+pnpm run test:e2e      # End-to-end tests
+pnpm run test:coverage # With coverage
 ```
 
 ## 🤝 Contributing
