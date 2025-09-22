@@ -44,7 +44,9 @@ export class Parser {
       }
       
       // Convert merged AST to internal format
-      return this.convertAstToInternalFormat(finalAst, activeProfiles);
+      const parseResult = this.convertAstToInternalFormat(finalAst, activeProfiles);
+      parseResult.ast = finalAst;
+      return parseResult;
       
     } catch (error: any) {
       // Handle Peggy parse errors
@@ -176,7 +178,7 @@ export class Parser {
       tasks.set(task.getName(), task);
     }
     
-    return { tasks, globalVariables, globalConstants, globalEnvironmentVariables };
+    return { tasks, globalVariables, globalConstants, globalEnvironmentVariables, ast: {} as any };
   }
 
   /**

@@ -3,11 +3,10 @@
   "version": "0.1.0",
   "description": "TypeScript type definitions for Yampp plugins",
   "type": "module",
-  "main": "index.js",
-  "types": "index.d.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "files": [
-    "index.d.ts",
-    "index.js"
+    "dist"
   ],
   "scripts": {
     "build": "tsc",

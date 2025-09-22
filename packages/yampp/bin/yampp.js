@@ -7,7 +7,7 @@ import os from 'os';
 import chalk from 'chalk';
 import { parseArgs } from 'util';
 import { createRunner } from '../dist/runner-factory.js';
-import { Parser } from '../dist/parser.js';
+import { PluginAwareParser } from '../dist/plugin/index.js';
 import { Validator } from '../dist/validator.js';
 import { 
   CommandRegistry, 
@@ -196,7 +196,7 @@ async function main() {
     
     // Read and parse Yamfile
     const content = readFileSync(yamfile, 'utf-8');
-    const parser = new Parser();
+    const parser = new PluginAwareParser();
     const parseOptions = {
       profiles: args.values.profile || [],
       filePath: yamfile

@@ -55,6 +55,7 @@ yampp --list        # List all tasks
 - **🎛️ Inline Variables Anywhere** - Variables with internal functions work inside if/case/for blocks respecting control flow
 - **🎯 Parameterized Tasks** - Tasks with parameters and variable substitution
 - **🔌 Complete Ecosystem** - VS Code extension, IntelliJ plugin, and AI-powered migration tools
+- **🧩 Plugin System (Alpha)** - Revolutionary import-based plugin loading with Strategy Pattern resolvers. Support for npm packages, git repositories, HTTPS URLs, and local files with automatic resolution
 - **🏗️ Enterprise Architecture** - **98% SOLID compliance** with perfect ISP/SRP/OCP/LSP, extensible plugin system, registry patterns
 - **⚙️ Professional Configuration** - Fluent configuration API with Builder pattern and constants management
 - **🔧 Extensible Design** - Plugin architecture for internal functions, configurable modifier system, dynamic shell strategies
@@ -195,6 +196,56 @@ yampp --dry-run deploy # Enhanced analysis with time estimation
 yampp --plan deploy    # Show execution plan
 yampp --watch build    # Watch files and re-execute on changes (Ctrl+C twice to exit)
 ```
+
+## 🧩 Plugin System (Alpha)
+
+Yampp features a revolutionary plugin system with automatic import resolution using the Strategy Pattern. Plugins extend Yampp with custom functions, commands, and modifiers.
+
+### Plugin Import Syntax
+
+```yamfile
+// NPM packages
+import @yampp/docker-plugin@1.0.0
+import my-custom-plugin
+
+// Git repositories
+import git@github.com:yampp/docker-plugin
+import git@gitlab.com:user/plugin#main
+
+// HTTPS URLs
+import https://example.com/plugins/custom.tar.gz
+
+// Local files (for development)
+import file://./local-plugins/my-plugin
+import file:///absolute/path/to/plugin
+```
+
+### Using Plugin Functions
+
+```yamfile
+import @yampp/docker-plugin
+
+build {
+    // Call plugin functions with namespace
+    docker-plugin::build("myapp", "latest")
+    docker-plugin::push("myregistry/myapp:latest")
+}
+
+test {
+    docker-plugin::run("myapp:latest", "npm test")
+}
+```
+
+### Plugin Architecture
+
+The plugin system uses SOLID-compliant Strategy Pattern resolvers:
+
+- **NpmResolver**: Resolves and installs npm packages using pnpm
+- **GitResolver**: Clones git repositories with version/branch support
+- **HttpsResolver**: Downloads and extracts plugins from HTTPS URLs
+- **FileResolver**: Loads local plugins for development
+
+Each resolver implements `matches(importString)` for automatic detection and resolution.
 
 ### Yamfile Syntax
 

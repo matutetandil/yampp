@@ -88,6 +88,15 @@
       location: location()
     };
   }
+
+  function makeImport(source, version, location) {
+    return {
+      type: 'import',
+      source: source,
+      version: version || null,
+      location: location()
+    };
+  }
 }
 
 // ===== Main Rules =====
@@ -102,6 +111,7 @@ Yamfile
         platformBlocks: [],
         annotationBlocks: [],
         includes: [],
+        imports: [],
         defaultProfile: null
       };
       
@@ -121,6 +131,8 @@ Yamfile
           result.annotationBlocks.push(item);
         } else if (item.type === 'include') {
           result.includes.push(item);
+        } else if (item.type === 'import') {
+          result.imports.push(item);
         } else if (item.type === 'default_profile') {
           if (result.defaultProfile) {
             throw new Error(`Multiple default profile declarations found. Only one 'default' declaration is allowed per Yamfile.`);
@@ -133,7 +145,8 @@ Yamfile
     }
 
 Item
-  = Include
+  = Import
+  / Include
   / DefaultProfile
   / AnnotationBlock
   / PlatformBlock
@@ -324,6 +337,32 @@ Include
   = "include" _ filePath:StringLiteral _ Newline? {
       return makeInclude(filePath, location);
     }
+
+// ===== Import Statement =====
+
+Import
+  = "import" _ importString:ImportString _ Newline? {
+      return makeImport(importString, null, location);
+    }
+
+ImportString
+  = [^\r\n]+ { return text().trim(); }
+
+// Legacy import definitions - can be removed after migration
+
+VersionSpec
+  = "@" version:VersionString {
+      return version;
+    }
+  / "#" branch:BranchName {
+      return branch;
+    }
+
+VersionString
+  = [a-zA-Z0-9.-]+ { return text(); }
+
+BranchName
+  = [a-zA-Z0-9_/-]+ { return text(); }
 
 // ===== Task Body =====
 

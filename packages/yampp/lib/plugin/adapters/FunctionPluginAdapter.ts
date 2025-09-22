@@ -1,0 +1,152 @@
+import type { YamppPlugin, IFunctionProvider, IInternalFunction } from '@yampp/plugin-types';
+import type { IFunctionPlugin } from '../../internal-functions/interfaces/function-plugin.interface.js';
+import { BaseInternalFunction } from '../../internal-functions/base-function.js';
+import { FunctionMetadata } from '../../core/function-metadata.js';
+
+/**
+ * Adapter to integrate YamppPlugin with existing FunctionPluginRegistry
+ * Single Responsibility: Bridge between new plugin system and existing function registry
+ */
+export class FunctionPluginAdapter implements IFunctionPlugin {
+  private yamppPlugin: YamppPlugin & IFunctionProvider;
+  private adaptedFunctions: Map<string, BaseInternalFunction> = new Map();
+
+  constructor(yamppPlugin: YamppPlugin & IFunctionProvider) {
+    this.yamppPlugin = yamppPlugin;
+    this.adaptFunctions();
+  }
+
+  getName(): string {
+    return this.yamppPlugin.name;
+  }
+
+  getVersion(): string {
+    return this.yamppPlugin.version;
+  }
+
+  getDescription(): string {
+    return this.yamppPlugin.description || '';
+  }
+
+  isCompatible(): boolean {
+    // All YamppPlugins are compatible if they implement IFunctionProvider
+    return true;
+  }
+
+  initialize(runner: any): void {
+    // Initialize the yampp plugin if it has initialize method
+    if ('initialize' in this.yamppPlugin && typeof this.yamppPlugin.initialize === 'function') {
+      // Create a context for the plugin
+      const context = this.createPluginContext(runner);
+      this.yamppPlugin.initialize(context);
+    }
+  }
+
+  getFunctions(): Map<string, BaseInternalFunction> {
+    return new Map(this.adaptedFunctions);
+  }
+
+  private adaptFunctions(): void {
+    const functions = this.yamppPlugin.getFunctions();
+
+    for (const [name, func] of Object.entries(functions)) {
+      const namespacedName = `${this.yamppPlugin.name}::${name}`;
+      const adaptedFunction = this.createAdaptedFunction(namespacedName, func);
+      this.adaptedFunctions.set(namespacedName, adaptedFunction);
+    }
+  }
+
+  private createAdaptedFunction(name: string, pluginFunction: IInternalFunction): BaseInternalFunction {
+    return new (class extends BaseInternalFunction {
+      getName(): string {
+        return name;
+      }
+
+      getDescription(): string {
+        return pluginFunction.description || '';
+      }
+
+      getMetadata(): FunctionMetadata {
+        return new FunctionMetadata()
+          .setName(name)
+          .setDescription(pluginFunction.description || '')
+          .setReturnVariable(false);
+      }
+
+      async execute(args: string[], context: any): Promise<string> {
+        // Convert context to plugin execution context
+        const pluginContext = {
+          workingDirectory: context.workingDirectory || process.cwd(),
+          environment: context.environment || {},
+          task: context.task || { name: '', dependencies: [], modifiers: [], parameters: {}, commands: [] },
+          logger: context.logger || console
+        };
+
+        return pluginFunction.execute(args, pluginContext);
+      }
+    })();
+  }
+
+  private createPluginContext(runner: any): any {
+    // Create a context that matches IPluginContext from @yampp/plugin-types
+    return {
+      version: '0.12.5', // TODO: Get from package.json
+      workingDirectory: process.cwd(),
+      logger: {
+        debug: (msg: string) => console.debug(msg),
+        info: (msg: string) => console.info(msg),
+        warn: (msg: string) => console.warn(msg),
+        error: (msg: string) => console.error(msg)
+      },
+      fileSystem: {
+        readFile: async (path: string) => {
+          const fs = await import('fs/promises');
+          return fs.readFile(path, 'utf-8');
+        },
+        writeFile: async (path: string, content: string) => {
+          const fs = await import('fs/promises');
+          return fs.writeFile(path, content);
+        },
+        exists: async (path: string) => {
+          const fs = await import('fs');
+          return fs.existsSync(path);
+        },
+        mkdir: async (path: string, recursive = false) => {
+          const fs = await import('fs/promises');
+          return fs.mkdir(path, { recursive });
+        },
+        remove: async (path: string, recursive = false) => {
+          const fs = await import('fs/promises');
+          return fs.rm(path, { recursive, force: true });
+        }
+      },
+      shell: {
+        execute: async (command: string, options = {}) => {
+          const { execSync } = await import('child_process');
+          try {
+            const start = Date.now();
+            const result = execSync(command, { encoding: 'utf-8', ...options });
+            return {
+              exitCode: 0,
+              stdout: result,
+              stderr: '',
+              duration: Date.now() - start
+            };
+          } catch (error: any) {
+            return {
+              exitCode: error.status || 1,
+              stdout: error.stdout || '',
+              stderr: error.stderr || error.message,
+              duration: Date.now() - Date.now()
+            };
+          }
+        }
+      },
+      config: {
+        get: (key: string) => undefined, // TODO: Implement config system
+        set: (key: string, value: any) => {}, // TODO: Implement config system
+        has: (key: string) => false // TODO: Implement config system
+      }
+    };
+  }
+}
