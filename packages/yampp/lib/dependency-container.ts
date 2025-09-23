@@ -108,6 +108,14 @@ export class EnhancedDependencyContainer {
       // Factory functions for circular dependencies (matches original architecture)
       createInternalFunctionRegistry: (runner: any): IInternalFunctionRegistry => {
         internalFunctionRegistry = new InternalFunctionRegistry(runner);
+
+        // Register plugin functions if available
+        if (options.pluginFunctions && options.pluginFunctions instanceof Map) {
+          for (const [name, func] of options.pluginFunctions) {
+            internalFunctionRegistry.register(func);
+          }
+        }
+
         return internalFunctionRegistry;
       },
 

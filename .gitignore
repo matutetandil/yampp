@@ -4,8 +4,9 @@ package-lock.json
 yarn.lock
 pnpm-lock.yaml
 
-# Yam++ cache
+# Yam++ cache and plugin downloads
 .yampp/
+.yampp-plugins/
 *.done
 
 # Test files and directories

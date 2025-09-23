@@ -28,6 +28,7 @@ export class ShellContentManager implements IShellContentManager {
     this.contentProcessor = this.createContentProcessor();
   }
 
+
   /**
    * Create appropriate content processor based on platform
    * @returns Platform-specific content processor

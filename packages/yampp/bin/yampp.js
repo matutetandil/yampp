@@ -201,7 +201,7 @@ async function main() {
       profiles: args.values.profile || [],
       filePath: yamfile
     };
-    const { tasks, globalVariables, globalConstants, globalEnvironmentVariables } = parser.parse(content, parseOptions);
+    const { tasks, globalVariables, globalConstants, globalEnvironmentVariables } = await parser.parseWithPlugins(content, parseOptions);
     
     // Validate syntax and semantics
     const validator = new Validator();
@@ -242,7 +242,8 @@ async function main() {
       verboseUgly: args.values['verbose-ugly'],
       dryRun: args.values['dry-run'],
       plan: args.values.plan,
-      inputOverrides: inputOverrides
+      inputOverrides: inputOverrides,
+      pluginFunctions: parser.getPluginFunctions()
     });
     
     // Setup command registry

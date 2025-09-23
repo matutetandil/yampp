@@ -78,7 +78,7 @@ export class BashContentProcessor extends BaseContentProcessor {
       const funcNameWithoutPrefix = funcName.substring(2);
       
       // Verify it's a registered internal function
-      const functionNames = this.internalFunctionRegistry.getRegisteredFunctions();
+      const functionNames = this.functionRegistry.getRegisteredFunctions();
       if (!functionNames.includes(funcNameWithoutPrefix)) {
         return match; // Not an internal function, leave as-is
       }
@@ -160,14 +160,15 @@ export class BashContentProcessor extends BaseContentProcessor {
 
   private findInternalFunctionsUsed(content: string): string[] {
     const functions = new Set<string>();
-    const functionNames = this.internalFunctionRegistry.getRegisteredFunctions();
-    
+    const functionNames = this.functionRegistry.getRegisteredFunctions();
+
+    // Find all registered functions (internal + plugins)
     for (const funcName of functionNames) {
       if (content.includes(`__${funcName}`)) {
         functions.add(funcName);
       }
     }
-    
+
     return Array.from(functions);
   }
 
@@ -182,10 +183,10 @@ __assign() {
   local type="$1"
   local name="$2"
   local value="$3"
-  
+
   # Ensure proper quoting by escaping any embedded quotes in the value
   local escaped_value=$(printf '%s' "$value" | sed 's/"/\\"/g')
-  
+
   if [ "$type" = "const" ]; then
     # const assignment - use eval for dynamic variable name with readonly
     eval "$name=\"$escaped_value\""
@@ -220,12 +221,12 @@ __${funcName}() {
     return 1
   fi
   exit_code=$(head -n 1 "$yampp_response_file")
-  
+
   # Check if there's a return value (second line)
   if [ $(wc -l < "$yampp_response_file") -gt 1 ]; then
     # Second line is the return value - output it to stdout for capture
     sed -n '2p' "$yampp_response_file"
-    
+
     # Remaining lines are export commands
     if [ $(wc -l < "$yampp_response_file") -gt 2 ]; then
       tail -n +3 "$yampp_response_file" > "/tmp/yampp_exports_$$"
@@ -233,7 +234,7 @@ __${funcName}() {
       rm "/tmp/yampp_exports_$$" 2>/dev/null
     fi
   fi
-  
+
   rm "$yampp_response_file" 2>/dev/null
   return $exit_code
 }`);

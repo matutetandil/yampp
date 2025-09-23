@@ -85,7 +85,7 @@ export class CmdContentProcessor extends BaseContentProcessor {
    * Generate CMD/Batch proxy functions for all registered internal functions
    */
   private generateProxyFunctions(): string {
-    const functionNames = this.internalFunctionRegistry.getRegisteredFunctions();
+    const functionNames = this.functionRegistry.getRegisteredFunctions();
     const proxies: string[] = [];
 
     for (const funcName of functionNames) {

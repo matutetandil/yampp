@@ -2,6 +2,7 @@ import { spawn, ChildProcess } from 'child_process';
 import { platformDetector } from '../platform/index.js';
 import { OutputManager } from '../output/types/output-manager.js';
 import { InternalFunctionRegistry } from '../internal-functions/internal-function-registry.js';
+import { IInternalFunctionRegistry } from '../internal-functions/internal-function-registry.interface.js';
 import type { ShellContentManager as IShellContentManager } from '../shell/types/shell-content-manager.js';
 import { ExecuteInternalFunctionCallback } from '../internal-functions/execute-internal-function-callback.js';
 import { ExecutionContext } from './types/execution-context.js';
@@ -17,24 +18,25 @@ import type { ParsedParameter } from '../core/types/parsed-parameter.js';
  */
 export class CommandExecutor implements ICommandExecutor {
   private readonly outputManager: OutputManager;
-  private readonly internalFunctionRegistry: InternalFunctionRegistry;
+  private readonly functionRegistry: IInternalFunctionRegistry;
   private readonly shellContentManager: IShellContentManager;
   private readonly executeInternalFunctionCallback: ExecuteInternalFunctionCallback;
   private readonly workingDirectory: string;
 
   constructor(
     outputManager: OutputManager,
-    internalFunctionRegistry: InternalFunctionRegistry,
+    functionRegistry: IInternalFunctionRegistry,
     shellContentManager: IShellContentManager,
     executeInternalFunctionCallback: ExecuteInternalFunctionCallback,
     workingDirectory: string = process.cwd()
   ) {
     this.outputManager = outputManager;
-    this.internalFunctionRegistry = internalFunctionRegistry;
+    this.functionRegistry = functionRegistry;
     this.shellContentManager = shellContentManager;
     this.executeInternalFunctionCallback = executeInternalFunctionCallback;
     this.workingDirectory = workingDirectory;
   }
+
   
   /**
    * Execute a single command with variable substitution and environment setup
@@ -56,11 +58,12 @@ export class CommandExecutor implements ICommandExecutor {
       // Get state manager and proxy manager (still needed for intercept processing)
       const platform = platformDetector.getCurrentPlatformStrategy();
       const stateManager = platform.getStateManager();
-      const proxyManager = platform.getShellProxyManager(this.internalFunctionRegistry);
+      const proxyManager = platform.getShellProxyManager(this.functionRegistry as any);
       
       // Process command content (comments, proxies, etc.)
       let executionContext: ExecutionContext;
-      if (this.shellContentManager.needsProcessing(command)) {
+      const needsProcessing = this.shellContentManager.needsProcessing(command);
+      if (needsProcessing) {
         // Use ShellContentManager for comprehensive processing
         // Pass local variables for proper variable processing
         executionContext = this.shellContentManager.process(command, localVariables, localConstants) as any;
@@ -145,7 +148,7 @@ export class CommandExecutor implements ICommandExecutor {
     const { shell, args, hasProxies } = executionContext;
     
     const stateManager = platformDetector.getCurrentPlatformStrategy().getStateManager();
-    const proxyManager = platformDetector.getCurrentPlatformStrategy().getShellProxyManager(this.internalFunctionRegistry);
+    const proxyManager = platformDetector.getCurrentPlatformStrategy().getShellProxyManager(this.functionRegistry as any);
     
     let stdoutOutput = '';
     let stderrOutput = '';
@@ -248,27 +251,34 @@ export class CommandExecutor implements ICommandExecutor {
       // Resolve parameter variables using state manager  
       const resolvedParams = platformDetector.getCurrentPlatformStrategy().resolveParameterVariables(parsedParams, stateManager);
       
-      // Create internal function object
+      // Create internal function object with proper param format
+      const internalFunctionParams = resolvedParams.map(param => {
+        if (param.type === 'identifier') {
+          return { type: 'string' as const, value: param.value };
+        }
+        return param as any; // Other types should be compatible
+      });
+
       const internalFunction = {
         name: functionName,
-        params: resolvedParams
+        params: internalFunctionParams
       };
       
       // Execute internal function with state context
       const taskContext = {
         variables: stateManager.getInternalVariables(),
         taskPromises: new Map<string, Promise<boolean>>(),
-        limit: (fn: () => Promise<boolean>) => fn(),
-        serialLimit: (fn: () => Promise<boolean>) => fn()
+        limit: async (fn: () => Promise<unknown>) => { await fn(); return true; },
+        serialLimit: async (fn: () => Promise<unknown>) => { await fn(); return true; }
       };
       
-      // Execute internal function using callback
-      await this.executeInternalFunctionCallback(
-        internalFunction, 
-        taskContext.variables, 
-        `proxy-${functionName}`, 
-        taskContext.taskPromises, 
-        taskContext.limit, 
+      // Execute function using registry
+      await this.functionRegistry.execute(
+        internalFunction,
+        taskContext.variables,
+        `proxy-${functionName}`,
+        taskContext.taskPromises,
+        taskContext.limit,
         taskContext.serialLimit
       );
       
@@ -343,7 +353,7 @@ export class CommandExecutor implements ICommandExecutor {
       // Temporarily change working directory
       const executor = new CommandExecutor(
         this.outputManager,
-        this.internalFunctionRegistry,
+        this.functionRegistry,
         this.shellContentManager,
         this.executeInternalFunctionCallback,
         directory

@@ -51,8 +51,13 @@ export class FunctionPluginAdapter implements IFunctionPlugin {
 
     for (const [name, func] of Object.entries(functions)) {
       const namespacedName = `${this.yamppPlugin.name}::${name}`;
-      const adaptedFunction = this.createAdaptedFunction(namespacedName, func);
-      this.adaptedFunctions.set(namespacedName, adaptedFunction);
+      // Use normalized name for proxy system (this is what gets registered and used)
+      const normalizedName = namespacedName.replace(/::/g, '_').replace(/-/g, '_');
+
+      const adaptedFunction = this.createAdaptedFunction(normalizedName, func);
+
+      // Only register with normalized name for unified function handling
+      this.adaptedFunctions.set(normalizedName, adaptedFunction);
     }
   }
 

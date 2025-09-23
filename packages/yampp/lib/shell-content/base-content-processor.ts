@@ -28,12 +28,13 @@ interface PreProcessedData {
  */
 export abstract class BaseContentProcessor {
   protected readonly platformStrategy: PlatformStrategy;
-  protected readonly internalFunctionRegistry: IInternalFunctionRegistry;
+  protected readonly functionRegistry: IInternalFunctionRegistry;
 
   constructor(platformStrategy: PlatformStrategy, internalFunctionRegistry: IInternalFunctionRegistry) {
     this.platformStrategy = platformStrategy;
-    this.internalFunctionRegistry = internalFunctionRegistry;
+    this.functionRegistry = internalFunctionRegistry;
   }
+
 
   /**
    * Main processing pipeline - template method pattern
@@ -278,8 +279,11 @@ export abstract class BaseContentProcessor {
     // They need to be processed in their execution context (if/case/for)
     // to respect control flow
     
+    // First normalize plugin functions to internal function format
+    const normalizedContent = this.transformFunctionCallsToProxies(content);
+
     // Process content and transform inline variable assignments to proxies
-    const lines = content.split('\n').filter(line => line.trim());
+    const lines = normalizedContent.split('\n').filter(line => line.trim());
     for (const line of lines) {
       const transformedLine = this.transformAssignmentsToProxies(line);
       standaloneCommands.push(transformedLine);
@@ -297,7 +301,20 @@ export abstract class BaseContentProcessor {
    */
   protected isInternalFunctionCall(value: string): boolean {
     if (typeof value !== 'string') return false;
-    return value.trim().startsWith('__');
+    const trimmed = value.trim();
+
+    // Check for traditional internal functions starting with __
+    if (trimmed.startsWith('__')) {
+      return true;
+    }
+
+    // Check for plugin functions with pattern: plugin-name::function-name
+    const pluginFunctionPattern = /^[\w-]+::\w+/;
+    if (pluginFunctionPattern.test(trimmed)) {
+      return true;
+    }
+
+    return false;
   }
   
   /**
@@ -334,10 +351,10 @@ export abstract class BaseContentProcessor {
       if (functionMatch) {
         const [, funcName, argsString] = functionMatch;
         
-        // Check if this is a registered internal function
-        const functionNames = this.internalFunctionRegistry.getRegisteredFunctions();
+        // Check if this is a registered function
+        const functionNames = this.functionRegistry.getRegisteredFunctions();
         const funcNameWithoutPrefix = funcName.substring(2); // Remove __
-        
+
         if (functionNames.includes(funcNameWithoutPrefix)) {
           // This is an internal function assignment
           assignments.push({
@@ -364,17 +381,33 @@ export abstract class BaseContentProcessor {
   }
 
   /**
-   * Check if content needs proxy injection (has __functions)
+   * Check if content needs proxy injection (has any registered functions)
    */
   public needsProxyInjection(content: string): boolean {
-    const functionNames = this.internalFunctionRegistry.getRegisteredFunctions();
-    
+    const functionNames = this.functionRegistry.getRegisteredFunctions();
+
+    // Check for any registered functions (internal + plugins)
     for (const funcName of functionNames) {
+      // Check for internal function format: __funcName
       if (content.includes(`__${funcName}`)) {
         return true;
       }
+
+      // Check for plugin function format: plugin::func
+      // Function names with plugin prefix like "plugin_func" need to be checked as "plugin::func"
+      if (funcName.includes('_')) {
+        const parts = funcName.split('_');
+        if (parts.length >= 2) {
+          const pluginName = parts.slice(0, -1).join('-'); // Convert back to original plugin name
+          const functionName = parts[parts.length - 1];
+          const pluginCall = `${pluginName}::${functionName}`;
+          if (content.includes(pluginCall)) {
+            return true;
+          }
+        }
+      }
     }
-    
+
     return false;
   }
 
@@ -403,5 +436,16 @@ export abstract class BaseContentProcessor {
     }
     
     return line;
+  }
+
+  /**
+   * Transform plugin function calls to internal function format
+   * plugin::func → __plugin__func (unified naming for existing proxy system)
+   */
+  protected transformFunctionCallsToProxies(content: string): string {
+    // Normalize plugin functions to internal function format
+    return content.replace(/([\w-]+)::([\w]+)/g, (match, pluginName, funcName) => {
+      return `__${pluginName.replace(/-/g, '_')}_${funcName}`;
+    });
   }
 }
