@@ -1,6 +1,6 @@
 # Yam++ (Yet Another Modern Task Runner)
 
-![Version](https://img.shields.io/badge/version-0.12.5-blue)
+![Version](https://img.shields.io/badge/version-0.12.6-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)
 ![npm](https://img.shields.io/badge/npm-package-red)
@@ -8,6 +8,8 @@
 ![Architecture](https://img.shields.io/badge/Architecture-A-gold)
 
 A modern, concurrent, declarative task runner with enterprise-grade architecture and native cross-platform shell execution. The unique task runner that combines the power of Make with cross-platform compatibility, native shell integration (bash/PowerShell/cmd), professional interface, and **perfect SOLID design principles**.
+
+> **🔌 v0.12.6 Plugin System** - Revolutionary independent plugin architecture with automatic dependency management. Extensible function system supporting both void and return value functions. Seamless integration with existing task runner infrastructure.
 
 > **🪝 v0.12.3 Hook System** - Complete lifecycle hook implementation with automatic execution. Task naming convention: `before_X`, `after_X`, `finally_X` automatically execute around task `X`. Global `before_all`/`after_all` hooks. Robust validation prevents orphaned hooks. Perfect integration with DAG and concurrent execution.
 
@@ -43,6 +45,7 @@ yampp --list        # List all tasks
 
 ## 🌟 Key Features
 
+- **🔌 Revolutionary Plugin System** - Independent plugin architecture with automatic dependency installation. Support for void and return value functions. Perfect SOLID compliance and seamless integration
 - **🪝 Lifecycle Hook System** - Automatic `before_X`, `after_X`, `finally_X` execution around tasks. Global `before_all`/`after_all` hooks run once per session
 - **🌍 Cross-Platform Native Shell** - Full bash/PowerShell/cmd execution with platform annotations (`@linux @mac @windows`)
 - **⚡ Concurrent by Default** - Parallel task execution using worker threads
@@ -55,7 +58,7 @@ yampp --list        # List all tasks
 - **🎛️ Inline Variables Anywhere** - Variables with internal functions work inside if/case/for blocks respecting control flow
 - **🎯 Parameterized Tasks** - Tasks with parameters and variable substitution
 - **🔌 Complete Ecosystem** - VS Code extension, IntelliJ plugin, and AI-powered migration tools
-- **🧩 Plugin System (Alpha)** - Revolutionary import-based plugin loading with Strategy Pattern resolvers. Support for npm packages, git repositories, HTTPS URLs, and local files with automatic resolution
+- **🧩 Plugin System** - Production-ready import-based plugin loading with automatic dependency management. Support for void and return value functions with perfect SOLID compliance
 - **🏗️ Enterprise Architecture** - **98% SOLID compliance** with perfect ISP/SRP/OCP/LSP, extensible plugin system, registry patterns
 - **⚙️ Professional Configuration** - Fluent configuration API with Builder pattern and constants management
 - **🔧 Extensible Design** - Plugin architecture for internal functions, configurable modifier system, dynamic shell strategies
@@ -197,9 +200,9 @@ yampp --plan deploy    # Show execution plan
 yampp --watch build    # Watch files and re-execute on changes (Ctrl+C twice to exit)
 ```
 
-## 🧩 Plugin System (Alpha)
+## 🧩 Plugin System
 
-Yampp features a revolutionary plugin system with automatic import resolution using the Strategy Pattern. Plugins extend Yampp with custom functions, commands, and modifiers.
+Yampp features a revolutionary **production-ready** plugin system with automatic dependency management and seamless integration. The plugin architecture supports both void and return value functions with perfect SOLID compliance.
 
 ### Plugin Import Syntax
 
@@ -233,6 +236,23 @@ build {
 
 test {
     docker-plugin::run("myapp:latest", "npm test")
+}
+```
+
+**Return Value Functions:**
+```yamfile
+import file://./math-plugin
+
+calculate {
+    // Functions that return values
+    var sum = math-plugin::calculate("add", 5, 3)
+    var product = math-plugin::calculate("multiply", 4, 7)
+
+    echo "Sum: $sum"        // Output: Sum: 8
+    echo "Product: $product"  // Output: Product: 28
+
+    // Void functions (no return value)
+    math-plugin::greet("Developer")  // Just executes
 }
 ```
 

@@ -420,32 +420,83 @@ export abstract class BaseContentProcessor {
     // Pattern to match variable assignments: (var|const) name = value
     const assignmentPattern = /^(\s*)(var|const)\s+(\w+)\s*=\s*(.+?)$/;
     const match = line.match(assignmentPattern);
-    
+
     if (match) {
       const [, indentation, type, varName, value] = match;
-      
+
       // Check if the value is an internal function call (starts with __)
       if (value && this.isInternalFunctionCall(value.trim())) {
         // Don't transform - let the existing system handle internal functions
         return line;
       }
-      
+
       // Transform simple assignments to proxy function call
       // Pass the value as-is to the platform-specific processor
       return `${indentation}__assign ${type} ${varName} ${value}`;
     }
-    
+
     return line;
   }
 
   /**
    * Transform plugin function calls to internal function format
    * plugin::func → __plugin__func (unified naming for existing proxy system)
+   * Also normalize plugin function syntax from parentheses to space-separated format
    */
   protected transformFunctionCallsToProxies(content: string): string {
-    // Normalize plugin functions to internal function format
-    return content.replace(/([\w-]+)::([\w]+)/g, (match, pluginName, funcName) => {
+    // First normalize plugin functions to internal function format
+    let result = content.replace(/([\w-]+)::([\w]+)/g, (match, pluginName, funcName) => {
       return `__${pluginName.replace(/-/g, '_')}_${funcName}`;
     });
+
+    // Then normalize plugin function syntax from ("arg1", "arg2") to "arg1" "arg2"
+    // This ensures all internal functions have consistent syntax for all processors
+    result = result.replace(/__(\w+)\((.*?)\)/g, (match, funcName, args) => {
+      if (args.trim()) {
+        // Parse arguments respecting quotes and convert to space-separated
+        const cleanArgs = this.parseAndNormalizeFunctionArgs(args);
+        return `__${funcName} ${cleanArgs}`;
+      } else {
+        return `__${funcName}`;
+      }
+    });
+
+    return result;
+  }
+
+  /**
+   * Parse function arguments and normalize to space-separated format
+   * Converts ("arg1", "arg2", 123) to "arg1" "arg2" 123
+   */
+  private parseAndNormalizeFunctionArgs(args: string): string {
+    // Simple parser for comma-separated arguments respecting quotes
+    const parsedArgs: string[] = [];
+    let currentArg = '';
+    let inQuotes = false;
+    let quoteChar = '';
+
+    for (let i = 0; i < args.length; i++) {
+      const char = args[i];
+
+      if (!inQuotes && (char === '"' || char === "'")) {
+        inQuotes = true;
+        quoteChar = char;
+        currentArg += char;
+      } else if (inQuotes && char === quoteChar) {
+        inQuotes = false;
+        currentArg += char;
+      } else if (!inQuotes && char === ',') {
+        parsedArgs.push(currentArg.trim());
+        currentArg = '';
+      } else {
+        currentArg += char;
+      }
+    }
+
+    if (currentArg.trim()) {
+      parsedArgs.push(currentArg.trim());
+    }
+
+    return parsedArgs.join(' ');
   }
 }

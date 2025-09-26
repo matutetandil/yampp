@@ -1,9 +1,9 @@
-import type { IInternalFunction } from '../abstractions/IInternalFunction.js';
+import { BaseFunction } from '../functions/BaseFunction.js';
 
 /**
  * Plugin capability: Provides internal functions
  * Interface Segregation: Only for plugins that provide functions
  */
 export interface IFunctionProvider {
-  getFunctions(): Record<string, IInternalFunction>;
+  getFunctions(): Record<string, BaseFunction>;
 }

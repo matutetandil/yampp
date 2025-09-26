@@ -7,5 +7,10 @@ export { ValidationError } from './validator/validation-error.js';
 export { Runner } from './runner.js';
 export { StateManager } from './state.js';
 
+// Plugin development exports
+export { BaseInternalFunction } from './internal-functions/base-function.js';
+export { VoidInternalFunction } from './internal-functions/void-internal-function.js';
+export { ReturnValueInternalFunction } from './internal-functions/return-value-internal-function.js';
+
 // Version info
 export { version } from '../package.json' assert { type: 'json' };

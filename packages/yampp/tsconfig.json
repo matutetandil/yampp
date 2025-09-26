@@ -55,7 +55,8 @@
     "**/*.test.ts",
     "**/*.spec.ts",
     "**/shell-content-manager.ts",
-    "**/syntax-error.ts"
+    "**/syntax-error.ts",
+    "**/yamfile-parser.d.ts"
   ],
   
   "compileOnSave": false

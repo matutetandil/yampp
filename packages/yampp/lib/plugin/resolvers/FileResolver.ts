@@ -1,5 +1,6 @@
-import { resolve, join, isAbsolute } from 'path';
+import { resolve, join, isAbsolute, basename } from 'path';
 import { existsSync } from 'fs';
+import { cp, mkdir } from 'fs/promises';
 import type { IImportResolver, ImportSource } from './IImportResolver.js';
 import type { IAuthStrategy } from '../auth/IAuthStrategy.js';
 
@@ -10,7 +11,7 @@ import type { IAuthStrategy } from '../auth/IAuthStrategy.js';
 export class FileResolver implements IImportResolver {
   readonly type = 'file';
 
-  constructor(private workingDirectory: string) {}
+  constructor(private workingDirectory: string, private pluginsDir: string) {}
 
   matches(importString: string): boolean {
     return importString.startsWith('file://');
@@ -39,9 +40,17 @@ export class FileResolver implements IImportResolver {
       throw new Error(`Local plugin path does not exist: ${resolvedPath}`);
     }
 
-    // For file:// imports, we just return the resolved path
-    // The PluginManager will handle loading from this path
-    return resolvedPath;
+    // Copy plugin to .yampp-plugins directory
+    const pluginName = basename(resolvedPath);
+    const targetDir = join(this.pluginsDir, pluginName);
+
+    // Only copy if target doesn't exist
+    if (!existsSync(targetDir)) {
+      await mkdir(this.pluginsDir, { recursive: true });
+      await cp(resolvedPath, targetDir, { recursive: true });
+    }
+
+    return targetDir;
   }
 
   getPriority(): number {

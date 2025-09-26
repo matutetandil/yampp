@@ -1,4 +1,4 @@
-import type { YamppPlugin, IFunctionProvider, IInternalFunction } from '@yampp/plugin-types';
+import type { YamppPlugin, IFunctionProvider } from '@yampp/plugin-types';
 import type { IFunctionPlugin } from '../../internal-functions/interfaces/function-plugin.interface.js';
 import { BaseInternalFunction } from '../../internal-functions/base-function.js';
 import { FunctionMetadata } from '../../core/function-metadata.js';
@@ -61,33 +61,58 @@ export class FunctionPluginAdapter implements IFunctionPlugin {
     }
   }
 
-  private createAdaptedFunction(name: string, pluginFunction: IInternalFunction): BaseInternalFunction {
+  private createAdaptedFunction(name: string, pluginFunction: any): BaseInternalFunction {
     return new (class extends BaseInternalFunction {
       getName(): string {
         return name;
       }
 
       getDescription(): string {
-        return pluginFunction.description || '';
+        return pluginFunction.getMetadata().getDescription();
       }
 
       getMetadata(): FunctionMetadata {
+        const pluginMetadata = pluginFunction.getMetadata();
         return new FunctionMetadata()
           .setName(name)
-          .setDescription(pluginFunction.description || '')
-          .setReturnVariable(false);
+          .setDescription(pluginMetadata.getDescription())
+          .setReturnVariable(pluginMetadata.hasReturnVariable());
       }
 
       async execute(args: string[], context: any): Promise<string> {
-        // Convert context to plugin execution context
-        const pluginContext = {
-          workingDirectory: context.workingDirectory || process.cwd(),
-          environment: context.environment || {},
-          task: context.task || { name: '', dependencies: [], modifiers: [], parameters: {}, commands: [] },
-          logger: context.logger || console
+        // Convert context to proper InternalFunctionExecutionContext
+        const internalContext = {
+          variables: context.variables || new Map(),
+          signature: context.signature || '',
+          taskPromises: context.taskPromises || new Map(),
+          limit: context.limit || (() => {}),
+          serialLimit: context.serialLimit || (() => {})
         };
 
-        return pluginFunction.execute(args, pluginContext);
+        // Check if this is a return value function
+        const hasReturnValue = pluginFunction.getMetadata().hasReturnVariable();
+
+        if (hasReturnValue) {
+          // For return value functions, first arg is variable name (added by bash processor)
+          // Rest of args are for the plugin function
+          if (args.length < 1) {
+            throw new Error(`${name} requires at least 1 argument: variable name`);
+          }
+
+          const variableName = args[0];
+          const pluginArgs = args.slice(1); // Arguments for the actual plugin function
+
+          // Execute plugin function with actual arguments
+          const result = await pluginFunction.execute(pluginArgs, internalContext);
+
+          // Store result in variables using the variable name
+          internalContext.variables.set(variableName, result);
+
+          return result;
+        } else {
+          // For void functions, pass all args directly to plugin
+          return pluginFunction.execute(args, internalContext);
+        }
       }
     })();
   }

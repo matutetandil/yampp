@@ -21,7 +21,6 @@ export type { ICommandProvider } from './capabilities/ICommandProvider.js';
 export type { ITaskLifecycleHooks } from './capabilities/ITaskLifecycleHooks.js';
 
 // Abstractions (Dependency Inversion)
-export type { IInternalFunction } from './abstractions/IInternalFunction.js';
 export type { IRuntime } from './abstractions/IRuntime.js';
 export type { IModifier } from './abstractions/IModifier.js';
 export type { ICommand } from './abstractions/ICommand.js';
@@ -65,3 +64,9 @@ export type FunctionPlugin = IPlugin & IFunctionProvider;
 export type RuntimePlugin = IPlugin & IRuntimeProvider;
 export type CommandPlugin = IPlugin & ICommandProvider;
 export type ModifierPlugin = IPlugin & IModifierProvider;
+
+// Base classes for plugin implementation
+export { BasePlugin } from './BasePlugin.js';
+export { BaseFunction } from './functions/BaseFunction.js';
+export { VoidFunction } from './functions/VoidFunction.js';
+export { ReturnValueFunction } from './functions/ReturnValueFunction.js';

@@ -1,6 +1,7 @@
 import { join } from 'path';
 import { mkdir, writeFile, readFile } from 'fs/promises';
 import { existsSync } from 'fs';
+import { execSync } from 'child_process';
 import type { YamppPlugin } from '@yampp/plugin-types';
 import { AuthStrategyManager } from './auth/AuthStrategyManager.js';
 import { ImportResolverManager } from './resolvers/ImportResolverManager.js';
@@ -72,6 +73,9 @@ export class PluginManager {
 
   private async loadPlugin(pluginPath: string): Promise<YamppPlugin> {
     try {
+      // Install plugin dependencies if package.json exists
+      await this.installPluginDependencies(pluginPath);
+
       // Try to find the main entry point
       const entryPoint = await this.findEntryPoint(pluginPath);
 
@@ -152,5 +156,51 @@ export class PluginManager {
 
       await writeFile(packageJsonPath, JSON.stringify(packageJson, null, 2));
     }
+  }
+
+  private async installPluginDependencies(pluginPath: string): Promise<void> {
+    const packageJsonPath = join(pluginPath, 'package.json');
+
+    // Skip if no package.json
+    if (!existsSync(packageJsonPath)) {
+      return;
+    }
+
+    try {
+      // Check if node_modules already exists
+      const nodeModulesPath = join(pluginPath, 'node_modules');
+      if (existsSync(nodeModulesPath)) {
+        return; // Dependencies already installed
+      }
+
+      // Auto-detect package manager
+      const packageManager = this.detectPackageManager(pluginPath);
+
+      // Install dependencies
+      console.log(`Installing dependencies for plugin at ${pluginPath} using ${packageManager}...`);
+      execSync(`${packageManager} install`, {
+        cwd: pluginPath,
+        stdio: 'inherit'
+      });
+      console.log(`Dependencies installed successfully for plugin at ${pluginPath}`);
+    } catch (error) {
+      throw new Error(`Failed to install plugin dependencies at ${pluginPath}: ${error}`);
+    }
+  }
+
+  private detectPackageManager(pluginPath: string): string {
+    // Check for lock files to determine package manager
+    if (existsSync(join(pluginPath, 'pnpm-lock.yaml'))) {
+      return 'pnpm';
+    }
+    if (existsSync(join(pluginPath, 'yarn.lock'))) {
+      return 'yarn';
+    }
+    if (existsSync(join(pluginPath, 'package-lock.json'))) {
+      return 'npm';
+    }
+
+    // Default to npm if no lock file found
+    return 'npm';
   }
 }

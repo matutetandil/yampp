@@ -17,7 +17,7 @@ export class ImportResolverManager {
   }
 
   private registerDefaultResolvers(pluginsDir: string, authManager: AuthStrategyManager): void {
-    this.addResolver(new FileResolver(process.cwd())); // Add file resolver with current working directory
+    this.addResolver(new FileResolver(process.cwd(), pluginsDir)); // Add file resolver with current working directory and plugins dir
     this.addResolver(new NpmResolver(pluginsDir));
     this.addResolver(new GitResolver(pluginsDir));
     this.addResolver(new HttpsResolver(pluginsDir, authManager));

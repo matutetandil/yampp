@@ -85,7 +85,24 @@ export class BashContentProcessor extends BaseContentProcessor {
       
       // Transform to bash syntax, preserving indentation
       // var x = __input "test" -> x=$(__input x "test")
-      const transformedCall = funcCall.replace(/^__(\w+)/, `__$1 ${varName}`);
+      let transformedCall;
+      if (funcCall.includes(' ') && funcNameWithoutPrefix.includes('_')) {
+        // Plugin function: check if it returns values to determine if needs varName
+        const functionMetadata = this.functionRegistry.getFunctionMetadata(funcNameWithoutPrefix);
+        const hasReturnValue = functionMetadata?.hasReturnVariable();
+
+        if (hasReturnValue) {
+          // Plugin function with return value: add varName as first parameter
+          transformedCall = funcCall.replace(/^(__\w+)/, `$1 ${varName}`);
+        } else {
+          // Plugin function without return value: no transformation needed
+          transformedCall = funcCall;
+        }
+      } else {
+        // Traditional internal function: __input "test"
+        // Transform to: __input varName "test"
+        transformedCall = funcCall.replace(/^__(\w+)/, `__$1 ${varName}`);
+      }
       
       if (type === 'const') {
         return `${indent}declare -r ${varName}=$(${transformedCall})`;
