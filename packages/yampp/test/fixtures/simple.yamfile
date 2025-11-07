@@ -1,0 +1,14 @@
+// Simple test Yamfile
+var PROJECT = "test-project"
+
+build {
+    echo "Building $PROJECT..."
+}
+
+test needs build {
+    echo "Running tests..."
+}
+
+cleanup {
+    echo "Cleaning..."
+}

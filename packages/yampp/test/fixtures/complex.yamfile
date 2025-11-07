@@ -1,0 +1,38 @@
+// Complex test Yamfile with various features
+const VERSION = "1.0.0"
+var ENV = "test"
+
+// Task with dependencies
+compile {
+    echo "Compiling..."
+}
+
+// Task with modifiers
+always: cleanup {
+    echo "Cleaning build artifacts..."
+}
+
+// Task with parameters
+deploy(target) {
+    echo "Deploying to $target environment"
+}
+
+// Task with dependencies and modifiers
+serial: test needs compile {
+    echo "Running tests for version $VERSION..."
+}
+
+// Task with file watching
+build watches "src/**/*.ts" {
+    echo "Building project..."
+    echo "Environment: $ENV"
+}
+
+// Hooks
+before_build {
+    echo "Preparing build..."
+}
+
+after_build {
+    echo "Build completed!"
+}
