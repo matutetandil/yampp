@@ -148,6 +148,53 @@ yampp --clean                 # Clean cache
 yampp --profile production build
 ```
 
+## Parameterized Tasks
+
+### Defining Parameterized Tasks
+
+```yamfile
+// Simple parameter
+greet(name) {
+    echo "Hello, $name!"
+}
+
+// Multiple parameters
+deploy(env, version) {
+    echo "Deploying $version to $env..."
+    ./deploy.sh --env=$env --version=$version
+}
+
+// Parameters with default values
+build(env = "dev") {
+    echo "Building for $env environment"
+    npm run build:$env
+}
+```
+
+### Calling Parameterized Tasks
+
+**From command line:**
+```bash
+yampp greet:World
+yampp deploy:production:v1.2.3
+yampp build:staging
+```
+
+**From other tasks (dependencies):**
+```yamfile
+prod needs build(production) {
+    echo "Deploying production build"
+}
+```
+
+**From other tasks (internal calls):**
+```yamfile
+test {
+    yampp greet:Tester
+    yampp build:test
+}
+```
+
 ## Documentation
 
 - **[User Guide](packages/yampp/docs/USER_GUIDE.md)** - Complete feature reference
