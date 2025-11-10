@@ -1,0 +1,55 @@
+# Source files
+src/
+test/
+*.test.js
+*.test.ts
+
+# TypeScript
+tsconfig.json
+tsconfig.*.json
+
+# PEGgy grammar source
+lib/yamfile.pegjs
+
+# Development
+.eslintrc.json
+.prettierrc
+.prettierignore
+
+# Examples and docs (keep README.md)
+examples/
+docs/
+CLAUDE.md
+CLAUDE.local.md
+
+# Build artifacts
+*.log
+*.tgz
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# CI/CD
+.github/
+.travis.yml
+.gitlab-ci.yml
+
+# Package manager
+node_modules/
+pnpm-lock.yaml
+yarn.lock
+package-lock.json
+
+# Cache
+.cache/
+.taskrunner/
+*.done

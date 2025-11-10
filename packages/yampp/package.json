@@ -4,8 +4,20 @@
   "description": "Yet Another Modern Task Runner - Enterprise-grade concurrent task runner with SOLID architecture and native cross-platform shell execution",
   "type": "module",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "bin": {
     "yampp": "./bin/yampp.js"
+  },
+  "files": [
+    "dist",
+    "bin",
+    "lib",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "build:peggy": "peggy --format es -o lib/yamfile-parser.js lib/yamfile.pegjs",

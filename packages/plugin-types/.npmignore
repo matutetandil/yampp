@@ -1,0 +1,39 @@
+# Source files
+src/
+test/
+*.test.js
+*.test.ts
+
+# TypeScript
+tsconfig.json
+tsconfig.*.json
+
+# Development
+.eslintrc.json
+.prettierrc
+.prettierignore
+
+# Build artifacts
+*.log
+*.tgz
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Package manager
+node_modules/
+pnpm-lock.yaml
+yarn.lock
+package-lock.json
+
+# Cache
+.cache/
