@@ -2,10 +2,12 @@
 
 This guide explains how to publish new versions of Yampp packages to npm.
 
-## Packages Published
+**Note:** Yampp is published **manually** to npm. Automated GitHub Actions publishing was attempted but is not currently in use.
 
-- `@yampp/plugin-types` - TypeScript type definitions for Yampp plugins
-- `@yampp/yampp` - Main Yampp task runner
+## Published Packages
+
+- [`@yampp/yampp`](https://www.npmjs.com/package/@yampp/yampp) - Main task runner
+- [`@yampp/plugin-types`](https://www.npmjs.com/package/@yampp/plugin-types) - TypeScript type definitions for plugins
 
 ## Prerequisites
 
@@ -15,71 +17,59 @@ This guide explains how to publish new versions of Yampp packages to npm.
 2. Verify your email address
 3. Enable 2FA (two-factor authentication) for additional security
 
-### 2. Generate NPM Access Token
+### 2. Login to NPM
 
-1. Go to [npmjs.com/settings/tokens](https://www.npmjs.com/settings/~/tokens)
-2. Click "Generate New Token" → "Classic Token"
-3. Select "Automation" type (for CI/CD)
-4. Copy the generated token (you won't see it again!)
+```bash
+# Login to npm from command line
+npm login
 
-### 3. Configure GitHub Secret
-
-1. Go to your GitHub repository settings
-2. Navigate to "Secrets and variables" → "Actions"
-3. Click "New repository secret"
-4. Name: `NPM_TOKEN`
-5. Value: Paste your npm token
-6. Click "Add secret"
+# Enter your credentials
+# Username: your-username
+# Password: your-password
+# Email: your-email
+# OTP (if 2FA enabled): 123456
+```
 
 ## Publishing Process
 
-### Automatic Publishing (Recommended)
-
-The repository is configured to automatically publish to npm when you create a git tag:
+### Manual Publishing
 
 ```bash
-# 1. Update versions in both packages
+# 1. Ensure you're logged in
+npm whoami
+
+# 2. Update versions in both packages
 cd packages/plugin-types
 npm version patch  # or minor, or major
-
 cd ../yampp
-npm version patch  # should match plugin-types version
+npm version patch  # keep versions in sync
 
-# 2. Commit the version changes
+# 3. Commit version changes
 git add packages/*/package.json
 git commit -m "chore: bump version to 0.12.7"
+git push origin main
 
-# 3. Create and push the tag
-git tag v0.12.7
-git push origin main --tags
-
-# GitHub Actions will automatically:
-# - Run tests on multiple platforms
-# - Build both packages
-# - Publish @yampp/plugin-types first
-# - Publish @yampp/yampp second
-```
-
-### Manual Publishing (Not Recommended)
-
-If you need to publish manually:
-
-```bash
-# 1. Login to npm
-npm login
-
-# 2. Build and publish plugin-types first
+# 4. Build and publish plugin-types FIRST
 cd packages/plugin-types
 pnpm run build
 pnpm publish --access public
 
-# 3. Build and publish yampp
+# 5. Build and publish yampp SECOND
 cd ../yampp
 pnpm run build
+pnpm test  # ensure tests pass
 pnpm publish --access public
+
+# 6. Create git tag and push
+git tag v0.12.7
+git push origin v0.12.7
 ```
 
-**Note:** plugin-types must be published first since yampp depends on it.
+**Important:**
+- Always publish `plugin-types` **before** `yampp` (yampp depends on it)
+- Run tests before publishing yampp
+- Keep version numbers synchronized between packages
+- Tag the release after successful publishing
 
 ## Version Numbering
 
@@ -115,43 +105,25 @@ Before creating a new release:
 - [ ] Git tag matches package.json versions (e.g., v0.12.7)
 - [ ] Dependencies between packages are updated if needed
 
-## Workflow Details
+## Publishing Checklist
 
-### Publish Workflow
+Use this checklist when publishing a new version:
 
-Triggers on git tags starting with `v` (`.github/workflows/publish.yml`):
-
-**Job 1: publish-plugin-types**
-1. Checkout code
-2. Setup pnpm and Node.js 20
-3. Navigate to `packages/plugin-types/`
-4. Run `pnpm install` (uses local pnpm-lock.yaml)
-5. Build: `pnpm run build`
-6. Publish `@yampp/plugin-types` to npm
-
-**Job 2: publish-yampp** (runs after plugin-types completes)
-1. Checkout code
-2. Setup pnpm and Node.js 20
-3. Navigate to `packages/yampp/`
-4. Run `pnpm install` (uses local pnpm-lock.yaml)
-5. Build: `pnpm run build`
-6. Test: `pnpm test`
-7. Publish `@yampp/yampp` to npm
-
-**Note**: Each package is treated independently with its own dependencies and lock file.
-
-### CI Workflow
-
-Runs on every push to `main` or `develop` (`.github/workflows/ci.yml`):
-
-**Two parallel jobs:**
-- `test-plugin-types`: Builds plugin-types on all platforms
-- `test-yampp`: Builds, tests, and lints yampp on all platforms
-
-**Platform matrix:**
-- Ubuntu, macOS, and Windows
-- Node.js 18.x and 20.x
-- Linting only on Ubuntu + Node 20.x
+- [ ] All tests pass locally (`cd packages/yampp && pnpm test`)
+- [ ] Code is linted (`cd packages/yampp && pnpm run lint`)
+- [ ] CHANGELOG.md is updated with changes
+- [ ] README.md reflects any new features or changes
+- [ ] Version numbers bumped in both packages
+- [ ] Logged into npm (`npm whoami`)
+- [ ] Build plugin-types successfully
+- [ ] Publish plugin-types to npm
+- [ ] Build yampp successfully
+- [ ] Tests pass for yampp
+- [ ] Publish yampp to npm
+- [ ] Commit version changes
+- [ ] Create and push git tag
+- [ ] Verify packages on npmjs.com
+- [ ] Test installation: `npm install -g @yampp/yampp`
 
 ## Troubleshooting
 
@@ -227,45 +199,65 @@ After successful publishing:
 
 - **Independent Packages**: Although organized as a monorepo, each package is published independently with its own dependencies and lock file.
 - **Workspace Dependencies**: The yampp package uses `workspace:*` for plugin-types during development, which pnpm automatically converts to the correct version during publishing.
-- **Publish Order**: The workflow ensures plugin-types is always published before yampp using GitHub Actions job dependencies (`needs`).
+- **Publish Order**: Always publish plugin-types first, then yampp (yampp depends on plugin-types).
 - **Lock Files**: Each package has its own `pnpm-lock.yaml` for reproducible builds.
+- **Manual Process**: Publishing is done manually. Automated CI/CD was attempted but is not currently in use.
 
-## Troubleshooting Workflow Issues
+## Quick Publish Script
 
-### Re-running a Failed Publish
+For convenience, here's a complete publish script:
 
-If a publish workflow fails, you can re-trigger it:
-
-**Option 1: Delete and recreate the tag**
 ```bash
-# Delete local tag
-git tag -d v0.12.6
+#!/bin/bash
+# publish.sh - Publish both yampp packages to npm
 
-# Delete remote tag
-git push origin :refs/tags/v0.12.6
+set -e  # Exit on error
 
-# Make any fixes, commit them
-git add .
-git commit -m "fix: resolve publish issues"
-git push origin main
+VERSION=$1
+if [ -z "$VERSION" ]; then
+  echo "Usage: ./publish.sh <version>"
+  echo "Example: ./publish.sh 0.12.7"
+  exit 1
+fi
 
-# Recreate and push tag
-git tag v0.12.6
-git push origin v0.12.6
-```
+echo "Publishing version $VERSION..."
 
-**Option 2: Create a patch version**
-```bash
-# Increment to next patch version
+# Check npm login
+npm whoami || { echo "Not logged in to npm. Run 'npm login' first."; exit 1; }
+
+# Update versions
+echo "Updating versions..."
 cd packages/plugin-types
-npm version patch
-
+npm version $VERSION --no-git-tag-version
 cd ../yampp
-npm version patch
+npm version $VERSION --no-git-tag-version
+cd ../..
 
-# Commit and tag
-git add .
-git commit -m "chore: bump version to 0.12.7"
-git tag v0.12.7
-git push origin main --tags
+# Commit version bump
+git add packages/*/package.json
+git commit -m "chore: bump version to $VERSION"
+
+# Publish plugin-types
+echo "Publishing @yampp/plugin-types..."
+cd packages/plugin-types
+pnpm run build
+pnpm publish --access public
+
+# Publish yampp
+echo "Publishing @yampp/yampp..."
+cd ../yampp
+pnpm run build
+pnpm test
+pnpm publish --access public
+
+# Tag and push
+cd ../..
+git tag "v$VERSION"
+git push origin main
+git push origin "v$VERSION"
+
+echo "✅ Successfully published version $VERSION!"
+echo "Verify at:"
+echo "  - https://www.npmjs.com/package/@yampp/plugin-types"
+echo "  - https://www.npmjs.com/package/@yampp/yampp"
 ```

@@ -1,6 +1,7 @@
 # Yam++ (Yet Another Modern Task Runner)
 
-![Version](https://img.shields.io/badge/version-0.12.6-blue)
+[![npm version](https://img.shields.io/npm/v/@yampp/yampp.svg)](https://www.npmjs.com/package/@yampp/yampp)
+[![npm downloads](https://img.shields.io/npm/dm/@yampp/yampp.svg)](https://www.npmjs.com/package/@yampp/yampp)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)
 
@@ -11,7 +12,9 @@ A modern, concurrent task runner with its own DSL, written in TypeScript. Combin
 ## Quick Start
 
 ```bash
-# Install globally (or from source - see below)
+# Install from npm
+npm install -g @yampp/yampp
+# or with pnpm
 pnpm add -g @yampp/yampp
 
 # Create a Yamfile
@@ -98,10 +101,22 @@ serial: interactive_deploy {
 
 ## Installation
 
-### From npm (when published)
+### From npm (Recommended)
+
 ```bash
+# Using npm
+npm install -g @yampp/yampp
+
+# Using pnpm
 pnpm add -g @yampp/yampp
+
+# Using yarn
+yarn global add @yampp/yampp
 ```
+
+**Packages available:**
+- [`@yampp/yampp`](https://www.npmjs.com/package/@yampp/yampp) - Main task runner
+- [`@yampp/plugin-types`](https://www.npmjs.com/package/@yampp/plugin-types) - TypeScript types for plugin development
 
 ### From Source
 ```bash
