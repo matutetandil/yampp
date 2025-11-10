@@ -121,20 +121,37 @@ Before creating a new release:
 
 Triggers on git tags starting with `v` (`.github/workflows/publish.yml`):
 
-1. **Setup**: Installs pnpm and Node.js 20
-2. **Install**: Runs `pnpm install --frozen-lockfile`
-3. **Build**: Runs `pnpm run build` (builds all packages)
-4. **Test**: Runs `pnpm test` (unit + integration tests)
-5. **Publish plugin-types**: Publishes `@yampp/plugin-types` to npm
-6. **Publish yampp**: Publishes `@yampp/yampp` to npm
+**Job 1: publish-plugin-types**
+1. Checkout code
+2. Setup pnpm and Node.js 20
+3. Navigate to `packages/plugin-types/`
+4. Run `pnpm install` (uses local pnpm-lock.yaml)
+5. Build: `pnpm run build`
+6. Publish `@yampp/plugin-types` to npm
+
+**Job 2: publish-yampp** (runs after plugin-types completes)
+1. Checkout code
+2. Setup pnpm and Node.js 20
+3. Navigate to `packages/yampp/`
+4. Run `pnpm install` (uses local pnpm-lock.yaml)
+5. Build: `pnpm run build`
+6. Test: `pnpm test`
+7. Publish `@yampp/yampp` to npm
+
+**Note**: Each package is treated independently with its own dependencies and lock file.
 
 ### CI Workflow
 
 Runs on every push to `main` or `develop` (`.github/workflows/ci.yml`):
 
-- Tests on Ubuntu, macOS, and Windows
-- Tests on Node.js 18.x and 20.x
-- Runs linting on Ubuntu + Node 20
+**Two parallel jobs:**
+- `test-plugin-types`: Builds plugin-types on all platforms
+- `test-yampp`: Builds, tests, and lints yampp on all platforms
+
+**Platform matrix:**
+- Ubuntu, macOS, and Windows
+- Node.js 18.x and 20.x
+- Linting only on Ubuntu + Node 20.x
 
 ## Troubleshooting
 
@@ -208,6 +225,47 @@ After successful publishing:
 
 ## Notes
 
+- **Independent Packages**: Although organized as a monorepo, each package is published independently with its own dependencies and lock file.
 - **Workspace Dependencies**: The yampp package uses `workspace:*` for plugin-types during development, which pnpm automatically converts to the correct version during publishing.
-- **Build Order**: pnpm automatically handles the build order based on workspace dependencies.
-- **Cache**: GitHub Actions caches pnpm dependencies for faster builds.
+- **Publish Order**: The workflow ensures plugin-types is always published before yampp using GitHub Actions job dependencies (`needs`).
+- **Lock Files**: Each package has its own `pnpm-lock.yaml` for reproducible builds.
+
+## Troubleshooting Workflow Issues
+
+### Re-running a Failed Publish
+
+If a publish workflow fails, you can re-trigger it:
+
+**Option 1: Delete and recreate the tag**
+```bash
+# Delete local tag
+git tag -d v0.12.6
+
+# Delete remote tag
+git push origin :refs/tags/v0.12.6
+
+# Make any fixes, commit them
+git add .
+git commit -m "fix: resolve publish issues"
+git push origin main
+
+# Recreate and push tag
+git tag v0.12.6
+git push origin v0.12.6
+```
+
+**Option 2: Create a patch version**
+```bash
+# Increment to next patch version
+cd packages/plugin-types
+npm version patch
+
+cd ../yampp
+npm version patch
+
+# Commit and tag
+git add .
+git commit -m "chore: bump version to 0.12.7"
+git tag v0.12.7
+git push origin main --tags
+```
