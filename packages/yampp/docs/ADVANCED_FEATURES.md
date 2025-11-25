@@ -174,23 +174,25 @@ notify(message) {
 ### Advanced Shell Integration
 
 ```yamfile
-@linux @mac: advanced_processing {
-    # Define shell function
-    process_file() {
-        local file=$1
-        echo "Processing $file"
-        
-        # Shell function can call Yampp tasks
-        __call validate($file)
-        
-        # Continue with shell processing
-        sed -i 's/old/new/g' "$file"
+@linux @mac {
+    advanced_processing {
+        # Define shell function
+        process_file() {
+            local file=$1
+            echo "Processing $file"
+
+            # Shell function can call Yampp tasks
+            __call validate($file)
+
+            # Continue with shell processing
+            sed -i 's/old/new/g' "$file"
+        }
+
+        # Use shell features with Yampp integration
+        for file in *.txt; do
+            process_file "$file"
+        done
     }
-    
-    # Use shell features with Yampp integration
-    for file in *.txt; do
-        process_file "$file"
-    done
 }
 ```
 
@@ -226,25 +228,29 @@ clean {
 }
 
 # Platform-specific implementations
-@linux @mac: install {
-    # Full bash power
-    if [[ -f /etc/debian_version ]]; then
-        sudo apt-get update
-        sudo apt-get install -y build-essential
-    elif [[ -f /etc/redhat-release ]]; then
-        sudo yum groupinstall -y "Development Tools"
-    elif command -v brew &> /dev/null; then
-        brew install gcc
-    fi
+@linux @mac {
+    install {
+        # Full bash power
+        if [[ -f /etc/debian_version ]]; then
+            sudo apt-get update
+            sudo apt-get install -y build-essential
+        elif [[ -f /etc/redhat-release ]]; then
+            sudo yum groupinstall -y "Development Tools"
+        elif command -v brew &> /dev/null; then
+            brew install gcc
+        fi
+    }
 }
 
-@windows: install {
-    # Full PowerShell power
-    if (Get-Command choco -ErrorAction SilentlyContinue) {
-        choco install visualstudio2022buildtools -y
-    } else {
-        Write-Host "Please install Chocolatey first"
-        exit 1
+@windows {
+    install {
+        # Full PowerShell power
+        if (Get-Command choco -ErrorAction SilentlyContinue) {
+            choco install visualstudio2022buildtools -y
+        } else {
+            Write-Host "Please install Chocolatey first"
+            exit 1
+        }
     }
 }
 ```
@@ -252,7 +258,8 @@ clean {
 ### Complex Cross-Platform Scripts
 
 ```yamfile
-@linux @mac: database_backup {
+@linux @mac {
+    database_backup {
     #!/bin/bash
     set -e
     
@@ -278,7 +285,8 @@ clean {
     fi
 }
 
-@windows: database_backup {
+@windows {
+    database_backup {
     # PowerShell equivalent
     $ErrorActionPreference = "Stop"
     
@@ -707,10 +715,11 @@ compile watches src/**/*.ts incremental {
 
 // Parallel test suites
 test {
-    __call test_unit &
-    __call test_integration &
-    __call test_e2e &
-    wait
+    __call_async test_unit
+    __call_async test_integration
+    __call_async test_e2e
+    // All three suites run in parallel, execution continues when all complete
+    echo "All test suites completed"
 }
 ```
 

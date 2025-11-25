@@ -5,6 +5,48 @@ All notable changes to Yam++ (Yet Another Modern Task Runner) will be documented
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.12.7] - 2025-11-25
+
+### 🐛 Bug Fixes
+
+**Critical fix for `__call_async` with parameterized tasks:**
+- **Fixed parameter race condition**: Parameterized tasks now correctly receive their own parameters when called concurrently
+- **Fixed execution count**: Multiple `__call_async` calls now execute all instances (was only executing 1-2 instead of N)
+- **Task isolation**: Each task instance now has its own isolated variable scope preventing cross-contamination
+
+**Technical Details:**
+- Added proper task instance isolation in `prepareTaskVariables` (creates shallow copy per instance)
+- Improved async block transformation to create unique wrapper tasks for each parameterized call
+- Enhanced parameter parser to correctly handle quoted arguments in `__call_async` expressions
+- Changed parameter assignment from `export` to local variables for better process isolation
+
+**Example of fixed behavior:**
+```yamfile
+compile(name, version) {
+    echo "Compiling $name version $version"
+}
+
+build_all {
+    __call_async compile("lib1", "v1.0")  // Now gets lib1, v1.0
+    __call_async compile("lib2", "v2.0")  // Now gets lib2, v2.0
+    __call_async compile("lib3", "v3.0")  // Now gets lib3, v3.0
+    // All 3 execute in parallel with correct parameters
+}
+```
+
+### 📚 Documentation Updates
+
+**Major documentation corrections:**
+- **Fixed internal function syntax**: Corrected examples showing `yampp task:param` inside tasks to use `__call task(param)`
+- **Added complete `__call_async` documentation**: Now properly documented in README and USER_GUIDE
+- **Fixed platform annotation syntax**: Corrected all examples from `@linux:` to `@linux { }`
+- **Added all async variants**: Documented `__call_async`, `__call_ignore`, `__call_async_ignore`
+
+**Files updated:**
+- `README.md` - Added Internal Functions section with complete examples
+- `packages/yampp/docs/USER_GUIDE.md` - Comprehensive async documentation and corrected platform syntax
+- `packages/yampp/docs/ADVANCED_FEATURES.md` - Fixed parallel execution examples (removed incorrect `&` syntax)
+
 ## [0.12.6] - 2025-09-26 (Production)
 
 ### 🔌 MAJOR RELEASE - Complete Plugin System Implementation

@@ -155,8 +155,10 @@ export class VariableSubstitution {
    */
   public static buildPreExportCommands(task: Task, parameters: string[]): string[] {
     const exportCommands: string[] = [];
-    
-    // Export task parameters using common parameter names for internal function intercepts
+
+    // Set task parameters as local bash variables (not exported to environment)
+    // This prevents race conditions when multiple parameterized tasks execute concurrently
+    // Each bash process gets its own isolated variable scope
     const taskParameters = task.getParameters();
     for (let i = 0; i < taskParameters.length && i < parameters.length; i++) {
       const param = taskParameters[i];
@@ -164,11 +166,12 @@ export class VariableSubstitution {
         const paramName = param.name;
         const paramValue = parameters[i];
         if (paramName) {
-          exportCommands.push(`export ${paramName}='${paramValue}'`);
+          // Use local assignment instead of export for parameter isolation
+          exportCommands.push(`${paramName}='${paramValue}'`);
         }
       }
     }
-    
+
     return exportCommands;
   }
 }

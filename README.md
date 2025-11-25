@@ -148,6 +148,50 @@ yampp --clean                 # Clean cache
 yampp --profile production build
 ```
 
+## Internal Functions
+
+Yampp provides built-in functions for task orchestration and user interaction:
+
+### Task Execution Functions
+
+```yamfile
+// Call another task synchronously
+build {
+    __call compile
+    __call bundle
+}
+
+// Call tasks in parallel (all start simultaneously)
+build_all {
+    __call_async build_frontend
+    __call_async build_backend
+    __call_async build_api
+    // Waits for all async calls to complete
+    echo "All builds finished"
+}
+
+// Call task with error handling
+deploy {
+    __call_ignore optional_cleanup  // Continue even if fails
+    __call_async_ignore optional_notification  // Async + ignore failures
+    __call critical_deployment
+}
+```
+
+### Interactive Input Functions
+
+```yamfile
+deploy {
+    var env = __input "Target environment:"
+    var version = __input "Version to deploy:" "v1.0.0"
+    var proceed = __input_confirm "Deploy $version to $env?" "no"
+
+    if [ "$proceed" = "yes" ]; then
+        __call deploy_to($env, $version)
+    fi
+}
+```
+
 ## Parameterized Tasks
 
 ### Defining Parameterized Tasks
@@ -190,8 +234,19 @@ prod needs build(production) {
 **From other tasks (internal calls):**
 ```yamfile
 test {
-    yampp greet:Tester
-    yampp build:test
+    __call greet("Tester")
+    __call build("test")
+}
+```
+
+**Parallel execution:**
+```yamfile
+build_all {
+    // Execute multiple tasks concurrently
+    __call_async build_frontend
+    __call_async build_backend
+    __call_async build_api
+    echo "All builds started in parallel"
 }
 ```
 

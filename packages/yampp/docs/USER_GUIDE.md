@@ -236,17 +236,79 @@ deploy {
 
 ## Internal Functions
 
-### __call - Call Other Tasks
+### Task Execution Functions
+
+#### __call - Call Other Tasks Synchronously
+
+Calls another task and waits for it to complete before continuing.
 
 ```yamfile
 build {
     echo "Building..."
     __call compile
     __call bundle
+    echo "Build complete"
+}
+
+// With parameters
+deploy {
+    __call build("production")
+    __call upload("production", "v1.2.3")
 }
 ```
 
-### __input - Text Input
+#### __call_async - Call Tasks in Parallel
+
+Calls multiple tasks concurrently. All consecutive `__call_async` calls form a synchronization block that waits for all tasks to complete.
+
+```yamfile
+build_all {
+    echo "Starting builds..."
+    __call_async build_frontend
+    __call_async build_backend
+    __call_async build_api
+    __call_async build_worker
+    // Waits here for all 4 tasks to complete
+    echo "All builds finished"
+}
+
+// With parameters - each call gets independent parameters
+compile_all {
+    __call_async compile("frontend", "production")
+    __call_async compile("backend", "production")
+    __call_async compile("api", "production")
+}
+```
+
+#### __call_ignore - Call with Error Handling
+
+Calls a task but continues execution even if it fails.
+
+```yamfile
+deploy {
+    __call_ignore optional_cleanup
+    __call_ignore notify_team
+    __call critical_deployment  // This must succeed
+}
+```
+
+#### __call_async_ignore - Parallel Call with Error Handling
+
+Combines async execution with error handling.
+
+```yamfile
+notify_all {
+    __call_async_ignore notify_slack
+    __call_async_ignore notify_email
+    __call_async_ignore notify_sms
+    // Continues even if some notifications fail
+    echo "Notifications sent"
+}
+```
+
+### Interactive Input Functions
+
+#### __input - Text Input
 
 ```yamfile
 deploy {
@@ -376,15 +438,19 @@ Supports glob patterns:
 
 ```yamfile
 // Linux/Mac specific
-@linux @mac: build {
-    ./build.sh
-    chmod +x dist/app
+@linux @mac {
+    build {
+        ./build.sh
+        chmod +x dist/app
+    }
 }
 
 // Windows specific
-@windows: build {
-    build.bat
-    attrib +x dist\app.exe
+@windows {
+    build {
+        build.bat
+        attrib +x dist\app.exe
+    }
 }
 
 // Universal task (runs on all platforms)
@@ -396,43 +462,50 @@ test {
 ### Complex Platform-Specific Tasks
 
 ```yamfile
-@linux @mac: install_deps {
-    # Install using homebrew or apt
-    if command -v brew &> /dev/null; then
-        brew install postgresql
-    elif command -v apt-get &> /dev/null; then
-        sudo apt-get install postgresql
-    fi
+@linux @mac {
+    install_deps {
+        # Install using homebrew or apt
+        if command -v brew &> /dev/null; then
+            brew install postgresql
+        elif command -v apt-get &> /dev/null; then
+            sudo apt-get install postgresql
+        fi
+    }
 }
 
-@windows: install_deps {
-    # Install using chocolatey
-    choco install postgresql
+@windows {
+    install_deps {
+        # Install using chocolatey
+        choco install postgresql
+    }
 }
 ```
 
 ### Shell-Specific Features
 
 ```yamfile
-@linux @mac: advanced_build {
-    # Full bash features available
-    function build_module() {
-        local module=$1
-        echo "Building $module"
-        cd $module && npm run build
+@linux @mac {
+    advanced_build {
+        # Full bash features available
+        function build_module() {
+            local module=$1
+            echo "Building $module"
+            cd $module && npm run build
+        }
+
+        for module in core utils cli; do
+            build_module $module
+        done
     }
-    
-    for module in core utils cli; do
-        build_module $module
-    done
 }
 
-@windows: advanced_build {
-    # Full PowerShell features available
-    function Build-Module {
-        param($module)
-        Write-Host "Building $module"
-        Set-Location $module
+@windows {
+    advanced_build {
+        # Full PowerShell features available
+        function Build-Module {
+            param($module)
+            Write-Host "Building $module"
+            Set-Location $module
         npm run build
     }
     
@@ -613,17 +686,21 @@ seed needs migrate {
 ### Multi-Platform Build
 
 ```yamfile
-@linux @mac: build_native {
-    # Unix build
-    ./configure
-    make -j4
-    make install
+@linux @mac {
+    build_native {
+        # Unix build
+        ./configure
+        make -j4
+        make install
+    }
 }
 
-@windows: build_native {
-    # Windows build
-    msbuild project.sln /p:Configuration=Release
-    copy Release\*.exe dist\
+@windows {
+    build_native {
+        # Windows build
+        msbuild project.sln /p:Configuration=Release
+        copy Release\*.exe dist\
+    }
 }
 
 package needs build_native {

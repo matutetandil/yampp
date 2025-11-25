@@ -490,20 +490,23 @@ export class TaskOrchestrator {
    * @returns Task copy with variables set up
    */
   private prepareTaskVariables(task: Task, parameters: string[]): Task & { variables: Map<string, string> } {
-    
-    // TEMP DEBUG: Check original task properties
-    
+    // Create a shallow copy of the task to avoid race conditions in concurrent execution
+    // Each task instance needs its own variables map to prevent parameter conflicts
+    // when the same task is called multiple times with different parameters in parallel
+    const taskCopy = Object.create(Object.getPrototypeOf(task));
+    Object.assign(taskCopy, task);
+
     const variables = (VariableSubstitution as unknown as VariableSubstitutionStatic).setupTaskVariables(
-      task, 
-      parameters, 
-      this.globalConstants, 
-      this.globalVariables, 
+      taskCopy,
+      parameters,
+      this.globalConstants,
+      this.globalVariables,
       this.globalEnvironmentVariables
     );
-    
-    // Add variables property to task (task instances are ephemeral)
-    (task as any).variables = variables;
-    return task as Task & { variables: Map<string, string> };
+
+    // Add variables property to task copy (not original task)
+    taskCopy.variables = variables;
+    return taskCopy as Task & { variables: Map<string, string> };
   }
 
   /**
@@ -865,13 +868,15 @@ export class TaskOrchestrator {
         // Collect all consecutive __call_async calls
         while (i < allLines.length) {
           const currentCommand = allLines[i]?.trim() || '';
-          const asyncMatch = currentCommand.match(/^\s*(__call_async(?:_ignore)?)\s+(.+?)(?:\(.*?\))?$/);
-          
+          // Match __call_async[_ignore] taskName(params) or __call_async[_ignore] taskName
+          const asyncMatch = currentCommand.match(/^\s*(__call_async(?:_ignore)?)\s+(.+)$/);
+
           if (asyncMatch) {
-            const [, funcName, taskName] = asyncMatch;
-            if (funcName && taskName) {
+            const [, funcName, taskCallExpression] = asyncMatch;
+            if (funcName && taskCallExpression) {
               const ignoreFailure = funcName.includes('ignore');
-              asyncBlock.push({ task: taskName.trim(), ignoreFailure });
+              // Keep the full task call expression (taskName or taskName(params))
+              asyncBlock.push({ task: taskCallExpression.trim(), ignoreFailure });
             }
             i++;
           } else if (currentCommand === '' || currentCommand.startsWith('//') || currentCommand.startsWith('#')) {
@@ -886,16 +891,90 @@ export class TaskOrchestrator {
         if (asyncBlock.length > 0) {
           // Generate a unique temporary task name
           const tempTaskName = `__async_block_${asyncBlockCounter++}_${Date.now()}`;
-          
-          // Separate regular and optional dependencies based on ignoreFailure
-          const regularDependencies = asyncBlock.filter(b => !b.ignoreFailure).map(b => b.task);
-          const optionalDependencies = asyncBlock.filter(b => b.ignoreFailure).map(b => b.task);
-          
-          // Create a simple task structure that has both regular and optional dependencies
+
+          // Parse task calls to extract task names and parameters
+          const parsedCalls = asyncBlock.map(block => {
+            // Match: taskName or taskName(param1, param2, ...)
+            const taskCallMatch = block.task.match(/^(\w+)(?:\((.*)\))?$/);
+            if (taskCallMatch) {
+              const [, taskName, paramsStr] = taskCallMatch;
+              // Parse parameters if present
+              const params = paramsStr ? this.parseCallParameters(paramsStr) : [];
+              return {
+                taskName,
+                params,
+                ignoreFailure: block.ignoreFailure
+              };
+            }
+            // Fallback if parsing fails
+            return {
+              taskName: block.task,
+              params: [],
+              ignoreFailure: block.ignoreFailure
+            };
+          });
+
+          // Create wrapper tasks for each parameterized call
+          // This allows multiple calls to the same task with different parameters
+          const wrapperTasks: string[] = [];
+          const wrapperTasksIgnore: string[] = [];
+
+          for (let idx = 0; idx < parsedCalls.length; idx++) {
+            const call = parsedCalls[idx];
+
+            if (!call) {
+              continue; // Skip if call is undefined
+            }
+
+            const taskName = call.taskName;
+
+            if (!taskName) {
+              continue; // Skip if taskName is undefined
+            }
+
+            // Create a unique wrapper task name for each call
+            const wrapperName = `__async_wrapper_${tempTaskName}_${idx}`;
+
+            // Create dependency params for this specific wrapper
+            const wrapperDependencyParams: Record<string, any[]> = {};
+            wrapperDependencyParams[taskName] = call.params.map(p => ({ type: 'literal', value: p }));
+
+            // Create wrapper task that depends on the actual task with specific parameters
+            const wrapperTask = {
+              name: wrapperName,
+              getDependencies: () => [taskName],
+              getOptionalDependencies: () => [],
+              getDependencyParams: () => wrapperDependencyParams,
+              getParameters: () => [],
+              getLocalVariables: () => new Map(),
+              getLocalConstants: () => new Map(),
+              getLocalEnvironmentVariables: () => new Map(),
+              getCommands: () => [],
+              hasModifier: () => false,
+              hasWatchedFiles: () => false,
+              getWatchedFiles: () => [],
+              getFilePatterns: () => [],
+              getCalls: () => [],
+              getNeeds: () => [taskName],
+              getRawCommands: () => []
+            };
+
+            // Register the wrapper task
+            this.tasks.set(wrapperName, wrapperTask as any);
+
+            // Add to appropriate list
+            if (call.ignoreFailure) {
+              wrapperTasksIgnore.push(wrapperName);
+            } else {
+              wrapperTasks.push(wrapperName);
+            }
+          }
+
+          // Create the main async block task that depends on all wrappers
           const tempTask = {
             name: tempTaskName,
-            getDependencies: () => regularDependencies,
-            getOptionalDependencies: () => optionalDependencies,
+            getDependencies: () => wrapperTasks,
+            getOptionalDependencies: () => wrapperTasksIgnore,
             getDependencyParams: () => ({}),
             getParameters: () => [],
             getLocalVariables: () => new Map(),
@@ -907,16 +986,15 @@ export class TaskOrchestrator {
             getWatchedFiles: () => [],
             getFilePatterns: () => [],
             getCalls: () => [],
-            getNeeds: () => [...regularDependencies, ...optionalDependencies], // Combined for compatibility
+            getNeeds: () => [...wrapperTasks, ...wrapperTasksIgnore],
             getRawCommands: () => []
           };
-          
+
           // Register the temporary task
           this.tasks.set(tempTaskName, tempTask as any);
-          
+
           // Replace the async block with a single __call to the temp task
-          // The temp task now has proper regular/optional dependency separation
-          // so we always use __call and let the ! dependency system handle failures
+          // The temp task depends on all wrapper tasks which execute in parallel
           transformedCommands.push(`__call ${tempTaskName}`);
         }
       } else {
@@ -932,5 +1010,48 @@ export class TaskOrchestrator {
     // Combine the transformed lines back into a single command string
     // This matches the original format of the commands array
     return [transformedCommands.join('\n')];
+  }
+
+  /**
+   * Parse call parameters from string format: "param1", "param2", param3
+   * Handles both quoted and unquoted parameters
+   * @param paramsStr - Parameters string from function call
+   * @returns Array of parameter values
+   */
+  private parseCallParameters(paramsStr: string): string[] {
+    const params: string[] = [];
+    let currentParam = '';
+    let inQuotes = false;
+    let quoteChar = '';
+
+    for (let i = 0; i < paramsStr.length; i++) {
+      const char = paramsStr[i];
+
+      if (!inQuotes && (char === '"' || char === "'")) {
+        // Start of quoted string
+        inQuotes = true;
+        quoteChar = char;
+      } else if (inQuotes && char === quoteChar) {
+        // End of quoted string
+        inQuotes = false;
+        quoteChar = '';
+      } else if (!inQuotes && char === ',') {
+        // Parameter separator
+        if (currentParam.trim()) {
+          params.push(currentParam.trim());
+        }
+        currentParam = '';
+      } else {
+        // Regular character
+        currentParam += char;
+      }
+    }
+
+    // Add last parameter
+    if (currentParam.trim()) {
+      params.push(currentParam.trim());
+    }
+
+    return params;
   }
 }
